@@ -91,10 +91,10 @@ export default function App() {
     }
   }, [messages, isLoading]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  const handleSend = async (overridePrompt?: string) => {
+    const userMessage = (overridePrompt ?? input).trim();
+    if (!userMessage || isLoading) return;
 
-    const userMessage = input.trim();
     setInput('');
     setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
     setIsLoading(true);
@@ -190,7 +190,7 @@ export default function App() {
               <Button
                 variant="outline"
                 size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5"
+                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
                 onClick={() => scrollToSidebarSection(marketSummaryRef)}
               >
                 <Sparkles className="w-3.5 h-3.5 text-blue-500 group-hover:text-white shrink-0 ml-1" />
@@ -199,7 +199,7 @@ export default function App() {
               <Button
                 variant="outline"
                 size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5"
+                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
                 onClick={() => scrollToSidebarSection(borderStatusRef)}
               >
                 <MapPin className="w-3.5 h-3.5 text-rose-500 group-hover:text-white shrink-0 ml-1" />
@@ -208,7 +208,7 @@ export default function App() {
               <Button
                 variant="outline"
                 size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5"
+                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
                 onClick={() => scrollToSidebarSection(currencyRef)}
               >
                 <DollarSign className="w-3.5 h-3.5 text-amber-500 group-hover:text-white shrink-0 ml-1" />
@@ -217,7 +217,7 @@ export default function App() {
               <Button
                 variant="outline"
                 size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5"
+                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
                 onClick={() => scrollToSidebarSection(costEstimatorRef)}
               >
                 <Package className="w-3.5 h-3.5 text-indigo-500 group-hover:text-white shrink-0 ml-1" />
@@ -226,7 +226,7 @@ export default function App() {
               <Button
                 variant="outline"
                 size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5"
+                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
                 onClick={() => scrollToSidebarSection(kycRef)}
               >
                 <UserCheck className="w-3.5 h-3.5 text-teal-500 group-hover:text-white shrink-0 ml-1" />
@@ -235,7 +235,7 @@ export default function App() {
               <Button
                 variant="outline"
                 size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5"
+                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
                 onClick={() => scrollToSidebarSection(procurementRef)}
               >
                 <Building2 className="w-3.5 h-3.5 text-violet-500 group-hover:text-white shrink-0 ml-1" />
@@ -244,7 +244,7 @@ export default function App() {
               <Button
                 variant="outline"
                 size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5"
+                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
                 onClick={() => scrollToSidebarSection(trackingRef)}
               >
                 <FileText className="w-3.5 h-3.5 text-sky-500 group-hover:text-white shrink-0 ml-1" />
@@ -253,7 +253,7 @@ export default function App() {
               <Button
                 variant="outline"
                 size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5"
+                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
                 onClick={() => scrollToSidebarSection(mapRef)}
               >
                 <Globe className="w-3.5 h-3.5 text-emerald-500 group-hover:text-white shrink-0 ml-1" />
@@ -379,7 +379,7 @@ export default function App() {
                           ? 'bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-tr-none border border-slate-200/40 dark:border-slate-800/80' 
                           : 'bg-primary text-primary-foreground rounded-tl-none'
                       }`}>
-                        <div className="prose prose-sm dark:prose-invert max-w-none break-words">
+                        <div className={`prose prose-sm max-w-none break-words ${msg.role === 'user' ? 'dark:prose-invert text-slate-800 dark:text-slate-100' : 'text-primary-foreground'}`}>
                           <ReactMarkdown rehypePlugins={[rehypeRaw]}>{msg.text}</ReactMarkdown>
                         </div>
                         {msg.groundingChunks && msg.groundingChunks.length > 0 && (
@@ -447,9 +447,9 @@ export default function App() {
                 key={action.label}
                 variant="outline"
                 size="sm"
-                className="whitespace-nowrap rounded-full text-[11px] font-bold bg-white dark:bg-slate-900/60 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 transition-all duration-200 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:-translate-y-0.5 gap-1.5 px-3.5 py-1.5 shadow-sm shrink-0 flex items-center"
+                className="whitespace-nowrap rounded-full text-[11px] font-bold bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white transition-all duration-200 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-400 hover:-translate-y-0.5 gap-1.5 px-3.5 py-1.5 shadow-md shrink-0 flex items-center"
                 onClick={() => {
-                  setInput(action.prompt);
+                  handleSend(action.prompt);
                 }}
               >
                 {action.icon && <action.icon className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />}
@@ -465,11 +465,11 @@ export default function App() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                className="ps-4 pe-14 h-12 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-sm focus-visible:ring-emerald-500 focus-visible:border-emerald-500 transition-all"
+                className="ps-4 pe-14 h-12 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-sm focus-visible:ring-emerald-500 focus-visible:border-emerald-500 transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 dir="rtl"
               />
               <Button 
-                onClick={handleSend} 
+                onClick={() => handleSend()} 
                 disabled={isLoading || !input.trim()}
                 className="absolute end-1.5 h-9 w-9 rounded-xl bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/10 transition-all active:scale-95"
                 size="icon"

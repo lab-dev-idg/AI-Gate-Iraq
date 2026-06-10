@@ -8,6 +8,8 @@ declare global {
     google: any;
     initMap: () => void;
     gm_authFailure?: () => void;
+    __googleMapsAuthFailed?: boolean;
+    onGoogleMapsAuthFailed?: () => void;
   }
 }
 
@@ -49,10 +51,19 @@ export function LogisticsMap() {
 
   useEffect(() => {
     // Intercept Google Maps Auth & Activation failures
-    window.gm_authFailure = () => {
+    const handleAuthFailure = () => {
       console.warn("Google Maps SDK failed to authenticate or load (maybe ApiNotActivatedMapError).");
       setMapError("ApiNotActivatedMapError");
     };
+
+    window.gm_authFailure = handleAuthFailure;
+    window.onGoogleMapsAuthFailed = handleAuthFailure;
+
+    // If an authentication failure was already caught before mount, use it immediately
+    if (window.__googleMapsAuthFailed) {
+      handleAuthFailure();
+      return;
+    }
 
     if (typeof window.google?.maps?.Map === 'function') {
       setIsReady(true);
@@ -84,6 +95,7 @@ export function LogisticsMap() {
       clearInterval(interval);
       script?.removeEventListener('load', handleLoad);
       script?.removeEventListener('error', handleError);
+      window.onGoogleMapsAuthFailed = undefined;
     };
   }, []);
 
