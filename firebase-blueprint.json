@@ -1,0 +1,40 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User specific information and settings",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "ShipmentHistory": {
+      "title": "Shipment History",
+      "description": "Records of tracked shipments per user",
+      "type": "object",
+      "properties": {
+        "trackingNumber": { "type": "string" },
+        "status": { "type": "string" },
+        "estimatedDelivery": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      },
+      "required": ["trackingNumber", "status", "userId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document"
+    },
+    "/users/{userId}/shipments/{shipmentId}": {
+      "schema": "ShipmentHistory",
+      "description": "History of shipments for a specific user"
+    }
+  }
+}

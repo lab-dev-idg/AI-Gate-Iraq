@@ -1,0 +1,8 @@
+{
+  "name": "AI Gate Iraq",
+  "description": "An expert AI business assistant for trade, commerce, currency and administrative processes in Iraq.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

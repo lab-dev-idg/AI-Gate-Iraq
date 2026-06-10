@@ -1,0 +1,51 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Auth helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // User Profile Rules
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) 
+        && request.resource.data.keys().hasAll(['uid', 'email', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.createdAt == request.time;
+      allow update: if isOwner(userId)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email;
+    }
+
+    // Shipment History Rules
+    match /users/{userId}/shipments/{shipmentId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && isValidId(shipmentId)
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.trackingNumber is string
+        && request.resource.data.status is string;
+      allow update: if isOwner(userId)
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.trackingNumber == resource.data.trackingNumber;
+      allow delete: if isOwner(userId);
+    }
+  }
+}
