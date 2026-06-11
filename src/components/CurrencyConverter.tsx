@@ -97,7 +97,7 @@ export function CurrencyConverter() {
             <Label className="text-xs font-bold uppercase tracking-wider text-slate-500 mr-1">{t.converter.from}</Label>
             <Select value={fromCurrency} onValueChange={setFromCurrency}>
               <SelectTrigger className="h-10 bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl">
-                <SelectValue placeholder="دراو" />
+                <SelectValue placeholder={t.lang === 'ar' ? 'العملة' : 'دراو'} />
               </SelectTrigger>
               <SelectContent>
                 {currencies.map(c => (
@@ -117,7 +117,7 @@ export function CurrencyConverter() {
             <Label className="text-xs font-bold uppercase tracking-wider text-slate-500 mr-1">{t.converter.to}</Label>
             <Select value={toCurrency} onValueChange={setToCurrency}>
               <SelectTrigger className="h-10 bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl">
-                <SelectValue placeholder="دراو" />
+                <SelectValue placeholder={t.lang === 'ar' ? 'العملة' : 'دراو'} />
               </SelectTrigger>
               <SelectContent>
                 {currencies.map(c => (

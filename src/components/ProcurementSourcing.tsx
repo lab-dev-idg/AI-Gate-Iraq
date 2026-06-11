@@ -10,7 +10,7 @@ import { useLanguage } from '@/src/lib/LanguageContext';
 import { motion, AnimatePresence } from 'motion/react';
 
 export function ProcurementSourcing() {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const [showHistory, setShowHistory] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -59,7 +59,7 @@ export function ProcurementSourcing() {
             className="h-8 px-2 text-xs gap-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-emerald-600 dark:text-emerald-400 font-bold"
           >
             {showHistory ? <PlusCircle className="w-4 h-4" /> : <History className="w-4 h-4" />}
-            {showHistory ? t.procurement.submit : 'مێژوو'}
+            {showHistory ? (lang === 'ar' ? 'طلب جديد' : 'داواکاری نوێ') : t.procurement.history}
           </Button>
         </CardTitle>
       </CardHeader>
@@ -78,7 +78,7 @@ export function ProcurementSourcing() {
                 <Label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.procurement.itemName}</Label>
                 <Input 
                   required
-                  placeholder="بابەتەکە چییە؟"
+                  placeholder={t.procurement.itemNamePlaceholder}
                   value={formData.itemName}
                   onChange={e => setFormData({...formData, itemName: e.target.value})}
                   className="h-10 text-xs text-right bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl"
@@ -102,7 +102,7 @@ export function ProcurementSourcing() {
                   <div className="relative">
                     <DollarSign className="absolute left-2.5 top-3 w-3.5 h-3.5 text-slate-400" />
                     <Input 
-                      placeholder="ناچاری نییە"
+                      placeholder={lang === 'ar' ? 'اختياري' : 'ناچاری نییە'}
                       type="number"
                       value={formData.targetPrice}
                       onChange={e => setFormData({...formData, targetPrice: e.target.value})}
@@ -122,7 +122,7 @@ export function ProcurementSourcing() {
                 />
               </div>
  
-              <Button type="submit" disabled={isSubmitting} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 tracking-wide shadow-sm rounded-xl transition-all">
+              <Button type="submit" disabled={isSubmitting} className="w-full bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-bold h-11 tracking-wide shadow-md shadow-emerald-500/10 rounded-xl transition-all">
                 {isSubmitting ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
@@ -143,7 +143,7 @@ export function ProcurementSourcing() {
             >
               <div className="text-center py-8 opacity-40">
                 <Package className="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-700" />
-                <p className="text-xs">هیچ داواکارییەک نییە</p>
+                <p className="text-xs font-bold">{t.procurement.noHistory}</p>
               </div>
             </motion.div>
           )}

@@ -27,23 +27,6 @@ interface ShipmentData {
   milestones?: Milestone[];
 }
 
-const MOCK_SHIPMENTS: Record<string, ShipmentData> = {
-  'LX123456789': {
-    trackingNumber: 'LX123456789',
-    status: 'لە گواستنەوەدایە',
-    origin: 'ئەستەنبوڵ، تورکیا',
-    destination: 'هەولێر، عێراق',
-    estimatedDelivery: '٢٠٢٤/٠٤/٢٥',
-    milestones: [
-      { status: 'وەرگیرا', location: 'ئەستەنبوڵ، تورکیا', date: '٢٠٢٤/٠٤/١٨', time: '١٠:٣٠ بەیانی', icon: <Factory className="w-4 h-4" />, isCompleted: true },
-      { status: 'گەیشتە مەرز', location: 'ئیبراهیم خەلیل', date: '٢٠٢٤/٠٤/٢٠', time: '٠٣:١٥ پاشنیوەڕۆ', icon: <Package className="w-4 h-4" />, isCompleted: true },
-      { status: 'لە گواستنەوەدایە', location: 'ڕێگای مووسڵ-هەولێر', date: '٢٠٢٤/٠٤/٢١', time: '٠٩:٠٠ بەیانی', icon: <Truck className="w-4 h-4" />, isCompleted: true },
-      { status: 'بۆ گەیاندن', location: 'هەولێر', date: '--', time: '--', icon: <Clock className="w-4 h-4" />, isCompleted: false },
-      { status: 'گەیەنرا', location: 'هەولێر', date: '--', time: '--', icon: <CheckCircle2 className="w-4 h-4" />, isCompleted: false },
-    ]
-  }
-};
-
 export function ShipmentTracker() {
   const { lang, t } = useLanguage();
   const { user } = useAuth();
@@ -53,6 +36,43 @@ export function ShipmentTracker() {
   const [isSearching, setIsSearching] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [error, setError] = useState('');
+
+  const getLocalizedShipment = (id: string): ShipmentData | null => {
+    if (id !== 'LX123456789') return null;
+
+    if (lang === 'ar') {
+      return {
+        trackingNumber: 'LX123456789',
+        status: 'في الطريق والترانزيت',
+        origin: 'اسطنبول، تركيا',
+        destination: 'أربيل، العراق',
+        estimatedDelivery: '2026/06/25',
+        milestones: [
+          { status: 'تم الاستلام في المصنع', location: 'اسطنبول، تركيا', date: '2026/06/18', time: '10:30 ص', icon: <Factory className="w-4 h-4" />, isCompleted: true },
+          { status: 'الوصول والتفتيش الجمركي', location: 'منفذ إبراهيم الخليل', date: '2026/06/20', time: '03:15 م', icon: <Package className="w-4 h-4" />, isCompleted: true },
+          { status: 'قيد الشحن البري والترانزيت', location: 'طريق الموصل - أربيل', date: '2026/06/21', time: '09:00 ص', icon: <Truck className="w-4 h-4" />, isCompleted: true },
+          { status: 'جاهز للتسليم النهائي', location: 'مستودعات أربيل', date: '--', time: '--', icon: <Clock className="w-4 h-4" />, isCompleted: false },
+          { status: 'تم التسليم بنجاح', location: 'مقر العميل', date: '--', time: '--', icon: <CheckCircle2 className="w-4 h-4" />, isCompleted: false },
+        ]
+      };
+    }
+
+    // Default Kurdish
+    return {
+      trackingNumber: 'LX123456789',
+      status: 'لە گواستنەوەدایە',
+      origin: 'ئەستەنبوڵ، تورکیا',
+      destination: 'هەولێر، عێراق',
+      estimatedDelivery: '٢٠٢٦/٠٦/٢٥',
+      milestones: [
+        { status: 'وەرگیرا لە کارگە', location: 'ئەستەنبوڵ، تورکیا', date: '٢٠٢٦/٠٦/١٨', time: '١٠:٣٠ بەیانی', icon: <Factory className="w-4 h-4" />, isCompleted: true },
+        { status: 'گەیشتە مەرز و پشکنین', location: 'ئیبراهیم خەلیل', date: '٢٠٢٦/٠٦/٢٠', time: '٠٣:١٥ پاشنیوەڕۆ', icon: <Package className="w-4 h-4" />, isCompleted: true },
+        { status: 'لە گواستنەوە و گواستنەوەدایە', location: 'ڕێگای مووسڵ-هەولێر', date: '٢٠٢٦/٠٦/٢١', time: '٠٩:٠٠ بەیانی', icon: <Truck className="w-4 h-4" />, isCompleted: true },
+        { status: 'ئامادەیە بۆ گەیاندن', location: 'هەولێر', date: '--', time: '--', icon: <Clock className="w-4 h-4" />, isCompleted: false },
+        { status: 'گەیەنرا بە سەرکەوتوویی', location: 'هەولێر', date: '--', time: '--', icon: <CheckCircle2 className="w-4 h-4" />, isCompleted: false },
+      ]
+    };
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -73,6 +93,16 @@ export function ShipmentTracker() {
     return () => unsubscribe();
   }, [user]);
 
+  // Sync active viewed shipment with language changes if it exists
+  useEffect(() => {
+    if (shipment) {
+      const updated = getLocalizedShipment(shipment.trackingNumber);
+      if (updated) {
+        setShipment(updated);
+      }
+    }
+  }, [lang]);
+
   const handleTrack = async (idToTrack?: string) => {
     const id = (idToTrack || trackingId).trim().toUpperCase();
     if (!id) return;
@@ -83,7 +113,7 @@ export function ShipmentTracker() {
     
     // Simulate API delay
     setTimeout(async () => {
-      const data = MOCK_SHIPMENTS[id];
+      const data = getLocalizedShipment(id);
       if (data) {
         setShipment(data);
         // Save to Firebase if user is logged in
@@ -98,7 +128,11 @@ export function ShipmentTracker() {
           });
         }
       } else {
-        setError('ببورە، ئەم ژمارەیە نەدۆزرایەوە. تکایە LX123456789 تاقی بکەرەوە.');
+        setError(
+          lang === 'ar'
+            ? 'عذراً، لم يتم العثور على هذا الرقم التتبعي. يرجى استخدام الرقم التجريبي الاسترشادي: LX123456789'
+            : 'ببوورە، ئەم ژمارەی بەدواداچوونە نەدۆزرایەوە. پێشنیار دەکرێت ژمارە تاقیکارییەکە بنووسیت: LX123456789'
+        );
         setShipment(null);
       }
       setIsSearching(false);
@@ -132,16 +166,16 @@ export function ShipmentTracker() {
                 placeholder={t.tracker.placeholder} 
                 value={trackingId}
                 onChange={(e) => setTrackingId(e.target.value)}
-                className="bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl h-10 text-right"
+                className="bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl h-10 text-right font-sans text-xs"
                 onKeyDown={(e) => e.key === 'Enter' && handleTrack()}
               />
-              <Button onClick={() => handleTrack()} disabled={isSearching} size="icon" className="h-10 w-10 bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-xl">
-                <Search className={`w-4 h-4 ${isSearching ? 'animate-pulse' : ''}`} />
+              <Button onClick={() => handleTrack()} disabled={isSearching} size="icon" className="h-10 w-10 bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-xl shadow-md shrink-0">
+                <Search className={`w-4 h-4 ${isSearching ? 'animate-spin' : ''}`} />
               </Button>
             </div>
 
             {error && (
-              <p className="text-xs text-red-500 text-right">{error}</p>
+              <p className="text-xs text-rose-500 text-right leading-relaxed font-medium">{error}</p>
             )}
 
             <AnimatePresence mode="wait">
@@ -152,14 +186,14 @@ export function ShipmentTracker() {
                   exit={{ opacity: 0, y: -10 }}
                   className="space-y-4"
                 >
-                  <div className="grid grid-cols-2 gap-2 text-[11px] p-3 bg-slate-50/50 dark:bg-slate-950/40 rounded-2xl border border-slate-100 dark:border-slate-800/80">
+                  <div className="grid grid-cols-2 gap-2 text-[11px] p-4 bg-slate-50/50 dark:bg-slate-950/40 rounded-2xl border border-slate-100 dark:border-slate-800/80">
                     <div className="text-right">
-                      <span className="text-slate-400 block mb-0.5">دۆخ:</span>
+                      <span className="text-slate-400 block mb-0.5 font-semibold">{lang === 'ar' ? 'الحالة:' : 'دۆخ:'}</span>
                       <span className="font-bold text-emerald-600 dark:text-emerald-400">{shipment.status}</span>
                     </div>
                     <div className="text-right border-r border-slate-200 dark:border-slate-800 pr-3">
-                      <span className="text-slate-400 block mb-0.5">گەیاندنی پێشبینیکراو:</span>
-                      <span className="font-bold text-slate-800 dark:text-slate-200">{shipment.estimatedDelivery}</span>
+                      <span className="text-slate-400 block mb-0.5 font-semibold">{lang === 'ar' ? 'التسليم المتوقع:' : 'گەیاندنی پێشبینیکراو:'}</span>
+                      <span className="font-bold text-slate-800 dark:text-slate-200 font-mono">{shipment.estimatedDelivery}</span>
                     </div>
                   </div>
 
@@ -168,7 +202,7 @@ export function ShipmentTracker() {
                     
                     {shipment.milestones?.map((step, idx) => (
                       <div key={idx} className="relative flex items-start flex-row-reverse gap-3">
-                        <div className={`z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border-4 border-white dark:border-slate-900 ${step.isCompleted ? 'bg-primary text-white shadow-md shadow-primary/10' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+                        <div className={`z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border-4 border-white dark:border-slate-900 ${step.isCompleted ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
                           {step.icon}
                         </div>
                         
@@ -177,7 +211,7 @@ export function ShipmentTracker() {
                             {step.status}
                           </p>
                           <p className="text-[10px] text-slate-400 dark:text-slate-500">
-                            {step.location} • {step.date}
+                            {step.location} • {step.date} {step.time !== '--' ? `[${step.time}]` : ''}
                           </p>
                         </div>
                       </div>
@@ -210,7 +244,7 @@ export function ShipmentTracker() {
                   <p className="text-[10px] text-slate-500">Please sign in to track history</p>
                 </div>
               ) : history.length === 0 ? (
-                <div className="text-center py-6 opacity-45">
+                <div className="text-center py-8 opacity-45">
                   <History className="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-700" />
                   <p className="text-[10px] text-slate-500 dark:text-slate-400">{t.tracker.noHistory}</p>
                 </div>
@@ -228,7 +262,7 @@ export function ShipmentTracker() {
                     </span>
                   </div>
                   <div className="flex justify-between text-[10px] text-slate-400">
-                    <span>گەیاندن: {item.estimatedDelivery}</span>
+                    <span>{lang === 'ar' ? 'التسليم:' : 'گەیاندن:'} {item.estimatedDelivery}</span>
                   </div>
                 </div>
               )))}
