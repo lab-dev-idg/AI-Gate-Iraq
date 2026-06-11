@@ -30,8 +30,20 @@ import { chat } from '@/src/lib/gemini';
 import { Message, IRAN_BORDER_STATUS } from '@/src/types';
 import { useLanguage } from '@/src/lib/LanguageContext';
 
+type ServiceKey =
+  | 'assistant'
+  | 'market'
+  | 'borders'
+  | 'currency'
+  | 'cost'
+  | 'kyc'
+  | 'procurement'
+  | 'tracking'
+  | 'map';
+
 export default function App() {
   const { lang, setLang, t } = useLanguage();
+  const [activeService, setActiveService] = useState<ServiceKey>('assistant');
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'model',
@@ -45,30 +57,71 @@ export default function App() {
   const sidebarScrollRef = useRef<HTMLDivElement | null>(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
-  const marketSummaryRef = useRef<HTMLDivElement | null>(null);
-  const borderStatusRef = useRef<HTMLDivElement | null>(null);
-  const currencyRef = useRef<HTMLDivElement | null>(null);
-  const costEstimatorRef = useRef<HTMLDivElement | null>(null);
-  const kycRef = useRef<HTMLDivElement | null>(null);
-  const procurementRef = useRef<HTMLDivElement | null>(null);
-  const trackingRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<HTMLDivElement | null>(null);
-
-  const scrollToSidebarSection = (targetRef: React.RefObject<HTMLDivElement | null>) => {
-    const target = targetRef.current;
-    const container = sidebarScrollRef.current;
-
-    if (!target || !container) return;
-
-    const containerRect = container.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-    const offset = targetRect.top - containerRect.top + container.scrollTop - 12;
-
-    container.scrollTo({
-      top: offset,
-      behavior: 'smooth',
-    });
-  };
+  const SERVICES = [
+    {
+      key: 'assistant' as const,
+      label_ku: 'یاریدەدەری زیرەک',
+      label_ar: 'المساعد الذكي',
+      icon: Bot,
+      color: 'text-emerald-500',
+    },
+    {
+      key: 'market' as const,
+      label_ku: 'کورتەی بازاڕ',
+      label_ar: 'ملخص السوق',
+      icon: Sparkles,
+      color: 'text-blue-500',
+    },
+    {
+      key: 'borders' as const,
+      label_ku: 'دۆخی مەرزەکان',
+      label_ar: 'حالة المنافذ',
+      icon: MapPin,
+      color: 'text-rose-500',
+    },
+    {
+      key: 'currency' as const,
+      label_ku: 'گۆڕینەوەی دراو',
+      label_ar: 'محول العملات',
+      icon: DollarSign,
+      color: 'text-amber-500',
+    },
+    {
+      key: 'cost' as const,
+      label_ku: 'خەمڵاندنی تێچوو',
+      label_ar: 'حاسبة التكاليف',
+      icon: Package,
+      color: 'text-indigo-500',
+    },
+    {
+      key: 'kyc' as const,
+      label_ku: 'تۆمارکردن / KYC',
+      label_ar: 'التسجيل و KYC',
+      icon: UserCheck,
+      color: 'text-teal-500',
+    },
+    {
+      key: 'procurement' as const,
+      label_ku: 'دابینکردنی کاڵا',
+      label_ar: 'توريد البضائع',
+      icon: Building2,
+      color: 'text-violet-500',
+    },
+    {
+      key: 'tracking' as const,
+      label_ku: 'بەدواداچوونی بار',
+      label_ar: 'تتبع الشحنات',
+      icon: FileText,
+      color: 'text-sky-500',
+    },
+    {
+      key: 'map' as const,
+      label_ku: 'نەخشەی دەروازەکان',
+      label_ar: 'خريطة المنافذ',
+      icon: Globe,
+      color: 'text-emerald-500',
+    }
+  ];
 
   const QUICK_ACTIONS = [
     { label: 'تێچووی کۆنتێنەر', icon: Package, prompt: 'تێچووی هێنانی کۆنتێنەرێکی ٤٠ پێ لە چینەوە بۆ ئوم قەسر چەندە؟' },
@@ -89,7 +142,7 @@ export default function App() {
         behavior: 'smooth'
       });
     }
-  }, [messages, isLoading]);
+  }, [messages, isLoading, activeService]);
 
   const handleSend = async (overridePrompt?: string) => {
     const userMessage = (overridePrompt ?? input).trim();
@@ -113,7 +166,19 @@ export default function App() {
       }]);
     } catch (error) {
       console.error('Error sending message:', error);
-      setMessages(prev => [...prev, { role: 'model', text: 'کێشەیەک لە پەیوەندییەکەدا هەیە. تکایە دووبارە هەوڵ بدەرەوە.' }]);
+      let errorMessage = 'کێشەیەک لە پەیوەندییەکەدا هەیە. تکایە دووبارە هەوڵ بدەرەوە.'; // Kurdish default
+      
+      if (error instanceof Error && error.message === 'QUOTA_EXHAUSTED') {
+        errorMessage = lang === 'ar' 
+          ? 'تنبيه: لقد تجاوزت الحصة المجانية لـ Gemini API. يرجى تهيئة مفتاح API الخاص بك أو التحقق من خطة الدفع في لوحة الإعدادات (Settings > Secrets).' 
+          : 'ئاگاداری: تۆ لە سنووری دیاریکراوی فری یان کووتای Gemini API لایداوە. تکایە کلیلێکی کارای خۆت دابنێ لە بەشی Settings > Secrets.';
+      } else if (error instanceof Error) {
+        errorMessage = lang === 'ar'
+          ? `فشل في إرسال الرسالة: ${error.message}`
+          : `ناردنی پەیام سەرکەوتوو نەبوو: ${error.message}`;
+      }
+      
+      setMessages(prev => [...prev, { role: 'model', text: errorMessage }]);
     } finally {
       setIsLoading(false);
     }
@@ -157,8 +222,8 @@ export default function App() {
               </Button>
             </div>
             <div className="hidden md:flex items-center gap-4 ml-4">
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-800">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse ml-2" />
+              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-800">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse ml-1.5" />
                 {t.app.systemActive}
               </Badge>
             </div>
@@ -177,311 +242,448 @@ export default function App() {
       </header>
       <Toaster position="top-center" richColors />
 
-      <main className="flex-1 overflow-hidden max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-6">
+      {/* Main Container */}
+      <main className="flex-1 overflow-hidden max-w-7xl mx-auto w-full flex flex-col lg:grid lg:grid-cols-12 gap-5 p-4 md:p-6 min-h-0">
+        
+        {/* Mobile & Tablet Service Selector */}
+        <div className="lg:hidden flex overflow-x-auto gap-1.5 pb-2 pt-0.5 px-0.5 no-scrollbar scroll-smooth shrink-0 border-b border-slate-100 dark:border-slate-800/60 mb-2">
+          {SERVICES.map((srv) => {
+            const isActive = activeService === srv.key;
+            const IconComp = srv.icon;
+            return (
+              <Button
+                key={srv.key}
+                variant={isActive ? 'default' : 'outline'}
+                size="sm"
+                className={`whitespace-nowrap px-3 h-8 text-[11px] font-bold rounded-lg transition-all duration-150 gap-1.5 shrink-0 ${
+                  isActive 
+                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm border-none' 
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
+                }`}
+                onClick={() => setActiveService(srv.key)}
+              >
+                <IconComp className={`w-3.5 h-3.5 ${isActive ? 'text-white' : srv.color}`} />
+                {lang === 'ar' ? srv.label_ar : srv.label_ku}
+              </Button>
+            );
+          })}
+        </div>
+
         {/* Sidebar Info - Desktop */}
-        <aside className="hidden lg:flex lg:col-span-3 h-full min-h-0 overflow-hidden flex-col">
-          {/* Quick Navigation Panel */}
-          <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white dark:bg-slate-900/80 p-4 shrink-0 rounded-2xl mb-4 transition-all hover:shadow-md">
-            <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-3.5 flex items-center gap-2 uppercase tracking-wider">
-              <Sparkles className="w-4 h-4 text-emerald-500 animate-pulse" />
-              {lang === 'ar' ? 'بوابة الخدمات السريعة' : 'ڕێبەری خزمەتگوزارییەکان'}
-            </h3>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <Button
-                variant="outline"
-                size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
-                onClick={() => scrollToSidebarSection(marketSummaryRef)}
-              >
-                <Sparkles className="w-3.5 h-3.5 text-blue-500 group-hover:text-white shrink-0 ml-1" />
-                <span className="truncate">{lang === 'ar' ? 'ملخص السوق' : 'کورتەی بازاڕ'}</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
-                onClick={() => scrollToSidebarSection(borderStatusRef)}
-              >
-                <MapPin className="w-3.5 h-3.5 text-rose-500 group-hover:text-white shrink-0 ml-1" />
-                <span className="truncate">{lang === 'ar' ? 'حالة المنافذ' : 'دۆخی مەرزەکان'}</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
-                onClick={() => scrollToSidebarSection(currencyRef)}
-              >
-                <DollarSign className="w-3.5 h-3.5 text-amber-500 group-hover:text-white shrink-0 ml-1" />
-                <span className="truncate">{lang === 'ar' ? 'محول العملات' : 'گۆڕینەوەی دراو'}</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
-                onClick={() => scrollToSidebarSection(costEstimatorRef)}
-              >
-                <Package className="w-3.5 h-3.5 text-indigo-500 group-hover:text-white shrink-0 ml-1" />
-                <span className="truncate">{lang === 'ar' ? 'حاسبة التكاليف' : 'خەمڵاندنی تێچوو'}</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
-                onClick={() => scrollToSidebarSection(kycRef)}
-              >
-                <UserCheck className="w-3.5 h-3.5 text-teal-500 group-hover:text-white shrink-0 ml-1" />
-                <span className="truncate">{lang === 'ar' ? 'الحساب / KYC' : 'تۆمارکردن / KYC'}</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
-                onClick={() => scrollToSidebarSection(procurementRef)}
-              >
-                <Building2 className="w-3.5 h-3.5 text-violet-500 group-hover:text-white shrink-0 ml-1" />
-                <span className="truncate">{lang === 'ar' ? 'توريد البضائع' : 'دابینکردنی کاڵا'}</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
-                onClick={() => scrollToSidebarSection(trackingRef)}
-              >
-                <FileText className="w-3.5 h-3.5 text-sky-500 group-hover:text-white shrink-0 ml-1" />
-                <span className="truncate">{lang === 'ar' ? 'تتبع الشحنات' : 'بەدواداچوونی بار'}</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="group justify-start text-[11px] font-bold h-9 bg-slate-50 hover:bg-primary hover:text-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-primary px-2.5 truncate flex items-center rounded-xl transition-all duration-200 gap-1.5 text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white"
-                onClick={() => scrollToSidebarSection(mapRef)}
-              >
-                <Globe className="w-3.5 h-3.5 text-emerald-500 group-hover:text-white shrink-0 ml-1" />
-                <span className="truncate">{lang === 'ar' ? 'خريطة المنافذ' : 'نەخشەی لۆجستیک'}</span>
-              </Button>
+        <aside className="hidden lg:flex lg:col-span-3 h-full min-h-0 overflow-hidden flex-col gap-4">
+          <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white dark:bg-slate-900/80 p-4 h-full shrink-0 rounded-2xl transition-all hover:shadow-md flex flex-col gap-3">
+            <div className="pb-3 border-b border-slate-100 dark:border-slate-800/80">
+              <h2 className="text-sm font-black text-slate-800 dark:text-white font-arabic">
+                {lang === 'ar' ? 'بوابة الأعمال الذكية' : 'سەکۆی بازرگانی زیرەک'}
+              </h2>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-semibold leading-relaxed">
+                {lang === 'ar' ? 'التحكم بالخدمات والمعلومات اللوجستية للعراق' : 'کۆنترۆڵکردنی خزمەتگوزاری و زانیاری لۆجیستی'}
+              </p>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 cs-scroll">
+              {SERVICES.map((srv) => {
+                const isActive = activeService === srv.key;
+                const IconComp = srv.icon;
+                return (
+                  <Button
+                    key={srv.key}
+                    variant={isActive ? 'default' : 'ghost'}
+                    size="sm"
+                    className={`w-full justify-start h-10 px-3 text-[11px] font-black rounded-xl transition-all duration-205 gap-2.5 ${
+                      isActive 
+                        ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm' 
+                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-850'
+                    }`}
+                    onClick={() => setActiveService(srv.key)}
+                  >
+                    <IconComp className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-white' : srv.color}`} />
+                    <span className="truncate">{lang === 'ar' ? srv.label_ar : srv.label_ku}</span>
+                  </Button>
+                );
+              })}
+            </div>
+
+            {/* Compact Border Status (Mini Summary) */}
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 mt-auto">
+              <div className="flex items-center gap-1.5 mb-2 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                <MapPin className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
+                {lang === 'ar' ? 'حالة الحدود والجمارك الحية' : 'دۆخی ڕاستەوخۆی مەرز و سنوور'}
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-[9px] bg-slate-50/50 dark:bg-slate-950/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/40">
+                <div>
+                  <span className="text-slate-400 block truncate font-arabic">{lang === 'ar' ? 'إبراهيم الخليل' : 'ئیبراهیم خەلیل'}</span>
+                  <span className="font-bold text-emerald-500 flex items-center gap-1">● {lang === 'ar' ? 'مفتوح' : 'کراوە'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block truncate font-arabic">{lang === 'ar' ? 'ميناء أم قصر' : 'بەرزە ئوم قەسر'}</span>
+                  <span className="font-bold text-emerald-500 flex items-center gap-1">● {lang === 'ar' ? 'نشط' : 'چالاک'}</span>
+                </div>
+              </div>
             </div>
           </Card>
-
-          <div 
-            ref={sidebarScrollRef} 
-            className="flex-1 min-h-0 overflow-y-auto overscroll-contain sidebar-scroll flex flex-col gap-6 pl-1 pr-1 pb-10"
-          >
-            <div ref={marketSummaryRef}>
-              <Card className="border border-emerald-500/10 shadow-md bg-gradient-to-br from-slate-950 via-slate-900 to-primary text-white rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/5">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2 font-arabic text-emerald-400">
-                    <Sparkles className="w-5 h-5 text-emerald-400" />
-                    {t.sidebar.marketSummary}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-1">
-                    <p className="text-[10px] text-emerald-300 uppercase font-black tracking-widest">{t.sidebar.newTariff}</p>
-                    <p className="text-sm font-semibold">{t.sidebar.newTariffDesc}</p>
-                  </div>
-                  <div className="h-px bg-white/10" />
-                  <div className="space-y-1">
-                    <p className="text-[10px] text-emerald-300 uppercase font-black tracking-widest">{t.sidebar.procedures}</p>
-                    <p className="text-sm font-semibold">{t.sidebar.proceduresDesc}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div ref={borderStatusRef}>
-              <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white dark:bg-slate-900/80 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-                <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800/80">
-                  <CardTitle className="text-lg flex items-center gap-2 font-arabic text-slate-950 dark:text-white">
-                    <MapPin className="w-5 h-5 text-emerald-500" />
-                    {t.sidebar.borderStatus}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4 space-y-4">
-                  {IRAN_BORDER_STATUS.map((border) => (
-                    <div key={border.name} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-black text-slate-800 dark:text-slate-200">{border.name}</span>
-                        <Badge variant={border.status === 'active' ? 'secondary' : 'destructive'} 
-                               className={border.status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900 hover:bg-emerald-100/50' : 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900'}>
-                          {border.status === 'active' ? t.sidebar.borderActive : t.sidebar.borderBusy}
-                        </Badge>
-                      </div>
-                      <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
-                        <span>{t.sidebar.waitingTime}</span>
-                        <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{border.waitTime}</span>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-
-            <div ref={currencyRef}>
-              <CurrencyConverter />
-            </div>
-
-            <div ref={costEstimatorRef}>
-              <ShippingCalculator />
-            </div>
-
-            <div ref={kycRef}>
-              <KYCForm />
-            </div>
-
-            <div ref={procurementRef}>
-              <ProcurementSourcing />
-            </div>
-
-            <div ref={trackingRef}>
-              <ShipmentTracker />
-            </div>
-
-            <div ref={mapRef}>
-              <LogisticsMap />
-            </div>
-          </div>
         </aside>
 
-        {/* Chat Interface */}
-        <Card className="lg:col-span-9 flex flex-col min-h-0 overflow-hidden border border-slate-200/60 dark:border-slate-800/60 shadow-md bg-white dark:bg-slate-900/30 rounded-2xl">
-          <div 
-            ref={chatScrollRef} 
-            className="flex-1 min-h-0 overflow-y-auto overscroll-contain chat-scroll p-4 md:p-6"
-          >
-            <div className="space-y-6">
-              <AnimatePresence initial={false}>
-                {messages.map((msg, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}`}
-                  >
-                    <div className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row' : 'flex-row-reverse'}`}>
-                      <Avatar className={`w-8 h-8 mt-1 border shadow-sm ${msg.role === 'model' ? 'bg-primary border-primary/20' : 'bg-slate-100 border-slate-200'}`}>
-                        {msg.role === 'model' ? (
-                          <>
-                            <AvatarImage src="/bot-icon.png" />
-                            <AvatarFallback className="bg-primary text-white"><Bot className="w-4 h-4" /></AvatarFallback>
-                          </>
-                        ) : (
-                          <>
-                            <AvatarFallback className="text-slate-500 bg-slate-50"><User className="w-4 h-4" /></AvatarFallback>
-                          </>
-                        )}
-                      </Avatar>
-                      <div 
-                        onClick={() => msg.role === 'model' && setSelectedMessage(msg)}
-                        className={`group relative p-4 rounded-xl shadow-sm cursor-default ${
-                        msg.role === 'model' ? 'cursor-pointer hover:shadow-md hover:scale-[1.005] transition-all duration-200' : ''
-                      } ${
-                        msg.role === 'user' 
-                          ? 'bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-tr-none border border-slate-200/40 dark:border-slate-800/80' 
-                          : 'bg-primary text-primary-foreground rounded-tl-none'
-                      }`}>
-                        <div className={`prose prose-sm max-w-none break-words ${msg.role === 'user' ? 'dark:prose-invert text-slate-800 dark:text-slate-100' : 'text-primary-foreground'}`}>
-                          <ReactMarkdown rehypePlugins={[rehypeRaw]}>{msg.text}</ReactMarkdown>
+        {/* Main Workspace Area */}
+        <div className="flex-1 lg:col-span-9 flex flex-col min-h-0 h-full overflow-hidden">
+          {activeService === 'assistant' && (
+            <Card className="flex-1 flex flex-col min-h-0 overflow-hidden border border-slate-200/60 dark:border-slate-800/60 shadow-md bg-white dark:bg-slate-900/30 rounded-2xl h-full">
+              {/* Advisor Header */}
+              <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 shadow-sm">
+                    <Bot className="w-5 h-5 flex-shrink-0" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-black text-slate-850 dark:text-white font-arabic">
+                      {lang === 'ar' ? 'مستشار الأعمال واللوجستيات الذكي' : 'ڕاوێژکاری لۆجیستی و بازرگانی زیرەک'}
+                    </h2>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium">
+                      {lang === 'ar' ? 'اطرح أسئلتك اللوجستية عاجلاً بخصوص المعابر الجمركية، التعارف، والاستيراد بالعراق' : 'پرسیارەکانی خۆت ئاڕاستە بکە لەسەر تاریفەکان، گومرگ و هێڵەکانی هاوردەکردن لە عێراق'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chat Viewport */}
+              <div 
+                ref={chatScrollRef} 
+                className="flex-1 min-h-0 overflow-y-auto overscroll-contain chat-scroll p-4 md:p-6 bg-slate-50/25 dark:bg-slate-950/25"
+              >
+                <div className="space-y-6">
+                  <AnimatePresence initial={false}>
+                    {messages.map((msg, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}`}
+                      >
+                        <div className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row' : 'flex-row-reverse'}`}>
+                          <Avatar className={`w-8 h-8 mt-1 border shadow-sm ${msg.role === 'model' ? 'bg-primary border-primary/20' : 'bg-slate-100 border-slate-200'}`}>
+                            {msg.role === 'model' ? (
+                              <>
+                                <AvatarImage src="/bot-icon.png" />
+                                <AvatarFallback className="bg-primary text-white"><Bot className="w-4 h-4" /></AvatarFallback>
+                              </>
+                            ) : (
+                              <>
+                                <AvatarFallback className="text-slate-500 bg-slate-50"><User className="w-4 h-4" /></AvatarFallback>
+                              </>
+                            )}
+                          </Avatar>
+                          <div 
+                            onClick={() => msg.role === 'model' && setSelectedMessage(msg)}
+                            className={`group relative p-4 rounded-xl shadow-sm cursor-default ${
+                            msg.role === 'model' ? 'cursor-pointer hover:shadow-md hover:scale-[1.005] transition-all duration-200' : ''
+                          } ${
+                            msg.role === 'user' 
+                              ? 'bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-tr-none border border-slate-200/40 dark:border-slate-800/80' 
+                              : 'bg-primary text-primary-foreground rounded-tl-none'
+                          }`}>
+                            <div className={`prose prose-sm max-w-none break-words ${msg.role === 'user' ? 'dark:prose-invert text-slate-800 dark:text-slate-100' : 'text-primary-foreground'}`}>
+                              <ReactMarkdown rehypePlugins={[rehypeRaw]}>{msg.text}</ReactMarkdown>
+                            </div>
+                            {msg.groundingChunks && msg.groundingChunks.length > 0 && (
+                              <div className="mt-3 pt-3 border-t border-white/20 space-y-2">
+                                <p className="text-[10px] uppercase font-bold tracking-widest opacity-70">{t.chat.sources}</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {msg.groundingChunks.map((chunk, i) => {
+                                    const web = chunk.web;
+                                    const maps = chunk.maps;
+                                    if (maps) {
+                                      return (
+                                        <a 
+                                          key={i} 
+                                          href={maps.uri} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-[10px] bg-white/20 hover:bg-white/30 px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                                        >
+                                          <MapPin className="w-3 h-3" />
+                                          {maps.title || t.chat.viewMap}
+                                        </a>
+                                      );
+                                    }
+                                    if (web) {
+                                      return (
+                                        <a 
+                                          key={i} 
+                                          href={web.uri} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-[10px] bg-white/20 hover:bg-white/30 px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                                        >
+                                          <Globe className="w-3 h-3" />
+                                          {web.title || t.chat.source}
+                                        </a>
+                                      );
+                                    }
+                                    return null;
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                            <span className={`text-[10px] mt-2 block opacity-50 ${msg.role === 'user' ? 'text-slate-500' : 'text-primary-foreground'}`}>
+                              {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
                         </div>
-                        {msg.groundingChunks && msg.groundingChunks.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-white/20 space-y-2">
-                            <p className="text-[10px] uppercase font-bold tracking-widest opacity-70">{t.chat.sources}</p>
-                            <div className="flex flex-wrap gap-2">
-                              {msg.groundingChunks.map((chunk, i) => {
-                                const web = chunk.web;
-                                const maps = chunk.maps;
-                                if (maps) {
-                                  return (
-                                    <a 
-                                      key={i} 
-                                      href={maps.uri} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="text-[10px] bg-white/20 hover:bg-white/30 px-2 py-1 rounded flex items-center gap-1 transition-colors"
-                                    >
-                                      <MapPin className="w-3 h-3" />
-                                      {maps.title || t.chat.viewMap}
-                                    </a>
-                                  );
-                                }
-                                if (web) {
-                                  return (
-                                    <a 
-                                      key={i} 
-                                      href={web.uri} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="text-[10px] bg-white/20 hover:bg-white/30 px-2 py-1 rounded flex items-center gap-1 transition-colors"
-                                    >
-                                      <Globe className="w-3 h-3" />
-                                      {web.title || t.chat.source}
-                                    </a>
-                                  );
-                                }
-                                return null;
-                              })}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                  {isLoading && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start pr-11">
+                      <div className="bg-secondary p-3 rounded-full flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                        <span className="text-xs font-medium text-muted-foreground">{t.chat.thinking}</span>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+
+              {/* Suggested prompt chips */}
+              <div className="px-5 py-3 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth border-t border-slate-100 dark:border-slate-800/40">
+                {QUICK_ACTIONS.map((action) => (
+                  <Button
+                    key={action.label}
+                    variant="outline"
+                    size="sm"
+                    className="whitespace-nowrap rounded-full text-[11px] font-bold bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white transition-all duration-200 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-400 hover:-translate-y-0.5 gap-1.5 px-3.5 py-1.5 shadow-md shrink-0 flex items-center"
+                    onClick={() => handleSend(action.prompt)}
+                  >
+                    {action.icon && <action.icon className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />}
+                    {action.label}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Chat Input form */}
+              <div className="p-4 md:p-5 bg-slate-50/50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800/80">
+                <div className="relative flex items-center gap-2 max-w-4xl mx-auto">
+                  <Input
+                    placeholder={t.chat.placeholder}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                    className="ps-4 pe-14 h-12 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-sm focus-visible:ring-emerald-500 focus-visible:border-emerald-500 transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                    dir="rtl"
+                  />
+                  <Button 
+                    onClick={() => handleSend()} 
+                    disabled={isLoading || !input.trim()}
+                    className="absolute end-1.5 h-9 w-9 rounded-xl bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/10 transition-all active:scale-95"
+                    size="icon"
+                  >
+                    <Send className="w-4 h-4 rtl:-rotate-180" />
+                  </Button>
+                </div>
+                <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 mt-3.5 uppercase tracking-widest font-black opacity-80">
+                  AI Gate Iraq • 2026 • {lang === 'ar' ? 'البوابة الوطنية للتجارة والأعمال' : 'سەکۆی نیشتمانی بۆ بازرگانی و کار'}
+                </p>
+              </div>
+            </Card>
+          )}
+
+          {activeService !== 'assistant' && (
+            <Card className="flex-1 flex flex-col min-h-0 overflow-hidden border border-slate-200/60 dark:border-slate-800/60 shadow-md bg-white dark:bg-slate-900/40 rounded-2xl h-full p-5 md:p-6">
+              {/* Premium Workspace Header */}
+              <div className="pb-4 border-b border-slate-100 dark:border-slate-800/80 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-base md:text-lg font-black text-slate-900 dark:text-white font-arabic flex items-center gap-2">
+                    {activeService === 'market' && <Sparkles className="w-5 h-5 text-blue-500" />}
+                    {activeService === 'borders' && <MapPin className="w-5 h-5 text-rose-500" />}
+                    {activeService === 'currency' && <DollarSign className="w-5 h-5 text-amber-500" />}
+                    {activeService === 'cost' && <Package className="w-5 h-5 text-indigo-500" />}
+                    {activeService === 'kyc' && <UserCheck className="w-5 h-5 text-teal-500" />}
+                    {activeService === 'procurement' && <Building2 className="w-5 h-5 text-violet-500" />}
+                    {activeService === 'tracking' && <FileText className="w-5 h-5 text-sky-500" />}
+                    {activeService === 'map' && <Globe className="w-5 h-5 text-emerald-500" />}
+
+                    {activeService === 'market' && (lang === 'ar' ? 'ملخص السوق والتجارة العراقیة' : 'کورتەی بازاڕ و بازرگانی عێراق')}
+                    {activeService === 'borders' && (lang === 'ar' ? 'حالة المعابر الجمركية والمنافذ المباشرة' : 'دۆخی نوێی مەرز و دەروازە بازرگانییەکان')}
+                    {activeService === 'currency' && (lang === 'ar' ? 'محول وتصريف العملات الفوري' : 'گۆڕینەوەی دراو و نرخە فەرمییەکان')}
+                    {activeService === 'cost' && (lang === 'ar' ? 'حاسبة وتخمين تكاليف الشحن الدولي' : 'خەمڵاندنی تێچووی بار و لۆجیستی')}
+                    {activeService === 'kyc' && (lang === 'ar' ? 'توثيق حساب تاجر / مۆڵەتی فەرمی' : 'تۆمارکردن و چالاککردنی کۆمپانیای بازرگانی / KYC')}
+                    {activeService === 'procurement' && (lang === 'ar' ? 'طلب دابینکردن وتوريد بضائع عالمية' : 'فۆرمی داواکاری دابینکردنی کاڵا')}
+                    {activeService === 'tracking' && (lang === 'ar' ? 'لوحة متابعة وتتبع الشحنات المستمرة' : 'بەدواداچوون بۆ گەشت و گواستنەوەی بار')}
+                    {activeService === 'map' && (lang === 'ar' ? 'الخارطة التفاعلية للمنافذ والمرافئ اللوجستية' : 'بینینی مەرزەکان لەسەر نەخشەی لۆجیستی')}
+                  </h2>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-semibold leading-relaxed max-w-2xl">
+                    {activeService === 'market' && (lang === 'ar' ? 'أحدث تقارير تاريفت الجمارك وقوانين العام المالي لعام ٢٠٢٦.' : 'کورتەیەکی تەواو لەسەر تاریفە نوێیەکانی باج و پێشڤەچوونی بازاڕی عێراق.')}
+                    {activeService === 'borders' && (lang === 'ar' ? 'لوحة مراقبة حية توضح فترات انتظار الشحن البحري والبري ومستوى قساوة الممر.' : 'پێشاندانی وردی کاتی چاوەڕوانی بۆ بارهەڵگرەکان و ڕێژەی قەرەباڵغی مەرزە سنوورییەکان.')}
+                    {activeService === 'currency' && (lang === 'ar' ? 'معادل الدينار العراقي مقابل الدولار والعملات الرئيسية وفقاً لصرافة وسط بغداد ومكاتب الإقليم.' : 'گۆڕینەوەی بەهای دۆلار بەرامبەر دینار بە نوێترین تێکڕای بازاڕی عێراق بە کاتی ناوخۆیی.')}
+                    {activeService === 'cost' && (lang === 'ar' ? 'أداة حسابية سريعة لحساب حجم الشحنة والوزن الطردي لتقدير التكلفة الكلية للشحن عائلياً.' : 'ئامێری حیسابکەر بۆ زانینی نرخ بەپێی قەبارە و کێشی کۆنتێنەر بە تەواوی ڕسوومات.')}
+                    {activeService === 'kyc' && (lang === 'ar' ? 'ساعدنا في التحقق من ترخيص ممارسة الأعمال العراقي لمصادقة عمليات الإرسال اللوجستية.' : 'فۆرمی ناساندن بۆ پاراستنی مۆڵەتی ڕێپێدراوی بازرگانی و دابینکردنی نوێترین بەڵگەنامەکان.')}
+                    {activeService === 'procurement' && (lang === 'ar' ? 'أرسل تفاصيل المنتج والمواصفات المطلوبة لبدء البحث والاتصال بأفضل المصانع.' : 'تۆمارکردنی داخوازی بۆ هێنانی هەر کاڵایەک لەگەڵ بڕ، نرخ و خەمڵاندن بە شێوازی فەرمی.')}
+                    {activeService === 'tracking' && (lang === 'ar' ? 'استقصاء مسار الحاويات والبضائع بنقرة واحدة عبر لوحة التحكم ومكتب التسليم.' : 'بەدواداچوونی گونجاو بە ژمارەی مۆڵەت فەرمی بۆ بینینی خاڵ بە خاڵی گەیشتنی بار.')}
+                    {activeService === 'map' && (lang === 'ar' ? 'اكتشف مواقع الموانئ البرية ومرافئ التنزيل الجغرافي النشطة في عاصمة التجارة.' : 'بینینی شوێن و داتا لۆجیستییەکان لەسەر نەخشەی چالاکی هاوردەکردنی کاڵاکان.')}
+                  </p>
+                </div>
+
+                {/* AI suggestion helper widget to click */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white border border-emerald-500/20 rounded-xl transition-all h-9 flex items-center gap-1.5 shrink-0 self-start text-xs font-bold font-arabic"
+                  onClick={() => {
+                    let prompt = '';
+                    if (activeService === 'market') {
+                      prompt = lang === 'ar' ? 'كيف ستؤثر قوانين التعرفة الجديدة لعام 2026 على أعمال الاستيراد الخاصة بي؟' : 'چۆن تاریفەی گومرگی نوێی ٢٠٢٦ کاریگەری لەسەر هاوردەکردنی کاڵاکانم دەبێت؟';
+                    } else if (activeService === 'borders') {
+                      prompt = lang === 'ar' ? 'ما هي الإجراءات الجمركية في منفذ إبراهيم الخليل مقارنة مع أم قصر؟' : 'ڕێکارە گومرگییەکان لە مەرزی ئیبراهیم خەلیل چۆنن لە چاو ئوم قەسر؟';
+                    } else if (activeService === 'currency') {
+                      prompt = lang === 'ar' ? 'ما هي توقعات أسعار صرف الدولار مقابل الدينار في السوق المحلية بالفترة القادمة؟' : 'پێشبینییەکانی دەستبەجێ بۆ نرخی دۆلار بەرامبەر دینار لە بازاڕی ناوخۆ چییە؟';
+                    } else if (activeService === 'cost') {
+                      prompt = lang === 'ar' ? 'ما هي الرسوم الإضافية المحتملة غير تكلفة الشحن الأساسية مثل الأرضيات والجمارك؟' : 'چی تێچوویەکی تری گومرگی هەیە وەک زەمینە یان مۆڵەت کە لێرە کۆنەکراوەتەوە؟';
+                    } else if (activeService === 'kyc') {
+                      prompt = lang === 'ar' ? 'ما هي خطوات التحقق القانوني والشروط المطلوبة لفتح سجل تجاري بالعراق؟' : 'هەنگاوە یاساییەکان و مەرجە گرنگەکان بۆ تۆمارکردنی حیسابی فەرمی بازرگانی لە عێراق چین؟';
+                    } else if (activeService === 'procurement') {
+                      prompt = lang === 'ar' ? 'كيف أحصل على عروض أسعار موثوقة ومضمونة لشحن السلع من الصين؟' : 'چۆن کۆکتەیلێکی سەرکەوتووی دابینکردن دروست بکەم لە چینەوە بۆ عێراق لە ڕووی گرێبەستەوە؟';
+                    } else if (activeService === 'tracking') {
+                      prompt = lang === 'ar' ? 'ماذا أفعل إذا تأخرت شحنتي في ميناء أم قصر دون مبرر؟' : 'چی بکەم ئەگەر بارەکەم لە بەندەری ئوم قەسر دواکەوت و کێشەی تەکنیکی بوو؟';
+                    } else if (activeService === 'map') {
+                      prompt = lang === 'ar' ? 'ما هي الطاقة الاستيعابية لأهم المنافذ البرية في المحافظات العراقية؟' : 'چی دەربارەی دەروازە چالاکەکانی گومرگ دەزانیت لەسەر هێڵی بازرگانی نیشتمانی؟';
+                    }
+                    setActiveService('assistant');
+                    setTimeout(() => handleSend(prompt), 150);
+                  }}
+                >
+                  <Bot className="w-4 h-4" />
+                  {lang === 'ar' ? 'اسأل مستشار الذكاء الاصطناعي لحل هذه المعضلة' : 'لە یاریدەدەری زیرەک بپرسە دەربارەی ئەمە'}
+                </Button>
+              </div>
+
+              {/* Workspace Content Viewport */}
+              <div className="flex-1 min-h-0 overflow-y-auto pr-1 pb-4 cs-scroll space-y-6">
+                {activeService === 'market' && (
+                  <div className="space-y-6 max-w-3xl text-slate-800 dark:text-slate-100">
+                    <Card className="border border-emerald-500/10 shadow-md bg-gradient-to-br from-slate-950 via-slate-900 to-primary text-white rounded-2xl p-5">
+                      <CardHeader className="p-0 pb-3">
+                        <CardTitle className="text-base md:text-lg flex items-center gap-2 font-arabic text-emerald-400">
+                          <Sparkles className="w-5 h-5 text-emerald-400 font-bold" />
+                          {t.sidebar.marketSummary}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0 space-y-5">
+                        <div className="space-y-1.5">
+                          <p className="text-xs text-emerald-300 uppercase font-black tracking-widest">{t.sidebar.newTariff}</p>
+                          <p className="text-sm leading-relaxed text-slate-100">{t.sidebar.newTariffDesc}</p>
+                          <p className="text-xs text-slate-300 mt-2">
+                            {lang === 'ar' 
+                              ? 'تم إدخال بعض الخطوات الإضافية لتسهيل إجراءات الإعفاءات ومنع الازدواجات الضريبية في العام الجديد ٢٠٢٦.' 
+                              : 'چەند هەنگاوێکی نوێ گرتراونەتە بەر بە مەبەستی ڕێگریکردن لە دووجار باجدان و ئاسانکردنی لێخۆشبوونە گومرگییەکان.'}
+                          </p>
+                        </div>
+                        <div className="h-px bg-white/10" />
+                        <div className="space-y-1.5">
+                          <p className="text-xs text-emerald-300 uppercase font-black tracking-widest">{t.sidebar.procedures}</p>
+                          <p className="text-sm leading-relaxed text-slate-100">{t.sidebar.proceduresDesc}</p>
+                          <p className="text-xs text-slate-300 mt-2">
+                            {lang === 'ar' 
+                              ? 'نظام الجمارك المحوسب (أسيكودا) يبسط كافة تفاصيل تقديم المنافستو الجمركي بنسبة خطأ قليلة.'
+                              : 'سیستەمی ئەلیکترۆنی ئاسیکۆدا دەبێتە هۆی کەمکردنەوەی جیاوازییەکانی بەها و کار ئاسانی تەواو دەکات بۆ ڕاپەڕاندنی مۆڵەت.'}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Pro tip */}
+                    <div className="bg-slate-50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800/80 rounded-2xl p-5">
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2 font-arabic">
+                        {lang === 'ar' ? 'توضيح هام بخصوص النظم الجمركية في العراق' : 'تێبینی بۆ ڕێنماییە گومرگییەکان لە عێراق'}
+                      </h4>
+                      <p className="text-xs text-slate-500 leading-relaxed font-sans">
+                        {lang === 'ar' 
+                          ? 'تنصح لوحة أعمال العراق جميع الشركات والمستوردين بالتحقق المسبق من تصنيف رمز النظام المنسق (HS Code) للبضائع قبل الشراء لتفادي غرامات الجمارك وضمان تسيير الشحنات بسرعة عبر موانئ البصرة ونقاط التحقق البرية.'
+                          : 'دەستەی کارگێڕی بازرگانی عێراق داوا لە نوێنەری کۆمپانیاکان دەکات کە پێش هاوردەکردنی هەر چەشنە کاڵایەک کۆدی جیهانی کاڵاکە (HS Code) بە وردی بخوێننەوە بۆ ئەوەی دووچاری سزای دواکەوتن و لێبڕین نەبن لە مەرزی ئوم قەسر یان شوێنەکانی تر.'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {activeService === 'borders' && (
+                  <div className="space-y-6 max-w-3xl text-slate-800 dark:text-slate-100">
+                    <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white dark:bg-slate-900/80 rounded-2xl">
+                      <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800/80">
+                        <CardTitle className="text-lg flex items-center gap-2 font-arabic text-slate-950 dark:text-white">
+                          <MapPin className="w-5 h-5 text-rose-500" />
+                          {t.sidebar.borderStatus}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-5 space-y-4">
+                        {IRAN_BORDER_STATUS.map((border) => (
+                          <div key={border.name} className="space-y-2 p-3 bg-slate-50/50 dark:bg-slate-950/20 rounded-xl border border-slate-100/50 dark:border-slate-800/40">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-black text-slate-800 dark:text-slate-200">{border.name}</span>
+                              <Badge variant={border.status === 'active' ? 'secondary' : 'destructive'} 
+                                     className={border.status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900' : 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900'}>
+                                {border.status === 'active' ? t.sidebar.borderActive : t.sidebar.borderBusy}
+                              </Badge>
+                            </div>
+                            <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 pt-1">
+                              <span>{t.sidebar.waitingTime}</span>
+                              <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{border.waitTime}</span>
                             </div>
                           </div>
-                        )}
-                        <span className={`text-[10px] mt-2 block opacity-50 ${msg.role === 'user' ? 'text-slate-500' : 'text-primary-foreground'}`}>
-                          {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                        ))}
+                      </CardContent>
+                    </Card>
+
+                    <div className="bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 rounded-2xl p-4 text-xs font-sans">
+                      <div className="flex items-start gap-2.5">
+                        <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                        <div>
+                          <strong className="block font-black font-arabic mb-1">{lang === 'ar' ? 'تنبيه جمركي عاجل' : 'ئاگاداری گومرگی گرنگ'}</strong>
+                          {lang === 'ar' 
+                            ? 'قد يزداد وقت الانتظار للشاحنات في منفذ إبراهيم الخليل لأسباب تتعلق بالتدقيق الموسّم وإجراءات المعاينة الفنية. يوصى بمتابعة حالة الانتظار عبر مستشارنا الذكي لسلامة سلسلة التوريد.'
+                            : 'ڕەنگە کاتی چاوەڕوانی بۆ بارهەڵگرە گەورەکان لە مەرزی نێودەوڵەتی ئیبراهیم خەلیل زیاتر بێت بەهۆی پشکنینی ناوەکی و فەرمیی تایبەت بە کاڵاکان. پێشنیار کراوە هەمیشە گەشتەکەت ڕێکبخەیتەوە.'}
+                        </div>
                       </div>
                     </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-              {isLoading && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-end pr-11">
-                  <div className="bg-secondary p-3 rounded-full flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                    <span className="text-xs font-medium text-muted-foreground">{t.chat.thinking}</span>
                   </div>
-                </motion.div>
-              )}
-            </div>
-          </div>
+                )}
 
-          <div className="px-5 py-3 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth">
-            {QUICK_ACTIONS.map((action) => (
-              <Button
-                key={action.label}
-                variant="outline"
-                size="sm"
-                className="whitespace-nowrap rounded-full text-[11px] font-bold bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white transition-all duration-200 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-400 hover:-translate-y-0.5 gap-1.5 px-3.5 py-1.5 shadow-md shrink-0 flex items-center"
-                onClick={() => {
-                  handleSend(action.prompt);
-                }}
-              >
-                {action.icon && <action.icon className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />}
-                {action.label}
-              </Button>
-            ))}
-          </div>
+                {activeService === 'currency' && (
+                  <div className="max-w-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
+                    <CurrencyConverter />
+                  </div>
+                )}
 
-          <div className="p-4 md:p-5 bg-slate-50/50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800/80">
-            <div className="relative flex items-center gap-2 max-w-4xl mx-auto">
-              <Input
-                placeholder={t.chat.placeholder}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                className="ps-4 pe-14 h-12 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-sm focus-visible:ring-emerald-500 focus-visible:border-emerald-500 transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                dir="rtl"
-              />
-              <Button 
-                onClick={() => handleSend()} 
-                disabled={isLoading || !input.trim()}
-                className="absolute end-1.5 h-9 w-9 rounded-xl bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/10 transition-all active:scale-95"
-                size="icon"
-              >
-                <Send className="w-4 h-4 rtl:-rotate-180" />
-              </Button>
-            </div>
-            <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 mt-3.5 uppercase tracking-widest font-black opacity-80">
-              AI Gate Iraq • 2026 • {lang === 'ar' ? 'البوابة الوطنية للتجارة والأعمال' : 'سەکۆی نیشتمانی بۆ بازرگانی و کار'}
-            </p>
-          </div>
-        </Card>
+                {activeService === 'cost' && (
+                  <div className="max-w-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
+                    <ShippingCalculator />
+                  </div>
+                )}
+
+                {activeService === 'kyc' && (
+                  <div className="max-w-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
+                    <KYCForm />
+                  </div>
+                )}
+
+                {activeService === 'procurement' && (
+                  <div className="max-w-3xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
+                    <ProcurementSourcing />
+                  </div>
+                )}
+
+                {activeService === 'tracking' && (
+                  <div className="max-w-3xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
+                    <ShipmentTracker />
+                  </div>
+                )}
+
+                {activeService === 'map' && (
+                  <div className="max-w-3xl h-[600px] bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl overflow-hidden shadow-sm">
+                    <LogisticsMap />
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+        </div>
       </main>
 
       <Dialog open={!!selectedMessage} onOpenChange={(open) => !open && setSelectedMessage(null)}>

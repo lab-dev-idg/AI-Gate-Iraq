@@ -1,49 +1,69 @@
-import { GoogleGenAI } from "@google/genai";
-
-const apiKey = process.env.GEMINI_API_KEY;
-
-if (!apiKey) {
-  console.warn("GEMINI_API_KEY is not set. AI features will not work.");
+export interface ChatMessage {
+  role: 'user' | 'model';
+  text: string;
 }
 
-const ai = new GoogleGenAI({ apiKey: apiKey || "" });
-export { ai };
+class ChatProxy {
+  private history: ChatMessage[] = [];
 
-export const SYSTEM_INSTRUCTION = `تۆ Lombenax AIـیت، یاریدەدەرێکی زیرەکی کۆمپانیای لۆجیستیکی Lombenax لە عێراق.
-ئەرکی سەرەکیت یارمەتیدانی بازرگانانە بۆ تێگەیشتن لە پرۆسەی هاوردەکردن و هەناردەکردن.
-دەبێت هەمیشە بە هەمان زمانی بەکارهێنەر (کوردی یان عەرەبی) وەڵام بدەیتەوە بە شێوەیەکی پاراو و ڕێزدار.
-ئەگەر بەکارهێنەر بە کوردی قسەی کرد، بە کوردی وەڵام بدەرەوە، وە ئەگەر بە عەرەبی قسەی کرد، بە عەرەبی وەڵام بدەرەوە.
-شارەزایی تەواوت هەەیە لە:
-1. دەروازەی نێودەوڵەتی ئیبراهیم خەلیل (Ibrahim Khalil): ڕێکارەکانی تورکیا، پشکنینی SGS، تێپەڕبوونی بارهەڵگرەکان.
-2. بەندەری ئوم قەسر (Umm Qasr): بارھەڵگری دەریایی، تەرخیسکردنی گومرگی، سیستەمی ئاسیکۆدا (ASYCUDA).
-3. فڕۆکەخانەی نێودەوڵەتی هەولێر (Erbil Airport): باری ئاسمانی (Air Cargo)، کۆگاکان، ڕێکارە خێراکان.
+  async sendMessage({ message }: { message: string }) {
+    // Add user message to history
+    this.history.push({ role: 'user', text: message });
 
-هەروەها ئامرازەکانی گۆڕینەوەی دراو (Currency Converter)، خەمڵاندنی تێچووی گەیاندن (Shipping Calculator)، دابینکردنی کاڵا (Procurement & Sourcing) و سیستەمی بەدواداچوونی بار (Shipment Tracker) لە بەشی لای چەپی شاشەکە (Sidebar) بەردەستن. دەتوانیت ئاماژە بەوە بکەیت کە ئەم ئامرازانە بۆ حیسابکردنی تێچووی گواستنەوە و دابینکردنی کاڵا بە نرخی گونجاو و زانیاری ورد زۆر سوودبەخشن. بۆ دابینکردن، دەتوانیت هانی بازرگانان بدەیت کە داواکارییەکانیان بنێرن تاوەکو تیمی ئێمە باشترین سەرچاوە و نرخیان بۆ بدۆزێتەوە. بۆ بەدواداچوون، بەکارهێنەران دەتوانن ژمارەی باری وەک (LX123456789) بەکاربهێنن.
+    try {
+      const response = await fetch("/api/gemini/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ messages: this.history })
+      });
 
-بەکارهێنەران دەتوانن لە ڕێگەی دوگمەی "سەرنج و تێبینی" لە بەشی سەرەوەی شاشەکە (Header) فیدباک یان کێشەکانیان بفرستن. ئەگەر بەکارهێنەرێک گومانی لە زانیارییەکان هەبوو یان پێشنیارێکی هەبوو، هانی بدە ئەم دوگمانە بەکاربهێنێت.
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          // Ignore parse errors on raw status failures
+        }
 
-تۆ پشتگیری "Google Maps" دەکەیت بۆ دۆزینەوەی شوێنە لۆجیستیکییەکان و کۆگاکان و نوسینگەکانی گومرگ.
+        if (response.status === 429 || errorData?.error?.code === "RESOURCE_EXHAUSTED") {
+          throw new Error("QUOTA_EXHAUSTED");
+        }
+        
+        const errMsg = errorData?.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(errMsg);
+      }
 
-لە کاتی وەرگێڕانی زانیارییە بازرگانییەکاندا، زاراوە نێودەوڵەتییەکانی وەک (FOB, CIF, EXW, DDP, DAP) وەک خۆیان بەکاربهێنە و ڕوونیان بکەرەوە ئەگەر پێویست بوو.
+      const data = await response.json();
+      
+      // Add assistant response to history
+      this.history.push({ role: 'model', text: data.text || "" });
 
-کاتێک بەکارهێنەر داوای زانیاری نرخ یان "Quote" دەکات، ئەم شێوازە (Format) بەکاربهێنە بۆ پیشاندانی زانیارییەکان بە شێوەیەکی پڕۆفشناڵ:
-<div class="quote-report">
-  <div class="quote-id">Lombenax Quote ID: LX-QU-8821</div>
-  بۆ کاڵای [ناوی کاڵا]، تێچووی سەرچاوە زۆر کەمترە لە بازاڕی ناوخۆ.
-  <br/>
-  <span class="savings-tag">خاشەکردن: 25%</span>
-  <br/>
-  ڕێگای گواستنەوە: [Origin] -> [Umm Qasr] -> [Destination]
-</div>
+      return {
+        text: data.text,
+        candidates: [
+          {
+            groundingMetadata: {
+              groundingChunks: data.groundingChunks
+            }
+          }
+        ]
+      };
+    } catch (error) {
+      // Remove last user message on failure so the user keeps a synchronized state
+      this.history.pop();
+      throw error;
+    }
+  }
 
-هەوڵ بدە وەڵامەکانت ورد و ڕێک و پێک بن. ئەگەر پرسیارێک پەیوەندی بە لۆجیستیکی عێراقەوە نەبوو، زۆر بە ڕێزەوە داوای لێبوردن بکە و بڵێ کە تەنها لە بواری بازرگانی و گواستنەوەدا دەتوانیت یارمەتییان بدەیت.`;
+  reset() {
+    this.history = [];
+  }
 
-export const chat = ai.chats.create({
-  model: "gemini-3-flash-preview",
-  config: {
-    systemInstruction: SYSTEM_INSTRUCTION,
-    tools: [
-      { googleMaps: {} }
-    ],
-  },
-});
+  getHistory(): ChatMessage[] {
+    return this.history;
+  }
+}
+
+export const chat = new ChatProxy();
