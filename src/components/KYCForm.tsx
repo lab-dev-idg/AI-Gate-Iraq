@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { useLanguage } from '@/src/lib/LanguageContext';
 
 export const KYCForm = () => {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -19,7 +19,7 @@ export const KYCForm = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFileName(e.target.files[0].name);
-      toast.info(t.lang === 'ar' ? 'تم اختيار الملف بنجاح!' : 'بەڵگەنامەکە بە سەرکەوتوویی تەرخانکرا!');
+      toast.info(lang === 'ar' ? 'تم اختيار الملف بنجاح!' : 'بەڵگەنامەکە بە سەرکەوتوویی تەرخانکرا!');
     }
   };
 
@@ -101,7 +101,7 @@ export const KYCForm = () => {
                   <span className="text-slate-800 dark:text-slate-200 font-semibold text-sm max-w-xs truncate">{fileName}</span>
                   <span className="text-[10px] text-emerald-500 mt-1 flex items-center gap-1 font-bold">
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    {t.lang === 'ar' ? 'الملف جاهز للإرسال' : 'بەڵگەنامەکە ئامادەیە'}
+                    {lang === 'ar' ? 'الملف جاهز للإرسال' : 'بەڵگەنامەکە ئامادەیە'}
                   </span>
                 </div>
               ) : (
