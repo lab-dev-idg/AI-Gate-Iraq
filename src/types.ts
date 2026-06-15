@@ -1,15 +1,8 @@
-export interface Message {
-  role: 'user' | 'model';
-  text: string;
-  groundingChunks?: any[];
-}
+export * from './types/services';
+export * from './types/chat';
+export * from './types/app';
 
-export interface BorderStatus {
-  name: string;
-  status: 'active' | 'busy' | 'closed';
-  waitTime: string;
-  description: string;
-}
+import { BorderStatus } from './types/services';
 
 export const IRAN_BORDER_STATUS: BorderStatus[] = [
   { name: 'Ibrahim Khalil', status: 'active', waitTime: '4-6 hours', description: 'Normal operations with Turkey' },

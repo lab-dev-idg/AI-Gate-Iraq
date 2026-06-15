@@ -25,6 +25,14 @@ const ai = new GoogleGenAI({
 let GEMINI_MODEL = (process.env.GEMINI_MODEL || "gemini-3.5-flash").trim();
 console.log("Raw environment GEMINI_MODEL:", process.env.GEMINI_MODEL);
 
+// Robust check: if the env contains "=", split and grab the value portion (e.g. "GEMINI_MODEL = gemini-3.5-flash")
+if (GEMINI_MODEL.includes("=")) {
+  GEMINI_MODEL = GEMINI_MODEL.split("=").pop()!.trim();
+}
+
+// Strip wrapping quotes if present
+GEMINI_MODEL = GEMINI_MODEL.replace(/^['"]|['"]$/g, "").trim();
+
 // Strip any "models/" prefix if it exists to satisfy @google/genai SDK format constraints
 if (GEMINI_MODEL.startsWith("models/")) {
   GEMINI_MODEL = GEMINI_MODEL.substring("models/".length);
