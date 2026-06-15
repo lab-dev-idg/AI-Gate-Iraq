@@ -38,13 +38,13 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 217.2 91.2% 16.5%; /* Beautiful Midnight Deep Navy */
+    --primary: 217.2 91.2% 16.5%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 142.1 76.2% 36.3%; /* Professional Emerald Green Accent */
+    --accent: 142.1 76.2% 36.3%;
     --accent-foreground: 142.1 76.2% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -55,19 +55,19 @@
   }
 
   .dark {
-    --background: 222.2 84% 6%; /* Deep Charcoal Navy */
+    --background: 222.2 84% 6%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 10%; /* Subtle card Navy background */
+    --card: 222.2 84% 10%;
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 6%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 70%; /* Soft elegant indigo for high Contrast readable text */
+    --primary: 217.2 91.2% 70%;
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 217.2 32.6% 14%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 14%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 142.1 70% 41%; /* Premium Emerald Green for highlights */
+    --accent: 142.1 70% 41%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
@@ -80,7 +80,20 @@
 html,
 body,
 #root {
+  width: 100%;
+  min-width: 0;
   height: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  max-width: 100vw;
+}
+
+#root {
+  isolation: isolate;
 }
 
 @layer base {
@@ -89,41 +102,56 @@ body,
     @apply border-border;
   }
   body {
-    background-color: var(--background);
-    color: var(--foreground);
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     @apply font-sans;
   }
 }
 
 .sidebar-scroll,
-.chat-scroll {
+.chat-scroll,
+.cs-scroll {
   scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.55) transparent;
   overscroll-behavior: contain;
 }
 
 .sidebar-scroll::-webkit-scrollbar,
-.chat-scroll::-webkit-scrollbar {
-  width: 8px;
+.chat-scroll::-webkit-scrollbar,
+.cs-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
 .sidebar-scroll::-webkit-scrollbar-thumb,
-.chat-scroll::-webkit-scrollbar-thumb {
+.chat-scroll::-webkit-scrollbar-thumb,
+.cs-scroll::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(148, 163, 184, 0.45);
+  background: rgba(100, 116, 139, 0.55);
 }
 
 .sidebar-scroll::-webkit-scrollbar-track,
-.chat-scroll::-webkit-scrollbar-track {
+.chat-scroll::-webkit-scrollbar-track,
+.cs-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* 3. ڕێکخستنی نووسینی کوردی و عەرەبی */
-[dir="rtl"] {
-  text-align: right;
-  font-family: "Noto Sans Arabic", sans-serif;
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-/* 4. ستایلی سکڕۆڵ بار (Professional) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* RTL text safety */
+[dir="rtl"] {
+  text-align: right;
+  font-family: "Noto Sans Arabic", "Noto Kufi Arabic", sans-serif;
+}
+
+/* Global scrollbar: keep subtle; never render bright white rails in dark app previews. */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -134,15 +162,14 @@ body,
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(100, 116, 139, 0.55);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(148, 163, 184, 0.7);
 }
 
-/* 5. ستایلی پسوڵەی حەواڵە و لۆجیستیک */
 .quote-report {
   background: #ffffff;
   border-right: 5px solid #1e40af;
