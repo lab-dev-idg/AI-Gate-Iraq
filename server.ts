@@ -22,7 +22,7 @@ const ai = new GoogleGenAI({
   }
 });
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 const SYSTEM_INSTRUCTION = `تۆ AI Gate Iraqـیت، یاریدەدەرێکی زیرەکی نیشتمانی بۆ بازرگانی و گواستنەوە و لۆجیستیک لە عێراق.
 ئەرکی سەرەکیت یارمەتیدانی بازرگانانە بۆ تێگەیشتن لە پرۆسەی هاوردەکردن و هەناردەکردن.
