@@ -166,16 +166,22 @@ export default function App() {
       }]);
     } catch (error) {
       console.error('Error sending message:', error);
-      let errorMessage = 'کێشەیەک لە پەیوەندییەکەدا هەیە. تکایە دووبارە هەوڵ بدەرەوە.'; // Kurdish default
+      const isMissingKey = error instanceof Error && (error.message.includes('NO_API_KEY') || error.message.includes('GEMINI_API_KEY') || error.message.includes('not configured'));
+      const isQuota = error instanceof Error && (error.message === 'QUOTA_EXHAUSTED' || error.message.includes('429') || error.message.includes('RESOURCE_EXHAUSTED'));
       
-      if (error instanceof Error && error.message === 'QUOTA_EXHAUSTED') {
-        errorMessage = lang === 'ar' 
-          ? 'تنبيه: لقد تجاوزت الحصة المجانية لـ Gemini API. يرجى تهيئة مفتاح API الخاص بك أو التحقق من خطة الدفع في لوحة الإعدادات (Settings > Secrets).' 
-          : 'ئاگاداری: تۆ لە سنووری دیاریکراوی فری یان کووتای Gemini API لایداوە. تکایە کلیلێکی کارای خۆت دابنێ لە بەشی Settings > Secrets.';
-      } else if (error instanceof Error) {
+      let errorMessage = '';
+      if (isMissingKey) {
         errorMessage = lang === 'ar'
-          ? `فشل في إرسال الرسالة: ${error.message}`
-          : `ناردنی پەیام سەرکەوتوو نەبوو: ${error.message}`;
+          ? 'لم يتم إعداد مفتاح Gemini API. يرجى إضافة GEMINI_API_KEY في Secrets.'
+          : 'کلیلی Gemini API دانەنراوە. تکایە GEMINI_API_KEY لە Secrets زیاد بکە.';
+      } else if (isQuota) {
+        errorMessage = lang === 'ar'
+          ? 'تنبيه: تم تجاوز حصة Gemini API. يرجى التحقق من الحصة أو الفوترة أو المحاولة لاحقاً.'
+          : 'ئاگاداری: سنووری Gemini API تێپەڕاوە. تکایە quota/billing بپشکنە یان دووبارە دواتر هەوڵ بدەوە.';
+      } else {
+        errorMessage = lang === 'ar'
+          ? `فشل في إرسال الرسالة: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`
+          : `ناردنی پەیام سەرکەوتوو نەبوو: ${error instanceof Error ? error.message : 'هەڵەیەکی نەزانراو'}`;
       }
       
       setMessages(prev => [...prev, { role: 'model', text: errorMessage }]);
