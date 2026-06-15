@@ -6,7 +6,17 @@ export interface ChatMessage {
 class ChatProxy {
   private history: ChatMessage[] = [];
 
-  async sendMessage({ message }: { message: string }) {
+  async sendMessage({
+    message,
+    activeService,
+    lang,
+    serviceHint
+  }: {
+    message: string;
+    activeService?: string;
+    lang?: string;
+    serviceHint?: string;
+  }) {
     // Add user message to history
     this.history.push({ role: 'user', text: message });
 
@@ -16,7 +26,13 @@ class ChatProxy {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ messages: this.history })
+        body: JSON.stringify({
+          messages: this.history,
+          activeService,
+          lang,
+          userMessage: message,
+          serviceHint
+        })
       });
 
       if (!response.ok) {

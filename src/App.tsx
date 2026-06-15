@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense, useMemo } from 'react';
 import { Send, Bot, User, Loader2, Sparkles, Phone, Mail, Globe, MapPin, Info, Package, ShieldAlert, FileText, Plane, DollarSign, UserCheck, Wallet, Building2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
@@ -11,14 +11,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { CurrencyConverter } from '@/src/components/CurrencyConverter';
+
+// Lazy load heavy workspace components to boost initial load time
+const CurrencyConverter = lazy(() => import('@/src/components/CurrencyConverter').then(m => ({ default: m.CurrencyConverter })));
+const LogisticsMap = lazy(() => import('@/src/components/LogisticsMap').then(m => ({ default: m.LogisticsMap })));
+const ShipmentTracker = lazy(() => import('@/src/components/ShipmentTracker').then(m => ({ default: m.ShipmentTracker })));
+const ShippingCalculator = lazy(() => import('@/src/components/ShippingCalculator').then(m => ({ default: m.ShippingCalculator })));
+const ProcurementSourcing = lazy(() => import('@/src/components/ProcurementSourcing').then(m => ({ default: m.ProcurementSourcing })));
+const KYCForm = lazy(() => import('@/src/components/KYCForm').then(m => ({ default: m.KYCForm })));
+
 import { FeedbackDialog } from '@/src/components/FeedbackDialog';
-import { LogisticsMap } from '@/src/components/LogisticsMap';
-import { ShipmentTracker } from '@/src/components/ShipmentTracker';
 import { UserMenu } from '@/src/components/UserMenu';
-import { ShippingCalculator } from '@/src/components/ShippingCalculator';
-import { ProcurementSourcing } from '@/src/components/ProcurementSourcing';
-import { KYCForm } from '@/src/components/KYCForm';
 import {
   Dialog,
   DialogContent,
@@ -41,9 +44,223 @@ type ServiceKey =
   | 'tracking'
   | 'map';
 
+// Static variables declared outside the component prevents redundant re-renders & garbage collection sweeps
+const SERVICES = [
+  {
+    key: 'assistant' as const,
+    label_ku: 'یاریدەدەری زیرەک',
+    label_ar: 'المساعد الذكي',
+    icon: Bot,
+    color: 'text-emerald-500',
+  },
+  {
+    key: 'market' as const,
+    label_ku: 'کورتەی بازاڕ',
+    label_ar: 'ملخص السوق',
+    icon: Sparkles,
+    color: 'text-blue-500',
+  },
+  {
+    key: 'borders' as const,
+    label_ku: 'دۆخی مەرزەکان',
+    label_ar: 'حالة المنافذ',
+    icon: MapPin,
+    color: 'text-rose-500',
+  },
+  {
+    key: 'currency' as const,
+    label_ku: 'گۆڕینەوەی دراو',
+    label_ar: 'محول العملات',
+    icon: DollarSign,
+    color: 'text-amber-500',
+  },
+  {
+    key: 'cost' as const,
+    label_ku: 'خەمڵاندنی تێچوو',
+    label_ar: 'حاسبة التكاليف',
+    icon: Package,
+    color: 'text-indigo-500',
+  },
+  {
+    key: 'kyc' as const,
+    label_ku: 'تۆمارکردن / KYC',
+    label_ar: 'التسجيل و KYC',
+    icon: UserCheck,
+    color: 'text-teal-500',
+  },
+  {
+    key: 'procurement' as const,
+    label_ku: 'دابینکردنی کاڵا',
+    label_ar: 'توريد البضائع',
+    icon: Building2,
+    color: 'text-violet-500',
+  },
+  {
+    key: 'tracking' as const,
+    label_ku: 'بەدواداچوونی بار',
+    label_ar: 'تتبع الشحنات',
+    icon: FileText,
+    color: 'text-sky-500',
+  },
+  {
+    key: 'map' as const,
+    label_ku: 'نەخشەی دەروازەکان',
+    label_ar: 'خريطة المنافذ',
+    icon: Globe,
+    color: 'text-emerald-500',
+  }
+];
+
+const getServiceName = (service: ServiceKey, lang: 'ku' | 'ar') => {
+  switch (service) {
+    case 'assistant':
+      return lang === 'ar' ? 'الاستشارات العامة' : 'ڕاوێژی گشتی';
+    case 'market':
+      return lang === 'ar' ? 'ملخص السوق والتجارة' : 'کارتێکردن و کورتەی بازاڕ';
+    case 'borders':
+      return lang === 'ar' ? 'حالة المعابر والمنافذ' : 'دۆخی مەرزەکان';
+    case 'currency':
+      return lang === 'ar' ? 'محول وتصريف العملات' : 'گۆڕینەوەی دراو';
+    case 'cost':
+      return lang === 'ar' ? 'حاسبة وتخمين التكاليف' : 'خەمڵاندنی تێچوو';
+    case 'kyc':
+      return lang === 'ar' ? 'التسجيل و KYC' : 'تۆمارکردنی کۆمپانیا / KYC';
+    case 'procurement':
+      return lang === 'ar' ? 'توريد البضائع' : 'دابینکردنی کاڵا';
+    case 'tracking':
+      return lang === 'ar' ? 'تتبع الشحنات' : 'بەدواداچوونی بار';
+    case 'map':
+      return lang === 'ar' ? 'الخارطة اللوجستية' : 'نەخشەی دەروازەکان';
+  }
+};
+
+const getPromptChips = (service: ServiceKey, lang: 'ku' | 'ar') => {
+  switch (service) {
+    case 'currency':
+      return [
+        {
+          label: lang === 'ar' ? 'تاثير USD/IQD على التكاليف' : 'کارتێکردنی USD/IQD لەسەر تێچوون',
+          prompt: lang === 'ar' 
+            ? 'كيف يؤثر سعر صرف الدولار مقابل الدينار على تكاليف الاستيراد في السوق العراقية؟' 
+            : 'نرخی USD/IQD چۆن کاریگەری لە تێچووی هاوردە دەکات لە بازاڕی عێراقدا؟'
+        },
+        {
+          label: lang === 'ar' ? 'استخدام أسعار الصرف للقرارات' : 'بەکارهێنانی نرخەکان بۆ بڕیار',
+          prompt: lang === 'ar'
+            ? 'كيف أستخدم أسعار الصرف المختلفة لاتخاذ قرارات تجارية واستيرادية ذكية؟'
+            : 'چۆن نرخە جیاوازەکانی دراو بۆ بڕیارێکی بازرگانی و هاوردەکاری هۆشمەند بەکاربهێنم؟'
+        }
+      ];
+    case 'cost':
+      return [
+        {
+          label: lang === 'ar' ? 'تقدير تكاليف الشحن' : 'خەمڵاندنی تێچووی گەیاندن',
+          prompt: lang === 'ar'
+            ? 'كيف يمكنني تقدير تكاليف الشحن والرسوم الجمركية بدقة لشحنتي؟'
+            : 'چۆن تێچووی گەیاندن و باجی گومرگی بە شێوەیەکی ورد بۆ بارەکەم بخەمڵێنم؟'
+        },
+        {
+          label: lang === 'ar' ? 'البيانات المطلوبة للحساب' : 'زانیاری پێویست بۆ خەمڵاندن',
+          prompt: lang === 'ar'
+            ? 'ما هي البيانات بالتفصيل المطلوبة لحساب سعر الشحن والتعرفة الجمركية؟'
+            : 'کام زانیاری بە وردی پێویستە بۆ حیسابکردنی نرخی گەیاندن و تاریفەی گومرگی؟'
+        }
+      ];
+    case 'kyc':
+      return [
+        {
+          label: lang === 'ar' ? 'مستندات تسجيل الشركة' : 'دۆکیومێنتی پێویست بۆ تۆمارکردن',
+          prompt: lang === 'ar'
+            ? 'ما هي المستندات والإجراءات القانونية المطلوبة لتسجيل شركة تجارية في العراق؟'
+            : 'چ دۆکیومێنت و ڕێکارێکی یاسایی پێویستە بۆ تۆمارکردنی کۆمپانیایەکی بازرگانی لە عێراق؟'
+        },
+        {
+          label: lang === 'ar' ? 'إعداد ملف الـ KYC' : 'ئامادەکردنی KYC ـی بازرگانی',
+          prompt: lang === 'ar'
+            ? 'كيف يمكنني إعداد باقة مستندات التحقق KYC الخاصة بأعمالي بشكل ممتثل؟'
+            : 'چۆن مەلەفی ناساندنی KYC بۆ کارەکەم بە شێوەیەکی یاسایی ئامادە بکەم؟'
+        }
+      ];
+    case 'procurement':
+      return [
+        {
+          label: lang === 'ar' ? 'كتابة طلب توريد بضائع' : 'نووسینی داواکاری دابینکردنی کاڵا',
+          prompt: lang === 'ar'
+            ? 'كيف أكتب طلب شراء وتوريد بضائع رسمي (RFQ) لجذب المصانع العالمية؟'
+            : 'چۆن داواکاری فەرمی کڕین و دابینکردنی کاڵا (RFQ) بنووسم بۆ ڕاکێشانی کارگە جیهانییەکان؟'
+        },
+        {
+          label: lang === 'ar' ? 'اختيار مورد موثوق' : 'هەڵبژاردنی supplier ـێکی باش',
+          prompt: lang === 'ar'
+            ? 'ما هي المعايير لاختيار مورد موثوق وآمن في الصين أو تركيا لتجنب الاحتيال؟'
+            : 'چۆن گرنگترین پێوەرەکان بۆ هەڵبژاردنی دابینکەرێکی متمانەپێکراو لە چین یان تورکیا دیاری بکەم؟'
+        }
+      ];
+    case 'tracking':
+      return [
+        {
+          label: lang === 'ar' ? 'تأخر الشحنة اللوجستية' : 'چارەسەری دواکەوتنی بار',
+          prompt: lang === 'ar'
+            ? 'ما هي الخيارات المتاحة لي إذا تأخرت شحنتي في ميناء أم قصر أو المعبر البري؟'
+            : 'چی بکەم ئەگەر بارەکەم لە بەندەری ئوم قەسر یان مەرزی وشکانی دواکەوت؟'
+        },
+        {
+          label: lang === 'ar' ? 'قراءة حالة التتبع' : 'خوێندنەوەی دۆخی بار بە ڕوونی',
+          prompt: lang === 'ar'
+            ? 'كيف أقرأ تفاصيل ومحطات التخليص الجمركي للشحنة عبر بوليصة الشحن بوضوح؟'
+            : 'چۆن دۆخی گەیاندن و قۆناغەکانی تەرخیسکردنی مانیفێست بە ڕوونی بخوێنمەوە؟'
+        }
+      ];
+    case 'market':
+      return [
+        {
+          label: lang === 'ar' ? 'تقرير التعرفة الجمركية ٢٠٢٦' : 'تاریفەی گومرگی نوێی ٢٠٢٦',
+          prompt: lang === 'ar'
+            ? 'ما هي التحديثات والتعديلات الرئيسية على التعرفة الجمركية العراقية في عام 2026؟'
+            : 'گرنگترین گۆڕانکاری و نوێگەری لەسەر تاریفەی گومرگی عێراق لە ساڵی ٢٠٢٦ چییە؟'
+        },
+        {
+          label: lang === 'ar' ? 'مراقبة إشارات السوق اللوجستي' : 'چاودێریکردني ئاماژەکانی بازاڕ',
+          prompt: lang === 'ar'
+            ? 'كيف أتابع تقلبات السوق المحلية ومؤشرات الطلب والاستيراد بذكاء؟'
+            : 'چۆن بە شێوەیەکی زیرەک بەدواداچوون بۆ گۆڕانکاری و لەرەلەرەکانی بازاڕی ناوخۆیی عێراق بکەم؟'
+        }
+      ];
+    default:
+      return [
+        {
+          label: lang === 'ar' ? 'كيف أنظم أعمالي التجارية؟' : 'چۆن دەتوانم بازرگانییەکەم ڕێک بخەم؟',
+          prompt: lang === 'ar'
+            ? 'كيف يمكنني تنظيم وترخيص أعمالي التجارية والاستيراد ممتثلاً للقوانين؟'
+            : 'چۆن دەتوانم بازرگانییەکەم ڕێک بخەم و بە یاسایی مۆڵەتی هاوردەکردن وەربگرم؟'
+        },
+        {
+          label: lang === 'ar' ? 'كيف أستورد بضائع من الخارج؟' : 'چۆن کاڵا لە دەرەوە بهێنم؟',
+          prompt: lang === 'ar'
+            ? 'ما هي الخطوات والخدمات اللوجستية المطلوبة لاستيراد حاويات من تركيا أو الصين؟'
+            : 'هەنگاو و ڕێکارە لۆجیستییەکان چیین بۆ هێنانی کۆنتێنەر لە چین یان تورکیاوە؟'
+        },
+        {
+          label: lang === 'ar' ? 'ما هي الوثائق المطلوبة؟' : 'چ دۆکیومێنتێک پێویستە؟',
+          prompt: lang === 'ar'
+            ? 'ما هي قائمة الأوراق والوثائق الرسمية للتخليص الجمركي في المعابر العراقية؟'
+            : 'چ دۆکیومێنت و بەڵگەنامەیەکی فەرمی پێویستە بۆ تەرخیسکردنی گومرگی لە مەرزەکاندا؟'
+        }
+      ];
+  }
+};
+
+const WorkspaceLoader = () => (
+  <div className="flex flex-col items-center justify-center p-12 min-h-[300px] gap-3 text-slate-500 dark:text-slate-400 font-arabic">
+    <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+    <span className="text-xs font-black">باردەکرێت... تکایە چاوەڕوان بە | جاري التحميل... يرجى الانتظار</span>
+  </div>
+);
+
 export default function App() {
   const { lang, setLang, t } = useLanguage();
   const [activeService, setActiveService] = useState<ServiceKey>('assistant');
+  const [chatScope, setChatScope] = useState<ServiceKey>('assistant');
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'model',
@@ -56,83 +273,6 @@ export default function App() {
 
   const sidebarScrollRef = useRef<HTMLDivElement | null>(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
-
-  const SERVICES = [
-    {
-      key: 'assistant' as const,
-      label_ku: 'یاریدەدەری زیرەک',
-      label_ar: 'المساعد الذكي',
-      icon: Bot,
-      color: 'text-emerald-500',
-    },
-    {
-      key: 'market' as const,
-      label_ku: 'کورتەی بازاڕ',
-      label_ar: 'ملخص السوق',
-      icon: Sparkles,
-      color: 'text-blue-500',
-    },
-    {
-      key: 'borders' as const,
-      label_ku: 'دۆخی مەرزەکان',
-      label_ar: 'حالة المنافذ',
-      icon: MapPin,
-      color: 'text-rose-500',
-    },
-    {
-      key: 'currency' as const,
-      label_ku: 'گۆڕینەوەی دراو',
-      label_ar: 'محول العملات',
-      icon: DollarSign,
-      color: 'text-amber-500',
-    },
-    {
-      key: 'cost' as const,
-      label_ku: 'خەمڵاندنی تێچوو',
-      label_ar: 'حاسبة التكاليف',
-      icon: Package,
-      color: 'text-indigo-500',
-    },
-    {
-      key: 'kyc' as const,
-      label_ku: 'تۆمارکردن / KYC',
-      label_ar: 'التسجيل و KYC',
-      icon: UserCheck,
-      color: 'text-teal-500',
-    },
-    {
-      key: 'procurement' as const,
-      label_ku: 'دابینکردنی کاڵا',
-      label_ar: 'توريد البضائع',
-      icon: Building2,
-      color: 'text-violet-500',
-    },
-    {
-      key: 'tracking' as const,
-      label_ku: 'بەدواداچوونی بار',
-      label_ar: 'تتبع الشحنات',
-      icon: FileText,
-      color: 'text-sky-500',
-    },
-    {
-      key: 'map' as const,
-      label_ku: 'نەخشەی دەروازەکان',
-      label_ar: 'خريطة المنافذ',
-      icon: Globe,
-      color: 'text-emerald-500',
-    }
-  ];
-
-  const QUICK_ACTIONS = [
-    { label: 'تێچووی کۆنتێنەر', icon: Package, prompt: 'تێچووی هێنانی کۆنتێنەرێکی ٤٠ پێ لە چینەوە بۆ ئوم قەسر چەندە؟' },
-    { label: 'ئیبراهیم خەلیل', icon: ShieldAlert, prompt: 'ڕێکارەکانی گومرگ لە مەرزە نێودەوڵەتی ئیبراهیم خەلیل چۆنن بۆ باری تورکیا؟' },
-    { label: 'بەڵگەنامەکان', icon: FileText, prompt: 'چ بەڵگەنامەیەک پێویستە بۆ هاوردەکردنی کاڵای خۆراکی? ' },
-    { label: 'فڕۆکەخانەی هەولێر', icon: Plane, prompt: 'خێراترین ڕێگە بۆ تەرخیسکردنی باری ئاسمانی لە فڕۆکەخانەی هەولێر چییە؟' },
-    { label: 'گۆڕینەوەی دراو', icon: DollarSign, prompt: 'Convert 100 USD to IQD' },
-    { label: 'ئەکاونتی بازرگانی (KYC)', icon: UserCheck, prompt: 'دەستپێکردنی پڕۆسەی ناساندنی بازرگان و بارکردنی مۆڵەت' },
-    { label: 'حەواڵە و دارایی', icon: Wallet, prompt: 'پیشاندانی جزدانی ئەلیکترۆنی و وردەکاری پسوڵەکان' },
-    { label: 'بانکەکان و پارەدان', icon: Building2, prompt: 'چۆنیەتی بەستنەوەی ئەکاونت بە بانکەکان و گواستنەوەی پارە' }
-  ];
 
   useEffect(() => {
     const el = chatScrollRef.current;
@@ -153,8 +293,30 @@ export default function App() {
     setIsLoading(true);
 
     try {
+      let serviceHint = '';
+      if (chatScope === 'currency') {
+        serviceHint = 'The user is currently using the currency converter workspace.';
+      } else if (chatScope === 'cost') {
+        serviceHint = 'The user is currently using the shipping cost estimator workspace.';
+      } else if (chatScope === 'kyc') {
+        serviceHint = 'The user is currently using the KYC/Business Registration workspace.';
+      } else if (chatScope === 'procurement') {
+        serviceHint = 'The user is currently using the procurement and supplier sourcing workspace.';
+      } else if (chatScope === 'tracking') {
+        serviceHint = 'The user is currently using the shipments and containers tracking workspace.';
+      } else if (chatScope === 'market') {
+        serviceHint = 'The user is currently using the market summary and latest regulatory bulletins workspace.';
+      } else if (chatScope === 'borders') {
+        serviceHint = 'The user is currently using the live borders wait times and crossings workspace.';
+      } else if (chatScope === 'map') {
+        serviceHint = 'The user is currently using the interactive logistics map workspace.';
+      }
+
       const response = await chat.sendMessage({
-        message: userMessage
+        message: userMessage,
+        activeService: chatScope,
+        lang,
+        serviceHint
       });
       
       const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
@@ -266,7 +428,12 @@ export default function App() {
                     ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm border-none' 
                     : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
                 }`}
-                onClick={() => setActiveService(srv.key)}
+                onClick={() => {
+                  setActiveService(srv.key);
+                  if (srv.key !== 'assistant') {
+                    setChatScope(srv.key);
+                  }
+                }}
               >
                 <IconComp className={`w-3.5 h-3.5 ${isActive ? 'text-white' : srv.color}`} />
                 {lang === 'ar' ? srv.label_ar : srv.label_ku}
@@ -301,7 +468,12 @@ export default function App() {
                         ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm' 
                         : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-850'
                     }`}
-                    onClick={() => setActiveService(srv.key)}
+                    onClick={() => {
+                      setActiveService(srv.key);
+                      if (srv.key !== 'assistant') {
+                        setChatScope(srv.key);
+                      }
+                    }}
                   >
                     <IconComp className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-white' : srv.color}`} />
                     <span className="truncate">{lang === 'ar' ? srv.label_ar : srv.label_ku}</span>
@@ -335,19 +507,44 @@ export default function App() {
           {activeService === 'assistant' && (
             <Card className="flex-1 flex flex-col min-h-0 overflow-hidden border border-slate-200/60 dark:border-slate-800/60 shadow-md bg-white dark:bg-slate-900/30 rounded-2xl h-full">
               {/* Advisor Header */}
-              <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 flex items-center justify-between">
+              <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 shadow-sm">
                     <Bot className="w-5 h-5 flex-shrink-0" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-black text-slate-850 dark:text-white font-arabic">
+                    <h2 className="text-sm font-black text-slate-850 dark:text-white font-arabic flex items-center flex-wrap gap-1.5 leading-none">
                       {lang === 'ar' ? 'مستشار الأعمال واللوجستيات الذكي' : 'ڕاوێژکاری لۆجیستی و بازرگانی زیرەک'}
+                      {chatScope !== 'assistant' && (
+                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">
+                          {getServiceName(chatScope, lang)}
+                        </span>
+                      )}
                     </h2>
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium">
-                      {lang === 'ar' ? 'اطرح أسئلتك اللوجستية عاجلاً بخصوص المعابر الجمركية، التعارف، والاستيراد بالعراق' : 'پرسیارەکانی خۆت ئاڕاستە بکە لەسەر تاریفەکان، گومرگ و هێڵەکانی هاوردەکردن لە عێراق'}
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-medium leading-tight">
+                      {lang === 'ar'
+                        ? `مستشار الذكاء الاصطناعي مستعد لمساعدتك في: ${getServiceName(chatScope, 'ar')}`
+                        : `ڕاوێژکاری زیرەک ئامادەیە بۆ یارمەتیدانت لە: ${getServiceName(chatScope, 'ku')}`}
                     </p>
                   </div>
+                </div>
+
+                {/* Scope Switcher Dropdown */}
+                <div className="flex items-center gap-2 font-arabic shrink-0 self-end sm:self-center">
+                  <span className="text-[10px] text-slate-400 font-black hidden xs:inline">
+                    {lang === 'ar' ? 'التركيز:' : 'تیشکۆ:'}
+                  </span>
+                  <select
+                    value={chatScope}
+                    onChange={(e) => setChatScope(e.target.value as ServiceKey)}
+                    className="text-[10px] font-black border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5 bg-white dark:bg-slate-900 cursor-pointer text-slate-700 dark:text-slate-200 shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 transition-colors"
+                  >
+                    {SERVICES.map((srv) => (
+                      <option key={srv.key} value={srv.key}>
+                        {lang === 'ar' ? srv.label_ar : srv.label_ku}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -440,26 +637,28 @@ export default function App() {
                   </AnimatePresence>
                   {isLoading && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start pr-11">
-                      <div className="bg-secondary p-3 rounded-full flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                        <span className="text-xs font-medium text-muted-foreground">{t.chat.thinking}</span>
+                      <div className="bg-emerald-500/10 p-3.5 rounded-2xl flex items-center gap-2.5 border border-emerald-500/20 shadow-sm">
+                        <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-arabic animate-pulse">
+                          {lang === 'ar' ? 'تفكير ذكي... جاري تحليل ودراسة البيانات اللوجستية بالعراق' : 'بیرکردنەوەی ژیرانە... خەریکی شیکردنەوەی داتای لۆجیستییە لە عێراق'}
+                        </span>
                       </div>
                     </motion.div>
                   )}
                 </div>
               </div>
 
-              {/* Suggested prompt chips */}
+              {/* Suggested prompt chips based on selected focus scope */}
               <div className="px-5 py-3 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth border-t border-slate-100 dark:border-slate-800/40">
-                {QUICK_ACTIONS.map((action) => (
+                {useMemo(() => getPromptChips(chatScope, lang), [chatScope, lang]).map((action, idx) => (
                   <Button
-                    key={action.label}
+                    key={idx}
                     variant="outline"
                     size="sm"
-                    className="whitespace-nowrap rounded-full text-[11px] font-bold bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white transition-all duration-200 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-400 hover:-translate-y-0.5 gap-1.5 px-3.5 py-1.5 shadow-md shrink-0 flex items-center"
+                    className="whitespace-nowrap rounded-full text-[11px] font-bold bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white transition-all duration-200 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-400 hover:-translate-y-0.5 gap-1.5 px-3.5 py-1.5 shadow-sm shrink-0 flex items-center"
                     onClick={() => handleSend(action.prompt)}
                   >
-                    {action.icon && <action.icon className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />}
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" />
                     {action.label}
                   </Button>
                 ))}
@@ -653,37 +852,49 @@ export default function App() {
 
                 {activeService === 'currency' && (
                   <div className="max-w-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
-                    <CurrencyConverter />
+                    <Suspense fallback={<WorkspaceLoader />}>
+                      <CurrencyConverter />
+                    </Suspense>
                   </div>
                 )}
 
                 {activeService === 'cost' && (
                   <div className="max-w-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
-                    <ShippingCalculator />
+                    <Suspense fallback={<WorkspaceLoader />}>
+                      <ShippingCalculator />
+                    </Suspense>
                   </div>
                 )}
 
                 {activeService === 'kyc' && (
                   <div className="max-w-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
-                    <KYCForm />
+                    <Suspense fallback={<WorkspaceLoader />}>
+                      <KYCForm />
+                    </Suspense>
                   </div>
                 )}
 
                 {activeService === 'procurement' && (
                   <div className="max-w-3xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
-                    <ProcurementSourcing />
+                    <Suspense fallback={<WorkspaceLoader />}>
+                      <ProcurementSourcing />
+                    </Suspense>
                   </div>
                 )}
 
                 {activeService === 'tracking' && (
                   <div className="max-w-3xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
-                    <ShipmentTracker />
+                    <Suspense fallback={<WorkspaceLoader />}>
+                      <ShipmentTracker />
+                    </Suspense>
                   </div>
                 )}
 
                 {activeService === 'map' && (
                   <div className="max-w-3xl h-[600px] bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl overflow-hidden shadow-sm">
-                    <LogisticsMap />
+                    <Suspense fallback={<WorkspaceLoader />}>
+                      <LogisticsMap />
+                    </Suspense>
                   </div>
                 )}
               </div>
