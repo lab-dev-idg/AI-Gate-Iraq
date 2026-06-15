@@ -32,6 +32,8 @@ import {
 import { chat } from '@/src/lib/gemini';
 import { Message, IRAN_BORDER_STATUS } from '@/src/types';
 import { useLanguage } from '@/src/lib/LanguageContext';
+import { translations } from '@/src/lib/translations';
+import { BUSINESS_WORKFLOWS } from '@/src/lib/businessWorkflows';
 
 type ServiceKey =
   | 'assistant'
@@ -274,6 +276,8 @@ export default function App() {
   const sidebarScrollRef = useRef<HTMLDivElement | null>(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
+  const promptChips = useMemo(() => getPromptChips(chatScope, lang), [chatScope, lang]);
+
   useEffect(() => {
     const el = chatScrollRef.current;
     if (el) {
@@ -316,7 +320,8 @@ export default function App() {
         message: userMessage,
         activeService: chatScope,
         lang,
-        serviceHint
+        serviceHint,
+        workflowContext: BUSINESS_WORKFLOWS[chatScope] || null
       });
       
       const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
@@ -650,7 +655,7 @@ export default function App() {
 
               {/* Suggested prompt chips based on selected focus scope */}
               <div className="px-5 py-3 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth border-t border-slate-100 dark:border-slate-800/40">
-                {useMemo(() => getPromptChips(chatScope, lang), [chatScope, lang]).map((action, idx) => (
+                {promptChips.map((action, idx) => (
                   <Button
                     key={idx}
                     variant="outline"
@@ -726,177 +731,284 @@ export default function App() {
                     {activeService === 'map' && (lang === 'ar' ? 'اكتشف مواقع الموانئ البرية ومرافئ التنزيل الجغرافي النشطة في عاصمة التجارة.' : 'بینینی شوێن و داتا لۆجیستییەکان لەسەر نەخشەی چالاکی هاوردەکردنی کاڵاکان.')}
                   </p>
                 </div>
-
-                {/* AI suggestion helper widget to click */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white border border-emerald-500/20 rounded-xl transition-all h-9 flex items-center gap-1.5 shrink-0 self-start text-xs font-bold font-arabic"
-                  onClick={() => {
-                    let prompt = '';
-                    if (activeService === 'market') {
-                      prompt = lang === 'ar' ? 'كيف ستؤثر قوانين التعرفة الجديدة لعام 2026 على أعمال الاستيراد الخاصة بي؟' : 'چۆن تاریفەی گومرگی نوێی ٢٠٢٦ کاریگەری لەسەر هاوردەکردنی کاڵاکانم دەبێت؟';
-                    } else if (activeService === 'borders') {
-                      prompt = lang === 'ar' ? 'ما هي الإجراءات الجمركية في منفذ إبراهيم الخليل مقارنة مع أم قصر؟' : 'ڕێکارە گومرگییەکان لە مەرزی ئیبراهیم خەلیل چۆنن لە چاو ئوم قەسر؟';
-                    } else if (activeService === 'currency') {
-                      prompt = lang === 'ar' ? 'ما هي توقعات أسعار صرف الدولار مقابل الدينار في السوق المحلية بالفترة القادمة؟' : 'پێشبینییەکانی دەستبەجێ بۆ نرخی دۆلار بەرامبەر دینار لە بازاڕی ناوخۆ چییە؟';
-                    } else if (activeService === 'cost') {
-                      prompt = lang === 'ar' ? 'ما هي الرسوم الإضافية المحتملة غير تكلفة الشحن الأساسية مثل الأرضيات والجمارك؟' : 'چی تێچوویەکی تری گومرگی هەیە وەک زەمینە یان مۆڵەت کە لێرە کۆنەکراوەتەوە؟';
-                    } else if (activeService === 'kyc') {
-                      prompt = lang === 'ar' ? 'ما هي خطوات التحقق القانوني والشروط المطلوبة لفتح سجل تجاري بالعراق؟' : 'هەنگاوە یاساییەکان و مەرجە گرنگەکان بۆ تۆمارکردنی حیسابی فەرمی بازرگانی لە عێراق چین؟';
-                    } else if (activeService === 'procurement') {
-                      prompt = lang === 'ar' ? 'كيف أحصل على عروض أسعار موثوقة ومضمونة لشحن السلع من الصين؟' : 'چۆن کۆکتەیلێکی سەرکەوتووی دابینکردن دروست بکەم لە چینەوە بۆ عێراق لە ڕووی گرێبەستەوە؟';
-                    } else if (activeService === 'tracking') {
-                      prompt = lang === 'ar' ? 'ماذا أفعل إذا تأخرت شحنتي في ميناء أم قصر دون مبرر؟' : 'چی بکەم ئەگەر بارەکەم لە بەندەری ئوم قەسر دواکەوت و کێشەی تەکنیکی بوو؟';
-                    } else if (activeService === 'map') {
-                      prompt = lang === 'ar' ? 'ما هي الطاقة الاستيعابية لأهم المنافذ البرية في المحافظات العراقية؟' : 'چی دەربارەی دەروازە چالاکەکانی گومرگ دەزانیت لەسەر هێڵی بازرگانی نیشتمانی؟';
-                    }
-                    setActiveService('assistant');
-                    setTimeout(() => handleSend(prompt), 150);
-                  }}
-                >
-                  <Bot className="w-4 h-4" />
-                  {lang === 'ar' ? 'اسأل مستشار الذكاء الاصطناعي لحل هذه المعضلة' : 'لە یاریدەدەری زیرەک بپرسە دەربارەی ئەمە'}
-                </Button>
               </div>
 
               {/* Workspace Content Viewport */}
-              <div className="flex-1 min-h-0 overflow-y-auto pr-1 pb-4 cs-scroll space-y-6">
-                {activeService === 'market' && (
-                  <div className="space-y-6 max-w-3xl text-slate-800 dark:text-slate-100">
-                    <Card className="border border-emerald-500/10 shadow-md bg-gradient-to-br from-slate-950 via-slate-900 to-primary text-white rounded-2xl p-5">
-                      <CardHeader className="p-0 pb-3">
-                        <CardTitle className="text-base md:text-lg flex items-center gap-2 font-arabic text-emerald-400">
-                          <Sparkles className="w-5 h-5 text-emerald-400 font-bold" />
-                          {t.sidebar.marketSummary}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-0 space-y-5">
-                        <div className="space-y-1.5">
-                          <p className="text-xs text-emerald-300 uppercase font-black tracking-widest">{t.sidebar.newTariff}</p>
-                          <p className="text-sm leading-relaxed text-slate-100">{t.sidebar.newTariffDesc}</p>
-                          <p className="text-xs text-slate-300 mt-2">
-                            {lang === 'ar' 
-                              ? 'تم إدخال بعض الخطوات الإضافية لتسهيل إجراءات الإعفاءات ومنع الازدواجات الضريبية في العام الجديد ٢٠٢٦.' 
-                              : 'چەند هەنگاوێکی نوێ گرتراونەتە بەر بە مەبەستی ڕێگریکردن لە دووجار باجدان و ئاسانکردنی لێخۆشبوونە گومرگییەکان.'}
-                          </p>
-                        </div>
-                        <div className="h-px bg-white/10" />
-                        <div className="space-y-1.5">
-                          <p className="text-xs text-emerald-300 uppercase font-black tracking-widest">{t.sidebar.procedures}</p>
-                          <p className="text-sm leading-relaxed text-slate-100">{t.sidebar.proceduresDesc}</p>
-                          <p className="text-xs text-slate-300 mt-2">
-                            {lang === 'ar' 
-                              ? 'نظام الجمارك المحوسب (أسيكودا) يبسط كافة تفاصيل تقديم المنافستو الجمركي بنسبة خطأ قليلة.'
-                              : 'سیستەمی ئەلیکترۆنی ئاسیکۆدا دەبێتە هۆی کەمکردنەوەی جیاوازییەکانی بەها و کار ئاسانی تەواو دەکات بۆ ڕاپەڕاندنی مۆڵەت.'}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
+              <div className="flex-1 min-h-0 overflow-y-auto pr-1 pb-4 cs-scroll">
+                {(() => {
+                  const workflow = BUSINESS_WORKFLOWS[activeService];
+                  const wTrans = translations[lang === 'ar' ? 'ar' : 'ku'].workflow || {
+                    checklistTitle: lang === 'ar' ? 'قائمة تدقيق ودليل خطوات العمل' : 'بۆردی ڕێنمایی و بەرنامەی کار',
+                    requiredInputs: lang === 'ar' ? 'المعلومات المطلوبة' : 'زانیارییە پێویستەکان',
+                    documentsLabel: lang === 'ar' ? 'الوثائق والمستندات المطلوبة' : 'دۆکیومێنت و بەڵگەنامەکان',
+                    risksLabel: lang === 'ar' ? 'المخاطر والتحديات المحتملة' : 'مەترسی و بەربەستە باوەکان',
+                    nextActionsLabel: lang === 'ar' ? 'الإجراءات والخطوات التالية' : 'هەنگاوە پێشنیارکراوەکان',
+                    askNextSteps: lang === 'ar' ? 'ما هي هذه الخطوات بالتفصيل؟' : 'ڕێگەچارە و هەنگاوەکان چیین؟',
+                    askDocs: lang === 'ar' ? 'ما هي الوثائق المطلوبة؟' : 'چ بەڵگە جێگیرێک پێویستە؟',
+                    askPrepare: lang === 'ar' ? 'اكتب لي مسودة طلب شراء رسمی' : 'داوا بکە بابەت بۆ بنووسێ',
+                    explainResult: lang === 'ar' ? 'اشرح لي هذه النتيجة' : 'ئەم ئەنجامەم بۆ ڕوون بکەوە',
+                    demoLabel: lang === 'ar' ? 'بيانات تجريبية / محاكاة محدودة' : 'داتای تەمسیلی و سنووردار'
+                  };
 
-                    {/* Pro tip */}
-                    <div className="bg-slate-50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800/80 rounded-2xl p-5">
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2 font-arabic">
-                        {lang === 'ar' ? 'توضيح هام بخصوص النظم الجمركية في العراق' : 'تێبینی بۆ ڕێنماییە گومرگییەکان لە عێراق'}
-                      </h4>
-                      <p className="text-xs text-slate-500 leading-relaxed font-sans">
-                        {lang === 'ar' 
-                          ? 'تنصح لوحة أعمال العراق جميع الشركات والمستوردين بالتحقق المسبق من تصنيف رمز النظام المنسق (HS Code) للبضائع قبل الشراء لتفادي غرامات الجمارك وضمان تسيير الشحنات بسرعة عبر موانئ البصرة ونقاط التحقق البرية.'
-                          : 'دەستەی کارگێڕی بازرگانی عێراق داوا لە نوێنەری کۆمپانیاکان دەکات کە پێش هاوردەکردنی هەر چەشنە کاڵایەک کۆدی جیهانی کاڵاکە (HS Code) بە وردی بخوێننەوە بۆ ئەوەی دووچاری سزای دواکەوتن و لێبڕین نەبن لە مەرزی ئوم قەسر یان شوێنەکانی تر.'}
-                      </p>
-                    </div>
-                  </div>
-                )}
+                  return (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                      {/* Active Workspace Main Service Details Column */}
+                      <div className="lg:col-span-2 space-y-6">
+                        {activeService === 'market' && (
+                          <div className="space-y-6 max-w-3xl text-slate-800 dark:text-slate-100">
+                            <Card className="border border-emerald-500/10 shadow-md bg-gradient-to-br from-slate-950 via-slate-900 to-primary text-white rounded-2xl p-5">
+                              <CardHeader className="p-0 pb-3">
+                                <CardTitle className="text-base md:text-lg flex items-center gap-2 font-arabic text-emerald-400">
+                                  <Sparkles className="w-5 h-5 text-emerald-400 font-bold" />
+                                  {t.sidebar.marketSummary}
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent className="p-0 space-y-5">
+                                <div className="space-y-1.5">
+                                  <p className="text-xs text-emerald-300 uppercase font-black tracking-widest">{t.sidebar.newTariff}</p>
+                                  <p className="text-sm leading-relaxed text-slate-100">{t.sidebar.newTariffDesc}</p>
+                                  <p className="text-xs text-slate-300 mt-2">
+                                    {lang === 'ar' 
+                                      ? 'تم إدخال بعض الخطوات الإضافية لتسهيل إجراءات الإعفاءات ومنع الازدواجات الضريبية في العام الجديد ٢٠٢٦.' 
+                                      : 'چەند هەنگاوێکی نوێ گرتراونەتە بەر بە مەبەستی ڕێگریکردن لە دووجار باجدان و ئاسانکردنی لێخۆشبوونە گومرگییەکان.'}
+                                  </p>
+                                </div>
+                                <div className="h-px bg-white/10" />
+                                <div className="space-y-1.5">
+                                  <p className="text-xs text-emerald-300 uppercase font-black tracking-widest">{t.sidebar.procedures}</p>
+                                  <p className="text-sm leading-relaxed text-slate-100">{t.sidebar.proceduresDesc}</p>
+                                  <p className="text-xs text-slate-300 mt-2">
+                                    {lang === 'ar' 
+                                      ? 'نظام الجمارك المحوسب (أسيكودا) يبسط كافة تفاصيل تقديم المنافستو الجمركي بنسبة خطأ قليلة.'
+                                      : 'سیستەمی ئەلیکترۆنی ئاسیکۆدا دەبێتە هۆی کەمکردنەوەی جیاوازییەکانی بەها و کار ئاسانی تەواو دەکات بۆ ڕاپەڕاندنی مۆڵەت.'}
+                                  </p>
+                                </div>
+                              </CardContent>
+                            </Card>
 
-                {activeService === 'borders' && (
-                  <div className="space-y-6 max-w-3xl text-slate-800 dark:text-slate-100">
-                    <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white dark:bg-slate-900/80 rounded-2xl">
-                      <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800/80">
-                        <CardTitle className="text-lg flex items-center gap-2 font-arabic text-slate-950 dark:text-white">
-                          <MapPin className="w-5 h-5 text-rose-500" />
-                          {t.sidebar.borderStatus}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-5 space-y-4">
-                        {IRAN_BORDER_STATUS.map((border) => (
-                          <div key={border.name} className="space-y-2 p-3 bg-slate-50/50 dark:bg-slate-950/20 rounded-xl border border-slate-100/50 dark:border-slate-800/40">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-black text-slate-800 dark:text-slate-200">{border.name}</span>
-                              <Badge variant={border.status === 'active' ? 'secondary' : 'destructive'} 
-                                     className={border.status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900' : 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900'}>
-                                {border.status === 'active' ? t.sidebar.borderActive : t.sidebar.borderBusy}
-                              </Badge>
-                            </div>
-                            <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 pt-1">
-                              <span>{t.sidebar.waitingTime}</span>
-                              <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{border.waitTime}</span>
+                            {/* Pro tip */}
+                            <div className="bg-slate-50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800/80 rounded-2xl p-5">
+                              <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2 font-arabic">
+                                {lang === 'ar' ? 'توضيح هام بخصوص النظم الجمركية في العراق' : 'تێبینی بۆ ڕێنماییە گومرگییەکان لە عێراق'}
+                              </h4>
+                              <p className="text-xs text-slate-500 leading-relaxed font-sans">
+                                {lang === 'ar' 
+                                  ? 'تنصح لوحة أعمال العراق جميع الشركات والمستوردين بالتحقق المسبق من تصنيف رمز النظام المنسق (HS Code) للبضائع قبل الشراء لتفادي غرامات الجمارك وضمان تسيير الشحنات بسرعة عبر موانئ البصرة ونقاط التحقق البرية.'
+                                  : 'دەستەی کارگێڕی بازرگانی عێراق داوا لە نوێنەری کۆمپانیاکان دەکات کە پێش هاوردەکردنی هەر چەشنە کاڵایەک کۆدی جیهانی کاڵاکە (HS Code) بە وردی بخوێننەوە بۆ ئەوەی دووچاری سزای دواکەوتن و لێبڕین نەبن لە مەرزی ئوم قەسر یان شوێنەکانی تر.'}
+                              </p>
                             </div>
                           </div>
-                        ))}
-                      </CardContent>
-                    </Card>
+                        )}
 
-                    <div className="bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 rounded-2xl p-4 text-xs font-sans">
-                      <div className="flex items-start gap-2.5">
-                        <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                        <div>
-                          <strong className="block font-black font-arabic mb-1">{lang === 'ar' ? 'تنبيه جمركي عاجل' : 'ئاگاداری گومرگی گرنگ'}</strong>
-                          {lang === 'ar' 
-                            ? 'قد يزداد وقت الانتظار للشاحنات في منفذ إبراهيم الخليل لأسباب تتعلق بالتدقيق الموسّم وإجراءات المعاينة الفنية. يوصى بمتابعة حالة الانتظار عبر مستشارنا الذكي لسلامة سلسلة التوريد.'
-                            : 'ڕەنگە کاتی چاوەڕوانی بۆ بارهەڵگرە گەورەکان لە مەرزی نێودەوڵەتی ئیبراهیم خەلیل زیاتر بێت بەهۆی پشکنینی ناوەکی و فەرمیی تایبەت بە کاڵاکان. پێشنیار کراوە هەمیشە گەشتەکەت ڕێکبخەیتەوە.'}
-                        </div>
+                        {activeService === 'borders' && (
+                          <div className="space-y-6 max-w-3xl text-slate-800 dark:text-slate-100">
+                            <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white dark:bg-slate-900/80 rounded-2xl">
+                              <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800/80">
+                                <CardTitle className="text-lg flex items-center gap-2 font-arabic text-slate-950 dark:text-white">
+                                  <MapPin className="w-5 h-5 text-rose-500" />
+                                  {t.sidebar.borderStatus}
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent className="pt-5 space-y-4">
+                                {IRAN_BORDER_STATUS.map((border) => (
+                                  <div key={border.name} className="space-y-2 p-3 bg-slate-50/50 dark:bg-slate-950/20 rounded-xl border border-slate-100/50 dark:border-slate-800/40">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-sm font-black text-slate-800 dark:text-slate-200">{border.name}</span>
+                                      <Badge variant={border.status === 'active' ? 'secondary' : 'destructive'} 
+                                             className={border.status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900' : 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900'}>
+                                        {border.status === 'active' ? t.sidebar.borderActive : t.sidebar.borderBusy}
+                                      </Badge>
+                                    </div>
+                                    <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 pt-1">
+                                      <span>{t.sidebar.waitingTime}</span>
+                                      <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{border.waitTime}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </CardContent>
+                            </Card>
+
+                            <div className="bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 rounded-2xl p-4 text-xs font-sans">
+                              <div className="flex items-start gap-2.5">
+                                <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                                <div>
+                                  <strong className="block font-black font-arabic mb-1">{lang === 'ar' ? 'تنبيه جمركي عاجل' : 'ئاگاداری گومرگی گرنگ'}</strong>
+                                  {lang === 'ar' 
+                                    ? 'قد يزداد وقت الانتظار للشاحنات في منفذ إبراهيم الخليل لأسباب تتعلق بالتدقيق الموسّم وإجراءات المعاينة الفنية. يوصى بمتابعة حالة الانتظار عبر مستشارنا الذكي لسلامة سلسلة التوريد.'
+                                    : 'ڕەنگە کاتی چاوەڕوانی بۆ بارهەڵگرە گەورەکان لە مەرزی نێودەوڵەتی ئیبراهیم خەلیل زیاتر بێت بەهۆی پشکنینی ناوەکی و فەرمیی تایبەت بە کاڵاکان. پێشنیار کراوە هەمیشە گەشتەکەت ڕێکبخەیتەوە.'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {activeService === 'currency' && (
+                          <div className="max-w-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
+                            <Suspense fallback={<WorkspaceLoader />}>
+                              <CurrencyConverter />
+                            </Suspense>
+                          </div>
+                        )}
+
+                        {activeService === 'cost' && (
+                          <div className="max-w-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
+                            <Suspense fallback={<WorkspaceLoader />}>
+                              <ShippingCalculator />
+                            </Suspense>
+                          </div>
+                        )}
+
+                        {activeService === 'kyc' && (
+                          <div className="max-w-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
+                            <Suspense fallback={<WorkspaceLoader />}>
+                              <KYCForm />
+                            </Suspense>
+                          </div>
+                        )}
+
+                        {activeService === 'procurement' && (
+                          <div className="max-w-3xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
+                            <Suspense fallback={<WorkspaceLoader />}>
+                              <ProcurementSourcing />
+                            </Suspense>
+                          </div>
+                        )}
+
+                        {activeService === 'tracking' && (
+                          <div className="max-w-3xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
+                            <Suspense fallback={<WorkspaceLoader />}>
+                              <ShipmentTracker />
+                            </Suspense>
+                          </div>
+                        )}
+
+                        {activeService === 'map' && (
+                          <div className="max-w-3xl h-[600px] bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl overflow-hidden shadow-sm">
+                            <Suspense fallback={<WorkspaceLoader />}>
+                              <LogisticsMap />
+                            </Suspense>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Professional business workflow checklist / next steps guide column */}
+                      <div className="lg:col-span-1 space-y-6">
+                        {workflow && (
+                          <Card className="border border-slate-200/60 dark:border-slate-800/80 shadow-md bg-white dark:bg-slate-950/40 rounded-2xl overflow-hidden font-arabic transition-all hover:shadow-lg">
+                            <div className="bg-emerald-500/10 dark:bg-emerald-500/5 px-4 py-3.5 border-b border-slate-150 dark:border-slate-800/50 flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                  <UserCheck className="w-4 h-4" />
+                                </div>
+                                <span className="text-xs font-black text-slate-800 dark:text-white leading-tight">
+                                  {wTrans.checklistTitle}
+                                </span>
+                              </div>
+                              <Badge variant="outline" className="text-[10px] font-mono px-2 py-0.5 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 whitespace-nowrap shrink-0">
+                                {wTrans.demoLabel}
+                              </Badge>
+                            </div>
+                            
+                            <CardContent className="p-4 space-y-4 text-xs font-sans">
+                              {/* Required Inputs */}
+                              {workflow.requiredInputs && workflow.requiredInputs.length > 0 && (
+                                <div className="space-y-2">
+                                  <h4 className="text-[10px] uppercase font-black tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 font-arabic">
+                                    <Info className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                    {wTrans.requiredInputs}
+                                  </h4>
+                                  <ul className="space-y-1.5 pl-1">
+                                    {workflow.requiredInputs.map((input, idx) => (
+                                      <li key={idx} className="flex items-start gap-2 text-slate-700 dark:text-slate-300 leading-tight">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 mt-1.5" />
+                                        <span>{lang === 'ar' ? input.ar : input.ku}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {/* Required Documents */}
+                              {workflow.documents && workflow.documents.length > 0 && (
+                                <div className="space-y-2 border-t border-slate-100 dark:border-slate-800/40 pt-3">
+                                  <h4 className="text-[10px] uppercase font-black tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 font-arabic">
+                                    <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                    {wTrans.documentsLabel}
+                                  </h4>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {workflow.documents.map((doc, idx) => (
+                                      <Badge key={idx} variant="secondary" className="bg-slate-100 dark:bg-slate-800/70 text-slate-700 dark:text-slate-350 border-none font-medium text-[10px] py-1 px-2.5 rounded-lg">
+                                        {lang === 'ar' ? doc.ar : doc.ku}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Core Risks */}
+                              {workflow.risks && workflow.risks.length > 0 && (
+                                <div className="space-y-2 border-t border-slate-100 dark:border-slate-800/40 pt-3">
+                                  <h4 className="text-[10px] uppercase font-black tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 font-arabic">
+                                    <ShieldAlert className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                    {wTrans.risksLabel}
+                                  </h4>
+                                  <div className="p-3 bg-rose-500/5 border border-rose-500/10 rounded-xl space-y-1.5">
+                                    {workflow.risks.map((risk, idx) => (
+                                      <div key={idx} className="flex items-start gap-1.5 text-[10.5px] text-rose-700 dark:text-rose-300 leading-normal">
+                                        <span className="shrink-0 mt-0.5">•</span>
+                                        <span>{lang === 'ar' ? risk.ar : risk.ku}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Next Actions */}
+                              {workflow.nextActions && workflow.nextActions.length > 0 && (
+                                <div className="space-y-2 border-t border-slate-100 dark:border-slate-800/40 pt-3">
+                                  <h4 className="text-[10px] uppercase font-black tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 font-arabic">
+                                    <Sparkles className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                    {wTrans.nextActionsLabel}
+                                  </h4>
+                                  <ol className="space-y-1.5 pl-1 bg-slate-50/50 dark:bg-slate-800/30 p-3 rounded-xl border border-slate-100 dark:border-slate-800/40">
+                                    {workflow.nextActions.map((action, idx) => (
+                                      <li key={idx} className="text-[11px] text-slate-700 dark:text-slate-300 leading-normal flex gap-1.5">
+                                        <span className="text-emerald-500 font-bold shrink-0">{idx + 1}.</span>
+                                        <span>{lang === 'ar' ? action.ar : action.ku}</span>
+                                      </li>
+                                    ))}
+                                  </ol>
+                                </div>
+                              )}
+
+                              {/* Smart Action Buttons (Explicit UI interactive triggers) */}
+                              {workflow.suggestedQuestions && workflow.suggestedQuestions.length > 0 && (
+                                <div className="space-y-2 border-t border-slate-100 dark:border-slate-800/40 pt-4">
+                                  {workflow.suggestedQuestions.map((q, idx) => (
+                                    <Button
+                                      key={idx}
+                                      variant="outline"
+                                      size="sm"
+                                      className="w-full text-left justify-start text-[11px] font-bold font-arabic rounded-xl bg-emerald-500/5 hover:bg-emerald-500/15 border border-emerald-500/10 text-emerald-700 dark:text-emerald-300 py-3 px-3 whitespace-normal leading-snug hover:-translate-y-0.5 transition-all text-start flex items-center gap-2"
+                                      onClick={() => {
+                                        setChatScope(activeService);
+                                        setActiveService('assistant');
+                                        setTimeout(() => handleSend(lang === 'ar' ? q.prompt.ar : q.prompt.ku), 150);
+                                      }}
+                                    >
+                                      <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                      <span>{lang === 'ar' ? q.label.ar : q.label.ku}</span>
+                                    </Button>
+                                  ))}
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        )}
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {activeService === 'currency' && (
-                  <div className="max-w-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
-                    <Suspense fallback={<WorkspaceLoader />}>
-                      <CurrencyConverter />
-                    </Suspense>
-                  </div>
-                )}
-
-                {activeService === 'cost' && (
-                  <div className="max-w-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
-                    <Suspense fallback={<WorkspaceLoader />}>
-                      <ShippingCalculator />
-                    </Suspense>
-                  </div>
-                )}
-
-                {activeService === 'kyc' && (
-                  <div className="max-w-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
-                    <Suspense fallback={<WorkspaceLoader />}>
-                      <KYCForm />
-                    </Suspense>
-                  </div>
-                )}
-
-                {activeService === 'procurement' && (
-                  <div className="max-w-3xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
-                    <Suspense fallback={<WorkspaceLoader />}>
-                      <ProcurementSourcing />
-                    </Suspense>
-                  </div>
-                )}
-
-                {activeService === 'tracking' && (
-                  <div className="max-w-3xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
-                    <Suspense fallback={<WorkspaceLoader />}>
-                      <ShipmentTracker />
-                    </Suspense>
-                  </div>
-                )}
-
-                {activeService === 'map' && (
-                  <div className="max-w-3xl h-[600px] bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl overflow-hidden shadow-sm">
-                    <Suspense fallback={<WorkspaceLoader />}>
-                      <LogisticsMap />
-                    </Suspense>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             </Card>
           )}

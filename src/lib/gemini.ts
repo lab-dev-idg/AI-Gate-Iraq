@@ -10,12 +10,14 @@ class ChatProxy {
     message,
     activeService,
     lang,
-    serviceHint
+    serviceHint,
+    workflowContext
   }: {
     message: string;
     activeService?: string;
     lang?: string;
     serviceHint?: string;
+    workflowContext?: any;
   }) {
     // Add user message to history
     this.history.push({ role: 'user', text: message });
@@ -31,7 +33,8 @@ class ChatProxy {
           activeService,
           lang,
           userMessage: message,
-          serviceHint
+          serviceHint,
+          workflowContext
         })
       });
 
