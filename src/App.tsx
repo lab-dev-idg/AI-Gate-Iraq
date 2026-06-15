@@ -19,6 +19,7 @@ import { BUSINESS_WORKFLOWS } from '@/src/lib/businessWorkflows';
 import { SERVICES, ServiceKey, getServiceName, getPromptChips } from '@/src/lib/services';
 import { loadSession, saveSession } from '@/src/lib/sessionStore';
 import { SessionManager } from '@/src/components/SessionManager';
+import { OnboardingGuide } from '@/src/components/OnboardingGuide';
 
 // Layout shell components
 import AppHeader from '@/src/app/AppHeader';
@@ -44,6 +45,30 @@ export default function App() {
     ];
   });
   const [input, setInput] = useState('');
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+
+  useEffect(() => {
+    // Check if the user has already completed onboarding
+    const session = loadSession(lang);
+    if (!session.hasCompletedOnboarding) {
+      setIsOnboardingOpen(true);
+    }
+  }, []);
+
+  const handleOnboardingAction = (serviceKey: ServiceKey, initialPrompt?: string) => {
+    setActiveService(serviceKey);
+    setChatScope(serviceKey);
+    
+    // Mark completed
+    saveSession({ hasCompletedOnboarding: true });
+    setIsOnboardingOpen(false);
+
+    if (initialPrompt) {
+      setTimeout(() => {
+        handleSend(initialPrompt);
+      }, 300);
+    }
+  };
   const [isLoading, setIsLoading] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
 
@@ -166,9 +191,20 @@ export default function App() {
             setChatScope={setChatScope}
             messages={messages}
             setMessages={setMessages}
+            onOpenGuide={() => setIsOnboardingOpen(true)}
           />
         </AppHeader>
         <Toaster position="top-center" richColors />
+        <OnboardingGuide
+          lang={lang}
+          t={t}
+          isOpen={isOnboardingOpen}
+          onClose={() => {
+            saveSession({ hasCompletedOnboarding: true });
+            setIsOnboardingOpen(false);
+          }}
+          onActionClick={handleOnboardingAction}
+        />
 
         {/* Main Container */}
         <main className="flex-1 overflow-hidden max-w-7xl mx-auto w-full flex flex-col lg:grid lg:grid-cols-12 gap-5 p-4 md:p-6 min-h-0">

@@ -43,5 +43,6 @@ export interface BusinessSession {
   recentPrompts: RecentPrompt[];
   recentServiceActions: RecentServiceAction[];
   drafts: SessionDrafts;
+  hasCompletedOnboarding?: boolean;
   updatedAt: number;
 }

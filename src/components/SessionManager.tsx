@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Database, Download, Trash2, FileOutput, ShieldAlert, Check, RefreshCw } from 'lucide-react';
+import { Database, Download, Trash2, FileOutput, ShieldAlert, Check, RefreshCw, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,6 +23,7 @@ interface SessionManagerProps {
   setChatScope: (scope: ServiceKey) => void;
   messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  onOpenGuide: () => void;
 }
 
 export function SessionManager({
@@ -34,6 +35,7 @@ export function SessionManager({
   setChatScope,
   messages,
   setMessages,
+  onOpenGuide,
 }: SessionManagerProps) {
   const [hasStoredSession, setHasStoredSession] = useState(false);
 
@@ -153,6 +155,14 @@ export function SessionManager({
 
         {/* Action Options */}
         <div className="space-y-1 mt-1 font-arabic">
+          <DropdownMenuItem 
+            onClick={onOpenGuide} 
+            className="flex items-center gap-2.5 p-2 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+          >
+            <HelpCircle className="w-4 h-4 text-emerald-500" />
+            <span>{lang === 'ar' ? 'دليل البداية' : 'ڕێنمایی سەرەتا'}</span>
+          </DropdownMenuItem>
+
           {hasStoredSession && (
             <DropdownMenuItem 
               onClick={handleResume} 
