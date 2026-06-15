@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 
 import { useLanguage } from '@/src/lib/LanguageContext';
+import { loadSession, saveSession, addServiceAction } from '@/src/lib/sessionStore';
 
 interface Rates {
   [key: string]: number;
@@ -14,15 +15,25 @@ interface Rates {
 
 export function CurrencyConverter() {
   const { lang, t } = useLanguage();
-  const [amount, setAmount] = useState<string>('1');
-  const [fromCurrency, setFromCurrency] = useState<string>('USD');
-  const [toCurrency, setToCurrency] = useState<string>('IQD');
+  const [amount, setAmount] = useState<string>(() => loadSession().drafts.currencyAmount || '1');
+  const [fromCurrency, setFromCurrency] = useState<string>(() => loadSession().drafts.currencyFrom || 'USD');
+  const [toCurrency, setToCurrency] = useState<string>(() => loadSession().drafts.currencyTo || 'IQD');
   const [rates, setRates] = useState<Rates>({});
   const [result, setResult] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string>('');
 
   const currencies = ['USD', 'IQD', 'EUR', 'GBP', 'TRY', 'CNY', 'AED'];
+
+  useEffect(() => {
+    saveSession({
+      drafts: {
+        currencyAmount: amount,
+        currencyFrom: fromCurrency,
+        currencyTo: toCurrency,
+      }
+    });
+  }, [amount, fromCurrency, toCurrency]);
 
   const fetchRates = async () => {
     setIsLoading(true);
@@ -35,6 +46,7 @@ export function CurrencyConverter() {
       
       if (data.rates[toCurrency]) {
         setResult(parseFloat(amount) * data.rates[toCurrency]);
+        addServiceAction(`Converted ${amount} ${fromCurrency} to ${toCurrency}`, 'currency');
       }
     } catch (error) {
       console.error('Error fetching rates:', error);

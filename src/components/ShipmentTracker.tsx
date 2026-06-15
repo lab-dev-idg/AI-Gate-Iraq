@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from './AuthProvider';
 import { db, collection, query, where, onSnapshot, addDoc, serverTimestamp, orderBy, doc, setDoc } from '@/src/lib/firebase';
 import { useLanguage } from '@/src/lib/LanguageContext';
+import { loadSession, saveSession, addServiceAction } from '@/src/lib/sessionStore';
 
 interface Milestone {
   status: string;
@@ -30,12 +31,20 @@ interface ShipmentData {
 export function ShipmentTracker() {
   const { lang, t } = useLanguage();
   const { user } = useAuth();
-  const [trackingId, setTrackingId] = useState('');
+  const [trackingId, setTrackingId] = useState(() => loadSession().drafts.trackingNumber || '');
   const [shipment, setShipment] = useState<ShipmentData | null>(null);
   const [history, setHistory] = useState<ShipmentData[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    saveSession({
+      drafts: {
+        trackingNumber: trackingId
+      }
+    });
+  }, [trackingId]);
 
   const getLocalizedShipment = (id: string): ShipmentData | null => {
     if (id !== 'LX123456789') return null;
@@ -116,6 +125,7 @@ export function ShipmentTracker() {
       const data = getLocalizedShipment(id);
       if (data) {
         setShipment(data);
+        addServiceAction(`Tracked shipment: ${id}`, 'tracking');
         // Save to Firebase if user is logged in
         if (user) {
           const shipmentRef = doc(db, `users/${user.uid}/shipments`, id);

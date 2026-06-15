@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ShoppingBag, Send, History, Package, DollarSign, PlusCircle, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,19 +8,33 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useLanguage } from '@/src/lib/LanguageContext';
 import { motion, AnimatePresence } from 'motion/react';
+import { loadSession, saveSession, addServiceAction } from '@/src/lib/sessionStore';
 
 export function ProcurementSourcing() {
   const { lang, t } = useLanguage();
   const [showHistory, setShowHistory] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const [formData, setFormData] = useState({
-    itemName: '',
-    qty: '',
-    currentPrice: '',
-    targetPrice: '',
-    notes: ''
+  const [formData, setFormData] = useState(() => {
+    const drafts = loadSession().drafts;
+    return {
+      itemName: drafts.procurementCategory || '',
+      qty: drafts.procurementQty || '',
+      currentPrice: '',
+      targetPrice: '',
+      notes: drafts.procurementSpecs || ''
+    };
   });
+
+  useEffect(() => {
+    saveSession({
+      drafts: {
+        procurementCategory: formData.itemName,
+        procurementQty: formData.qty,
+        procurementSpecs: formData.notes
+      }
+    });
+  }, [formData.itemName, formData.qty, formData.notes]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +47,8 @@ export function ProcurementSourcing() {
     toast.success(t.procurement.success, {
       icon: <CheckCircle2 className="w-4 h-4 text-green-500" />
     });
+
+    addServiceAction(`Sourcing: ${formData.itemName} (${formData.qty} pcs)`, 'procurement');
 
     setFormData({
       itemName: '',

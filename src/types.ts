@@ -1,6 +1,7 @@
 export * from './types/services';
 export * from './types/chat';
 export * from './types/app';
+export * from './types/session';
 
 import { BorderStatus } from './types/services';
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,15 +6,29 @@ import { Button } from '@/components/ui/button';
 import { UploadCloud, CheckCircle2, UserCheck, File, X, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/src/lib/LanguageContext';
+import { loadSession, saveSession, addServiceAction } from '@/src/lib/sessionStore';
 
 export const KYCForm = () => {
   const { lang, t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    companyName: '',
-    licenseNumber: ''
+  
+  const [formData, setFormData] = useState(() => {
+    const drafts = loadSession().drafts;
+    return {
+      companyName: drafts.kycCompanyName || '',
+      licenseNumber: drafts.kycTaxId || ''
+    };
   });
+
+  useEffect(() => {
+    saveSession({
+      drafts: {
+        kycCompanyName: formData.companyName,
+        kycTaxId: formData.licenseNumber
+      }
+    });
+  }, [formData.companyName, formData.licenseNumber]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -40,6 +54,8 @@ export const KYCForm = () => {
     toast.success(t.kyc.success, {
       icon: <CheckCircle2 className="w-4 h-4 text-green-500" />
     });
+
+    addServiceAction(`Submitted KYC for: ${formData.companyName}`, 'kyc');
 
     setFormData({
       companyName: '',

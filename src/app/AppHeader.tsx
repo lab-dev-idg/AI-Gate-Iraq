@@ -8,9 +8,10 @@ interface AppHeaderProps {
   lang: 'ku' | 'ar';
   setLang: (lang: 'ku' | 'ar') => void;
   t: any;
+  children?: React.ReactNode;
 }
 
-export const AppHeader = ({ lang, setLang, t }: AppHeaderProps) => {
+export const AppHeader = ({ lang, setLang, t, children }: AppHeaderProps) => {
   return (
     <header className="border-b border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-sm z-10 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -51,6 +52,7 @@ export const AppHeader = ({ lang, setLang, t }: AppHeaderProps) => {
               {t.app.systemActive}
             </Badge>
           </div>
+          {children}
           <UserMenu />
           <FeedbackDialog />
           <div className="hidden sm:flex items-center gap-2">

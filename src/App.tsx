@@ -17,6 +17,8 @@ import { chat } from '@/src/lib/gemini';
 import { Message } from '@/src/types/chat';
 import { BUSINESS_WORKFLOWS } from '@/src/lib/businessWorkflows';
 import { SERVICES, ServiceKey, getServiceName, getPromptChips } from '@/src/lib/services';
+import { loadSession, saveSession } from '@/src/lib/sessionStore';
+import { SessionManager } from '@/src/components/SessionManager';
 
 // Layout shell components
 import AppHeader from '@/src/app/AppHeader';
@@ -30,14 +32,17 @@ import AssistantWorkspace from '@/src/features/assistant/AssistantWorkspace';
 
 export default function App() {
   const { lang, setLang, t } = useLanguage();
-  const [activeService, setActiveService] = useState<ServiceKey>('assistant');
-  const [chatScope, setChatScope] = useState<ServiceKey>('assistant');
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'model',
-      text: t.chat.welcome
-    }
-  ]);
+  const [activeService, setActiveService] = useState<ServiceKey>(() => loadSession().activeService || 'assistant');
+  const [chatScope, setChatScope] = useState<ServiceKey>(() => loadSession().chatScope || 'assistant');
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const cached = loadSession().chatMessages;
+    return cached && cached.length > 0 ? cached : [
+      {
+        role: 'model',
+        text: t.chat.welcome
+      }
+    ];
+  });
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
@@ -45,6 +50,28 @@ export default function App() {
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   const promptChips = useMemo(() => getPromptChips(chatScope, lang), [chatScope, lang]);
+
+  // Handle auto-save of current main states
+  useEffect(() => {
+    saveSession({
+      activeService,
+      chatScope,
+      chatMessages: messages,
+      language: lang,
+    });
+  }, [activeService, chatScope, messages, lang]);
+
+  // Adjust placeholder message if language matches and no conversation has occurred yet
+  useEffect(() => {
+    if (messages.length === 1 && messages[0].role === 'model') {
+      setMessages([
+        {
+          role: 'model',
+          text: t.chat.welcome
+        }
+      ]);
+    }
+  }, [lang]);
 
   useEffect(() => {
     const el = chatScrollRef.current;
@@ -129,7 +156,18 @@ export default function App() {
     <TooltipProvider>
       <div className="flex flex-col h-screen bg-[#F8FAFC] dark:bg-[#090D16]" dir="rtl">
         {/* Header */}
-        <AppHeader lang={lang} setLang={setLang} t={t} />
+        <AppHeader lang={lang} setLang={setLang} t={t}>
+          <SessionManager
+            lang={lang}
+            t={t}
+            activeService={activeService}
+            setActiveService={setActiveService}
+            chatScope={chatScope}
+            setChatScope={setChatScope}
+            messages={messages}
+            setMessages={setMessages}
+          />
+        </AppHeader>
         <Toaster position="top-center" richColors />
 
         {/* Main Container */}

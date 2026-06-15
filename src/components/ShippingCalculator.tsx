@@ -7,22 +7,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLanguage } from '@/src/lib/LanguageContext';
+import { loadSession, saveSession, addServiceAction } from '@/src/lib/sessionStore';
 
 export function ShippingCalculator() {
   const { lang, t } = useLanguage();
-  const [origin, setOrigin] = useState<string>('China');
-  const [destination, setDestination] = useState<string>('Baghdad');
-  const [weight, setWeight] = useState<string>('');
+  const [origin, setOrigin] = useState<string>(() => loadSession().drafts.costOrigin || 'China');
+  const [destination, setDestination] = useState<string>(() => loadSession().drafts.costDestination || 'Baghdad');
+  const [weight, setWeight] = useState<string>(() => loadSession().drafts.costWeight || '');
   const [length, setLength] = useState<string>('');
   const [width, setWidth] = useState<string>('');
   const [height, setHeight] = useState<string>('');
-  const [speed, setSpeed] = useState<string>('standard');
+  const [speed, setSpeed] = useState<string>(() => loadSession().drafts.costCargoType || 'standard');
   const [estimatedCost, setEstimatedCost] = useState<number | null>(null);
   const [iqdCost, setIqdCost] = useState<number | null>(null);
   const [iqdRate, setIqdRate] = useState<number>(1310);
 
   const ORIGINS = ['China', 'Turkey', 'UAE', 'Jordan', 'Europe', 'USA'];
   const DESTINATIONS = ['Baghdad', 'Erbil', 'Basra', 'Sulaymaniyah', 'Duhok', 'Najaf'];
+
+  useEffect(() => {
+    saveSession({
+      drafts: {
+        costOrigin: origin,
+        costDestination: destination,
+        costWeight: weight,
+        costCargoType: speed,
+      }
+    });
+  }, [origin, destination, weight, speed]);
 
   // Fetch current IQD rate for integration
   useEffect(() => {
@@ -86,6 +98,9 @@ export function ShippingCalculator() {
     const totalUsd = baseRate + (chargeableWeight * perKgRate);
     setEstimatedCost(totalUsd);
     setIqdCost(totalUsd * iqdRate);
+    if (w > 0) {
+      addServiceAction(`Calculated shipping cost: ${w} kg from ${origin} to ${destination}`, 'cost');
+    }
   };
 
   useEffect(() => {

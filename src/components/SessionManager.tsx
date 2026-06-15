@@ -1,0 +1,185 @@
+import React, { useState, useEffect } from 'react';
+import { Database, Download, Trash2, FileOutput, ShieldAlert, Check, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { loadSession, saveSession, clearSession, exportSessionSummary, DEFAULT_SESSION } from '../lib/sessionStore';
+import { ServiceKey } from '../types/services';
+import { Message } from '../types/chat';
+
+interface SessionManagerProps {
+  lang: 'ku' | 'ar';
+  t: any;
+  activeService: ServiceKey;
+  setActiveService: (service: ServiceKey) => void;
+  chatScope: ServiceKey;
+  setChatScope: (scope: ServiceKey) => void;
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+}
+
+export function SessionManager({
+  lang,
+  t,
+  activeService,
+  setActiveService,
+  chatScope,
+  setChatScope,
+  messages,
+  setMessages,
+}: SessionManagerProps) {
+  const [hasStoredSession, setHasStoredSession] = useState(false);
+
+  // Check if a valid saved session with history/drafts exists in localStorage
+  const checkSession = () => {
+    try {
+      const saved = localStorage.getItem('ai_gate_iraq_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && (parsed.chatMessages?.length > 1 || Object.keys(parsed.drafts || {}).length > 0)) {
+          setHasStoredSession(true);
+          return;
+        }
+      }
+      setHasStoredSession(false);
+    } catch {
+      setHasStoredSession(false);
+    }
+  };
+
+  useEffect(() => {
+    checkSession();
+  }, [messages]);
+
+  const handleResume = () => {
+    const session = loadSession(lang);
+    
+    if (session.chatMessages && session.chatMessages.length > 0) {
+      setMessages(session.chatMessages);
+    }
+    if (session.activeService) {
+      setActiveService(session.activeService);
+    }
+    if (session.chatScope) {
+      setChatScope(session.chatScope);
+    }
+
+    toast.success(
+      lang === 'ar' 
+        ? 'تم استئناف جلسة العمل السابقة ومزامنة المسودات بنجاح!' 
+        : 'دانیشتنی کاری پێشوو و ڕەشەنوسەکان بە سەرکەوتوویی گەڕێندرانەوە!'
+    );
+  };
+
+  const handleClear = () => {
+    clearSession();
+    const cleanSession = DEFAULT_SESSION(lang);
+    setMessages([
+      {
+        role: 'model',
+        text: t.chat.welcome
+      }
+    ]);
+    setActiveService('assistant');
+    setChatScope('assistant');
+    setHasStoredSession(false);
+
+    toast.warning(
+      lang === 'ar' 
+        ? 'تم مسح الجلسة المحلية وإعادة تعيين الحقول.' 
+        : 'دانیشتنی ناوخۆیی سڕدرایەوە و خانەکان پاککرانەوە.'
+    );
+  };
+
+  const handleExport = () => {
+    const session = loadSession(lang);
+    // Explicitly merge latest memory first
+    session.chatMessages = messages;
+    session.activeService = activeService;
+    session.chatScope = chatScope;
+    
+    const { text, filename } = exportSessionSummary(session, lang);
+    
+    const element = document.createElement('a');
+    const file = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    element.href = URL.createObjectURL(file);
+    element.download = filename;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+
+    toast.success(
+      lang === 'ar' 
+        ? 'تم تصدير ملخص الجلسة بنجاح!' 
+        : 'کورتەی دانیشتنی کار بە سەرکەوتوویی هەناردە کرا!'
+    );
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="flex h-9 items-center px-3 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 dark:border-emerald-500/30 dark:bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 text-xs font-bold font-arabic rounded-xl gap-1.5 transition-all outline-none cursor-pointer">
+        <Database className="w-4 h-4" />
+        <span>{lang === 'ar' ? 'جلسة العمل' : 'دانیشتنی کار'}</span>
+        {hasStoredSession && (
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+        )}
+      </DropdownMenuTrigger>
+      
+      <DropdownMenuContent className="w-80 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl" align="end" dir="rtl">
+        <DropdownMenuLabel className="font-arabic text-xs font-black text-slate-800 dark:text-slate-100 pb-2">
+          {lang === 'ar' ? 'ذاكرة استمرارية الأعمال الموقّتة' : 'یادگەی بەردەوامی کاروباری کاتی'}
+        </DropdownMenuLabel>
+        
+        <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800 my-1" />
+        
+        {/* Privacy Note Block */}
+        <div className="p-2.5 bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800 rounded-xl my-2 text-[10px] leading-relaxed text-slate-500 dark:text-slate-400 flex items-start gap-2">
+          <ShieldAlert className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+          <p className="font-medium text-right">
+            {lang === 'ar' 
+              ? 'يتم حفظ هذه البيانات محلياً على هذا المتصفح فقط ولا تتم مزامنتها سحابياً.'
+              : 'ئەمە تەنها لەسەر ئەم وێبگەڕە پاشەکەوت دەبێت و هاوکاتکردنی هەور نییە.'}
+          </p>
+        </div>
+
+        <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800 my-1" />
+
+        {/* Action Options */}
+        <div className="space-y-1 mt-1 font-arabic">
+          {hasStoredSession && (
+            <DropdownMenuItem 
+              onClick={handleResume} 
+              className="flex items-center gap-2.5 p-2 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+            >
+              <RefreshCw className="w-4 h-4 text-emerald-500" />
+              <span>{lang === 'ar' ? 'استئناف الجلسة السابقة' : 'گەڕانەوە بۆ دانیشتنی پێشوو'}</span>
+            </DropdownMenuItem>
+          )}
+
+          <DropdownMenuItem 
+            onClick={handleExport} 
+            className="flex items-center gap-2.5 p-2 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+          >
+            <Download className="w-4 h-4 text-blue-500" />
+            <span>{lang === 'ar' ? 'تصدير ملخص الجلسة' : 'هەناردەکردنی کورتەی دانیشتن'}</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem 
+            onClick={handleClear} 
+            className="flex items-center gap-2.5 p-2 rounded-lg text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 cursor-pointer"
+          >
+            <Trash2 className="w-4 h-4 text-rose-500" />
+            <span>{lang === 'ar' ? 'مسح الجلسة المحلية' : 'سڕینەوەی دانیشتنی ناوخۆیی'}</span>
+          </DropdownMenuItem>
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
