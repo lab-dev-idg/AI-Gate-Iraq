@@ -38,6 +38,11 @@ if (GEMINI_MODEL.startsWith("models/")) {
   GEMINI_MODEL = GEMINI_MODEL.substring("models/".length);
 }
 
+// Convert gemini-2.5-flash to gemini-3.5-flash as the recommended text model for general business tasks
+if (GEMINI_MODEL === "gemini-2.5-flash") {
+  GEMINI_MODEL = "gemini-3.5-flash";
+}
+
 console.log("Using resolved GEMINI_MODEL name:", GEMINI_MODEL);
 
 const SYSTEM_INSTRUCTION = `تۆ AI Gate Iraqـیت، یاریدەدەرێکی هۆشمەندی بازرگانی، هاوردەکردن، هەناردەکردن و لۆجیستیک بۆ عێراق.

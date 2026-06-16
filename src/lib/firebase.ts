@@ -52,6 +52,58 @@ if (isFirebaseConfigured) {
   }
 }
 
+// Local pilot mode fallback helpers for authentication
+let pilotUserListeners: ((user: any) => void)[] = [];
+
+const getStoredPilotUser = (): any | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const userStr = sessionStorage.getItem('ai-gate-iraq-pilot-user');
+    return userStr ? JSON.parse(userStr) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
+const setStoredPilotUser = (user: any | null) => {
+  if (typeof window === 'undefined') return;
+  try {
+    if (user) {
+      sessionStorage.setItem('ai-gate-iraq-pilot-user', JSON.stringify(user));
+    } else {
+      sessionStorage.removeItem('ai-gate-iraq-pilot-user');
+    }
+  } catch (e) {}
+};
+
+const notifyPilotListeners = (user: any | null) => {
+  pilotUserListeners.forEach(listener => {
+    try {
+      listener(user);
+    } catch (e) {
+      console.error("Error notifying auth listener:", e);
+    }
+  });
+};
+
+const createMockPilotUser = () => ({
+  uid: 'pilot-user-123',
+  email: 'pilot@aigateiraq.get',
+  displayName: 'مێهوانی تاقیکاری (Pilot Guest)',
+  photoURL: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=120&auto=format&fit=crop',
+  emailVerified: true,
+  isAnonymous: false,
+  metadata: {},
+  providerData: [],
+  refreshToken: "mock-refresh-token",
+  tenantId: null,
+  delete: async () => {},
+  getIdToken: async () => "mock-id-token",
+  getIdTokenResult: async () => ({ token: "mock-id-token", expirationTime: "max", authTime: "now", issuedAtTime: "now", signInProvider: "google.com", claims: {} }),
+  reload: async () => {},
+  toJSON: () => ({})
+});
+
 // Formally requested exports
 export { firebaseApp as app };
 
@@ -60,13 +112,21 @@ export const signInWithPopup = async (authObj: any, providerObj: any) => {
   if (isFirebaseConfigured) {
     return realSignInWithPopup(authObj, providerObj);
   }
-  throw new Error("Firebase contains no active web config. Authentication is unavailable in this pilot environment.");
+  
+  // Non-obstructive pilot simulation
+  const mockUser = createMockPilotUser();
+  setStoredPilotUser(mockUser);
+  notifyPilotListeners(mockUser);
+  return { user: mockUser };
 };
 
 export const signOut = async (authObj: any) => {
   if (isFirebaseConfigured) {
     return realSignOut(authObj);
   }
+  
+  setStoredPilotUser(null);
+  notifyPilotListeners(null);
   return Promise.resolve();
 };
 
@@ -74,9 +134,16 @@ export const onAuthStateChanged = (authObj: any, next: (user: any) => void) => {
   if (isFirebaseConfigured) {
     return realOnAuthStateChanged(authObj, next);
   }
-  // Immediately call with null indicating logged out state
-  next(null);
-  return () => {};
+  
+  pilotUserListeners.push(next);
+  // Immediately sync with the current stored mock state
+  const activeUser = getStoredPilotUser();
+  next(activeUser);
+  
+  // Return unsubscribe handle
+  return () => {
+    pilotUserListeners = pilotUserListeners.filter(l => l !== next);
+  };
 };
 
 export const doc = (dbObj: any, path: string, ...pathSegments: string[]) => {
