@@ -118,3 +118,138 @@ export async function uploadPilotAttachment(file: File, metadata?: any): Promise
     return null;
   }
 }
+
+/**
+ * Synchronize feature flags to Firestore.
+ */
+export async function syncFeatureFlagsToFirestore(flags: any[]): Promise<{ ok: boolean; mode?: string; messageKu: string }> {
+  if (!isFirebaseConfigured) {
+    return { ok: false, mode: 'local_pilot', messageKu: 'فایەربەیس چالاک نییە؛ هاوکاتکردن نەکرا.' };
+  }
+  try {
+    for (const flag of flags) {
+      if (!flag.key) continue;
+      const docRef = doc(db, 'featureFlags', flag.key);
+      await setDoc(docRef, { ...flag, updatedAt: new Date().toISOString() }, { merge: true });
+    }
+    return { ok: true, messageKu: 'هاوکاتکردنی فلوگەکانی تایبەتمەندی بە سەرکەوتوویی ئەنجامدرا.' };
+  } catch (error: any) {
+    console.error("syncFeatureFlagsToFirestore error:", error);
+    return { ok: false, messageKu: `هاوکاتکردنی فلوگەکانی تایبەتمەندی سەرکەوتوو نەبوو: ${error.message || error}` };
+  }
+}
+
+/**
+ * Synchronize service configurations to Firestore.
+ */
+export async function syncServiceConfigsToFirestore(services: any[]): Promise<{ ok: boolean; mode?: string; messageKu: string }> {
+  if (!isFirebaseConfigured) {
+    return { ok: false, mode: 'local_pilot', messageKu: 'فایەربەیس چالاک نییە؛ هاوکاتکردن نەکرا.' };
+  }
+  try {
+    for (const service of services) {
+      if (!service.key) continue;
+      const docRef = doc(db, 'serviceConfigs', service.key);
+      await setDoc(docRef, { ...service, updatedAt: new Date().toISOString() }, { merge: true });
+    }
+    return { ok: true, messageKu: 'هاوکاتکردنی ڕێکخستنەکانی خزمەتگوزاری بە سەرکەوتوویی ئەنجامدرا.' };
+  } catch (error: any) {
+    console.error("syncServiceConfigsToFirestore error:", error);
+    return { ok: false, messageKu: `هاوکاتکردنی خزمەتگوزارییەکان سەرکەوتوو نەبوو: ${error.message || error}` };
+  }
+}
+
+/**
+ * Synchronize prompt configurations to Firestore.
+ */
+export async function syncPromptConfigsToFirestore(prompts: any[]): Promise<{ ok: boolean; mode?: string; messageKu: string }> {
+  if (!isFirebaseConfigured) {
+    return { ok: false, mode: 'local_pilot', messageKu: 'فایەربەیس چالاک نییە؛ هاوکاتکردن نەکرا.' };
+  }
+  try {
+    for (const promptItem of prompts) {
+      if (!promptItem.id) continue;
+      const docRef = doc(db, 'promptConfigs', promptItem.id);
+      await setDoc(docRef, { ...promptItem, updatedAt: new Date().toISOString() }, { merge: true });
+    }
+    return { ok: true, messageKu: 'هاوکاتکردنی ڕێنمایییەکان بە سەرکەوتوویی ئەنجامدرا.' };
+  } catch (error: any) {
+    console.error("syncPromptConfigsToFirestore error:", error);
+    return { ok: false, messageKu: `هاوکاتکردنی ڕێنمایییەکان سەرکەوتوو نەبوو: ${error.message || error}` };
+  }
+}
+
+/**
+ * Synchronize workflow steps to Firestore.
+ */
+export async function syncWorkflowStepsToFirestore(steps: any[]): Promise<{ ok: boolean; mode?: string; messageKu: string }> {
+  if (!isFirebaseConfigured) {
+    return { ok: false, mode: 'local_pilot', messageKu: 'فایەربەیس چالاک نییە؛ هاوکاتکردن نەکرا.' };
+  }
+  try {
+    for (const step of steps) {
+      if (!step.id) continue;
+      const docRef = doc(db, 'workflowSteps', step.id);
+      await setDoc(docRef, { ...step, updatedAt: new Date().toISOString() }, { merge: true });
+    }
+    return { ok: true, messageKu: 'هاوکاتکردنی هەنگاوەکانی کار بە سەرکەوتوویی ئەنجامدرا.' };
+  } catch (error: any) {
+    console.error("syncWorkflowStepsToFirestore error:", error);
+    return { ok: false, messageKu: `هاوکاتکردنی هەنگاوەکانی کار سەرکەوتوو نەبوو: ${error.message || error}` };
+  }
+}
+
+/**
+ * Synchronize content sections to Firestore.
+ */
+export async function syncContentSectionsToFirestore(sections: any[]): Promise<{ ok: boolean; mode?: string; messageKu: string }> {
+  if (!isFirebaseConfigured) {
+    return { ok: false, mode: 'local_pilot', messageKu: 'فایەربەیس چالاک نییە؛ هاوکاتکردن نەکرا.' };
+  }
+  try {
+    for (const section of sections) {
+      const id = section.id || section.sectionId;
+      if (!id) continue;
+      const docRef = doc(db, 'contentSections', id);
+      await setDoc(docRef, { ...section, sectionId: id, updatedAt: new Date().toISOString() }, { merge: true });
+    }
+    return { ok: true, messageKu: 'هاوکاتکردنی بەشەکانی ناوەڕۆک بە سەرکەوتوویی ئەنجامدرا.' };
+  } catch (error: any) {
+    console.error("syncContentSectionsToFirestore error:", error);
+    return { ok: false, messageKu: `هاوکاتکردنی بەشەکانی ناوەڕۆک سەرکەوتوو نەبوو: ${error.message || error}` };
+  }
+}
+
+/**
+ * Tests Firebase Connection.
+ */
+export async function testFirebaseConnection(): Promise<{ ok: boolean; code?: string; messageKu: string }> {
+  if (!isFirebaseConfigured) {
+    return {
+      ok: false,
+      messageKu: 'فایەربەیس ڕێک نەخراوە؛ پلاتفۆرمەکە لە دۆخی پایلۆتی ناوخۆیی کار دەکات.'
+    };
+  }
+  try {
+    const docRef = doc(db, 'adminConfig', 'global');
+    await getDoc(docRef);
+    return {
+      ok: true,
+      messageKu: 'پەیوەندی Firestore بە سەرکەوتوویی تاقی کرایەوە.'
+    };
+  } catch (error: any) {
+    console.error("testFirebaseConnection error:", error);
+    const errStr = error?.message || String(error);
+    if (errStr.includes('permission') || errStr.includes('permission_denied') || error?.code === 'permission-denied') {
+      return {
+        ok: false,
+        code: 'permission_denied',
+        messageKu: 'فایەربەیس پەیوەستە، بەڵام ڕێساکانی Firestore ڕێگەی خوێندنەوە/نووسین نادەن. پێویستە Auth و Admin Rules چالاک بکرێن.'
+      };
+    }
+    return {
+      ok: false,
+      messageKu: `پەیوەندی سەرکەوتوو نەبوو: ${errStr}`
+    };
+  }
+}

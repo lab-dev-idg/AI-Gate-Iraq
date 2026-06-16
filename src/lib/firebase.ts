@@ -170,8 +170,11 @@ export const getDoc = async (docRef: any) => {
   };
 };
 
-export const setDoc = async (docRef: any, data: any) => {
+export const setDoc = async (docRef: any, data: any, options?: any) => {
   if (isFirebaseConfigured) {
+    if (options !== undefined) {
+      return realSetDoc(docRef, data, options);
+    }
     return realSetDoc(docRef, data);
   }
   return Promise.resolve();
@@ -235,15 +238,29 @@ export const serverTimestamp = () => {
   return new Date().toISOString();
 };
 
-interface FirebaseStatus {
+export interface FirebaseRuntimeStatus {
+  configured: boolean;
   isConfigured: boolean;
-  projectId: string;
+  projectId?: string;
+  authDomain?: string;
+  storageBucket?: string;
+  mode: 'firebase' | 'local_pilot';
+  messageKu: string;
 }
 
-export const getFirebaseStatus = (): FirebaseStatus => {
+export const getFirebaseStatus = (): FirebaseRuntimeStatus => {
+  const configured = isFirebaseConfigured && !!firebaseApp && !!firebaseDb;
+
   return {
-    isConfigured: isFirebaseConfigured,
-    projectId: projectId || ''
+    configured,
+    isConfigured: configured,
+    projectId: projectId || undefined,
+    authDomain: authDomain || undefined,
+    storageBucket: storageBucket || undefined,
+    mode: configured ? 'firebase' : 'local_pilot',
+    messageKu: configured
+      ? 'فایەربەیس بە سەرکەوتوویی پەیوەستە.'
+      : 'فایەربەیس ڕێک نەخراوە؛ پلاتفۆرمەکە لە دۆخی پایلۆتی ناوخۆیی کار دەکات.'
   };
 };
 

@@ -203,6 +203,12 @@ export const DEFAULT_ADMIN_STATE: AdminState = {
       labelKu: 'ڕێگادان بە بارکردنی فایل',
       descriptionKu: 'ڕێگەدان بە بارکردنی فایل و بەڵگە جۆراوجۆرەکان بۆ یاریدەدەرە هۆشمەندەکە.',
       enabled: true
+    },
+    {
+      key: 'enable_firebase_sync',
+      labelKu: 'هاوکاتکردنی فایەربەیس',
+      descriptionKu: 'کاتێک چالاکە، داتای ئادمین بە شێوەی تاقیکردنەوەیی لەگەڵ Firestore هاوکات دەکرێت.',
+      enabled: false
     }
   ],
   intake: [
