@@ -104,10 +104,11 @@ export const AssistantWorkspace = ({
       <ChatInput
         input={input}
         setInput={setInput}
-        onSend={() => onSend()}
+        onSend={(overridePrompt) => onSend(overridePrompt)}
         isLoading={isLoading}
         placeholder={t.chat.placeholder}
         footerText={footerText}
+        lang={lang}
       />
     </Card>
   );

@@ -117,6 +117,25 @@ body,
   background: transparent;
 }
 
+/* Custom Chat Message Scroll rules to prevent bright white tracks */
+.chat-message-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(71, 85, 105, 0.45) transparent;
+}
+
+.chat-message-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-message-scroll::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.chat-message-scroll::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.45);
+  border-radius: 999px;
+}
+
 /* 3. ڕێکخستنی نووسینی کوردی و عەرەبی */
 [dir="rtl"] {
   text-align: right;
@@ -178,14 +197,16 @@ body,
 @media (max-width: 1023px) {
   .chat-scroll::-webkit-scrollbar,
   .sidebar-scroll::-webkit-scrollbar,
-  .cs-scroll::-webkit-scrollbar {
+  .cs-scroll::-webkit-scrollbar,
+  .chat-message-scroll::-webkit-scrollbar {
     display: none !important;
     width: 0 !important;
     height: 0 !important;
   }
   .chat-scroll,
   .sidebar-scroll,
-  .cs-scroll {
+  .cs-scroll,
+  .chat-message-scroll {
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
   }

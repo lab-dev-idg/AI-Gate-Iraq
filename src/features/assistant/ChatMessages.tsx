@@ -26,7 +26,7 @@ export const ChatMessages = ({
   return (
     <div 
       ref={chatScrollRef} 
-      className="flex-1 w-full max-w-full min-w-0 min-h-[280px] max-h-[55dvh] lg:max-h-none overflow-y-auto overflow-x-hidden overscroll-contain chat-scroll p-4 md:p-6 bg-slate-50/25 dark:bg-slate-950/25"
+      className="flex-1 w-full max-w-full min-w-0 min-h-[280px] max-h-[55dvh] lg:max-h-none overflow-y-auto overflow-x-hidden overscroll-contain chat-message-scroll p-4 md:p-6 bg-slate-50/25 dark:bg-slate-950/25"
     >
       <div className="space-y-6 w-full max-w-full min-w-0">
         <AnimatePresence initial={false}>
