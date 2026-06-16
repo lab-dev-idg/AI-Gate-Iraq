@@ -40,23 +40,22 @@ export const AssistantWorkspace = ({
   }`;
 
   return (
-    <Card className="flex-1 flex flex-col min-h-0 overflow-hidden border border-slate-200/60 dark:border-slate-800/60 shadow-md bg-white dark:bg-slate-900/30 rounded-2xl h-full">
-      {/* Advisor Header */}
-      <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 shadow-sm">
+    <Card className="flex-1 flex flex-col min-h-[calc(100svh-170px)] lg:min-h-0 min-w-0 w-full max-w-full overflow-hidden border border-slate-200/60 dark:border-slate-800/60 shadow-md bg-white dark:bg-slate-900/30 rounded-2xl h-full">
+      <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between shrink-0 min-w-0">
+        <div className="flex items-center gap-2.5 min-w-0 w-full sm:w-auto">
+          <div className="w-9 h-9 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 shadow-sm shrink-0">
             <Bot className="w-5 h-5 flex-shrink-0" />
           </div>
-          <div>
-            <h2 className="text-sm font-black text-slate-850 dark:text-white font-arabic flex items-center flex-wrap gap-1.5 leading-none">
+          <div className="min-w-0">
+            <h2 className="text-sm font-black text-slate-850 dark:text-white font-arabic flex items-center flex-wrap gap-1.5 leading-tight min-w-0 break-words">
               {lang === 'ar' ? 'مستشار الأعمال واللوجستيات الذكي' : 'ڕاوێژکاری لۆجیستی و بازرگانی زیرەک'}
               {chatScope !== 'assistant' && (
-                <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">
+                <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 whitespace-nowrap shrink-0">
                   {getServiceName(chatScope, lang)}
                 </span>
               )}
             </h2>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-medium leading-tight">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-medium leading-relaxed break-words">
               {lang === 'ar'
                 ? `مستشار الذكاء الاصطناعي مستعد لمساعدتك في: ${getServiceName(chatScope, 'ar')}`
                 : `ڕاوێژکاری زیرەک ئامادەیە بۆ یارمەتیدانت لە: ${getServiceName(chatScope, 'ku')}`}
@@ -64,15 +63,14 @@ export const AssistantWorkspace = ({
           </div>
         </div>
 
-        {/* Scope Switcher Dropdown */}
-        <div className="flex items-center gap-2 font-arabic shrink-0 self-end sm:self-center">
-          <span className="text-[10px] text-slate-400 font-black hidden xs:inline">
+        <div className="flex items-center gap-2 font-arabic shrink-0 self-end sm:self-center max-w-full">
+          <span className="text-[10px] text-slate-400 font-black hidden sm:inline whitespace-nowrap">
             {lang === 'ar' ? 'التركيز:' : 'تیشکۆ:'}
           </span>
           <select
             value={chatScope}
             onChange={(e) => setChatScope(e.target.value as ServiceKey)}
-            className="text-[10px] font-black border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5 bg-white dark:bg-slate-900 cursor-pointer text-slate-700 dark:text-slate-200 shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 transition-colors"
+            className="h-9 max-w-[180px] text-[10px] font-black border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5 bg-white dark:bg-slate-900 cursor-pointer text-slate-700 dark:text-slate-200 shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 transition-colors"
           >
             {SERVICES.map((srv) => (
               <option key={srv.key} value={srv.key}>
@@ -83,7 +81,6 @@ export const AssistantWorkspace = ({
         </div>
       </div>
 
-      {/* Chat Viewport */}
       <ChatMessages
         messages={messages}
         isLoading={isLoading}
@@ -93,13 +90,11 @@ export const AssistantWorkspace = ({
         chatScrollRef={chatScrollRef}
       />
 
-      {/* Suggested prompt chips based on selected focus scope */}
       <PromptChips
         chips={promptChips}
         onChipClick={onSend}
       />
 
-      {/* Chat Input form */}
       <ChatInput
         input={input}
         setInput={setInput}
