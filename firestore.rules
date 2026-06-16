@@ -1,51 +1,69 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Default deny
+    
+    // Default fallback: Block all access to prevent open database vulnerabilities
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // Auth helpers
-    function isSignedIn() {
-      return request.auth != null;
+    // 1. adminConfig (Store configuration overrides)
+    match /adminConfig/global {
+      allow read: if true; // Public must read customized brand headers
+      allow write: if request.auth != null; // TODO: Implement request.auth.token.isAdmin == true for production RBAC
     }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+    // 2. featureFlags
+    match /featureFlags/{flagKey} {
+      allow read: if true; // Public reads toggles dynamically
+      allow write: if request.auth != null; // TODO: Restrict config writes strictly to Admins
     }
 
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    // 3. serviceConfigs
+    match /serviceConfigs/{serviceKey} {
+      allow read: if true;
+      allow write: if request.auth != null; // TODO: Restrict edits strictly to Admins
     }
 
-    // User Profile Rules
-    match /users/{userId} {
-      allow read: if isOwner(userId);
-      allow create: if isOwner(userId) 
-        && request.resource.data.keys().hasAll(['uid', 'email', 'createdAt'])
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.email == request.auth.token.email
-        && request.resource.data.createdAt == request.time;
-      allow update: if isOwner(userId)
-        && request.resource.data.uid == resource.data.uid
-        && request.resource.data.email == resource.data.email;
+    // 4. promptConfigs
+    match /promptConfigs/{promptId} {
+      allow read: if true;
+      allow write: if request.auth != null; // TODO: Restrict edits strictly to Admins
     }
 
-    // Shipment History Rules
-    match /users/{userId}/shipments/{shipmentId} {
-      allow read: if isOwner(userId);
-      allow create: if isOwner(userId)
-        && isValidId(shipmentId)
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.updatedAt == request.time
-        && request.resource.data.trackingNumber is string
-        && request.resource.data.status is string;
-      allow update: if isOwner(userId)
-        && request.resource.data.updatedAt == request.time
-        && request.resource.data.trackingNumber == resource.data.trackingNumber;
-      allow delete: if isOwner(userId);
+    // 5. workflowSteps
+    match /workflowSteps/{stepId} {
+      allow read: if true;
+      allow write: if request.auth != null; // TODO: Restrict edits strictly to Admins
+    }
+
+    // 6. contentSections
+    match /contentSections/{sectionId} {
+      allow read: if true;
+      allow write: if request.auth != null; // TODO: Restrict edits strictly to Admins
+    }
+
+    // 7. intakeItems (Dynamic Public Inquiries)
+    match /intakeItems/{intakeId} {
+      // Allow general public to submit forms without auth, but enforce 'new' status
+      allow create: if request.resource.data.status == 'new';
+      // Restrict read and write/update capabilities completely to Authed Admins
+      allow read, update: if request.auth != null; // TODO: Implement request.auth.token.isAdmin == true
+      allow delete: if false; // Deny general deletes
+    }
+
+    // 8. auditLogs (Administrative auditable changes log)
+    match /auditLogs/{logId} {
+      // System writes on admin edits or authed actions
+      allow create: if request.auth != null;
+      // Admins read
+      allow read: if request.auth != null; // TODO: Implement request.auth.token.isAdmin == true
+      allow update, delete: if false; // Immutable logs
+    }
+
+    // 9. pilotAttachments
+    match /pilotAttachments/{attachmentId} {
+      allow create, read: if request.auth != null;
     }
   }
 }

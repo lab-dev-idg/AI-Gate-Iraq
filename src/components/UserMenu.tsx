@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { auth, googleProvider, signInWithPopup, signOut } from '@/src/lib/firebase';
+import { auth, googleProvider, signInWithPopup, signOut, getFirebaseStatus } from '@/src/lib/firebase';
 import { useAuth } from '@/src/components/AuthProvider';
 import { useLanguage } from '@/src/lib/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import firebaseConfig from '@/firebase-applet-config.json';
 
 export function UserMenu() {
   const { user, loading } = useAuth();
@@ -66,7 +65,8 @@ export function UserMenu() {
   }
 
   const currentDomain = typeof window !== 'undefined' ? window.location.hostname : '';
-  const consoleUrl = `https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/settings`;
+  const firebaseStatus = getFirebaseStatus();
+  const consoleUrl = `https://console.firebase.google.com/project/${firebaseStatus.projectId}/authentication/settings`;
 
   return (
     <>

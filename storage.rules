@@ -1,0 +1,29 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Default fallback: Block all uncaught paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // Pilot attachments upload folder rules
+    match /pilot-attachments/{fileName} {
+      // Must be authenticated to upload, size must be less than 5MB
+      allow create: if request.auth != null 
+                    && request.resource.size < 5 * 1024 * 1024
+                    && (request.resource.contentType.matches('image/.*') 
+                        || request.resource.contentType == 'application/pdf'
+                        || request.resource.contentType == 'text/plain');
+      
+      // Restrict reading of attachments to active operator admins
+      allow read: if request.auth != null; // TODO: Restrict reading strictly to file owner and Admins
+    }
+
+    // Intake associated documents upload folder rules
+    match /intake-documents/{fileName} {
+      allow create: if request.auth != null && request.resource.size < 10 * 1024 * 1024;
+      allow read: if request.auth != null; // TODO: Protect document reading strictly to Admins
+    }
+  }
+}

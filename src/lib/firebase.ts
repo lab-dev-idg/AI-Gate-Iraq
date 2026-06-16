@@ -1,30 +1,183 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
-import { initializeFirestore, memoryLocalCache, doc, setDoc, getDoc, updateDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp, orderBy, limit } from 'firebase/firestore';
-import firebaseConfig from '@/firebase-applet-config.json';
+import { getAuth, GoogleAuthProvider, signInWithPopup as realSignInWithPopup, signOut as realSignOut, onAuthStateChanged as realOnAuthStateChanged, User } from 'firebase/auth';
+import { initializeFirestore, memoryLocalCache, doc as realDoc, setDoc as realSetDoc, getDoc as realGetDoc, updateDoc as realUpdateDoc, collection as realCollection, query as realQuery, where as realWhere, onSnapshot as realOnSnapshot, addDoc as realAddDoc, serverTimestamp as realServerTimestamp, orderBy as realOrderBy, limit as realLimit } from 'firebase/firestore';
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = initializeFirestore(app, {
-  localCache: memoryLocalCache()
-}, firebaseConfig.firestoreDatabaseId);
-export const googleProvider = new GoogleAuthProvider();
+// 1. Read Firebase web config from Vite environment variables (or fallback)
+const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+const authDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
+const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+const storageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
+const messagingSenderId = import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID;
+const appId = import.meta.env.VITE_FIREBASE_APP_ID;
+const measurementId = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID;
 
-export { 
-  signInWithPopup, 
-  signOut, 
-  onAuthStateChanged,
-  doc,
-  setDoc,
-  getDoc,
-  updateDoc,
-  collection,
-  query,
-  where,
-  onSnapshot,
-  addDoc,
-  serverTimestamp,
-  orderBy,
-  limit
+export const isFirebaseConfigured = !!(apiKey && projectId && appId);
+
+if (!isFirebaseConfigured && import.meta.env.DEV) {
+  console.warn("Firebase is not configured. Running in local pilot mode.");
+}
+
+export let firebaseApp: any = null;
+export let firebaseAuth: any = null;
+export let firebaseDb: any = null;
+export let firebaseStorage: any = null;
+
+// Lowercase exports for active code alignment
+export let auth: any = null;
+export let db: any = null;
+export let googleProvider: any = null;
+
+const firebaseConfig = {
+  apiKey,
+  authDomain,
+  projectId,
+  storageBucket,
+  messagingSenderId,
+  appId,
+  measurementId
 };
+
+if (isFirebaseConfigured) {
+  try {
+    firebaseApp = initializeApp(firebaseConfig);
+    firebaseAuth = getAuth(firebaseApp);
+    firebaseDb = initializeFirestore(firebaseApp, {
+      localCache: memoryLocalCache()
+    });
+    auth = firebaseAuth;
+    db = firebaseDb;
+    googleProvider = new GoogleAuthProvider();
+  } catch (error) {
+    console.error("Failed to initialize active Firebase client", error);
+  }
+}
+
+// Formally requested exports
+export { firebaseApp as app };
+
+// Guarded functional proxies to prevent crashes when not configured
+export const signInWithPopup = async (authObj: any, providerObj: any) => {
+  if (isFirebaseConfigured) {
+    return realSignInWithPopup(authObj, providerObj);
+  }
+  throw new Error("Firebase contains no active web config. Authentication is unavailable in this pilot environment.");
+};
+
+export const signOut = async (authObj: any) => {
+  if (isFirebaseConfigured) {
+    return realSignOut(authObj);
+  }
+  return Promise.resolve();
+};
+
+export const onAuthStateChanged = (authObj: any, next: (user: any) => void) => {
+  if (isFirebaseConfigured) {
+    return realOnAuthStateChanged(authObj, next);
+  }
+  // Immediately call with null indicating logged out state
+  next(null);
+  return () => {};
+};
+
+export const doc = (dbObj: any, path: string, ...pathSegments: string[]) => {
+  if (isFirebaseConfigured) {
+    return realDoc(dbObj, path, ...pathSegments);
+  }
+  return { type: 'document', path, pathSegments };
+};
+
+export const collection = (dbObj: any, path: string) => {
+  if (isFirebaseConfigured) {
+    return realCollection(dbObj, path);
+  }
+  return { type: 'collection', path };
+};
+
+export const getDoc = async (docRef: any) => {
+  if (isFirebaseConfigured) {
+    return realGetDoc(docRef);
+  }
+  return {
+    exists: () => false,
+    data: () => null
+  };
+};
+
+export const setDoc = async (docRef: any, data: any) => {
+  if (isFirebaseConfigured) {
+    return realSetDoc(docRef, data);
+  }
+  return Promise.resolve();
+};
+
+export const updateDoc = async (docRef: any, data: any) => {
+  if (isFirebaseConfigured) {
+    return realUpdateDoc(docRef, data);
+  }
+  return Promise.resolve();
+};
+
+export const addDoc = async (colRef: any, data: any) => {
+  if (isFirebaseConfigured) {
+    return realAddDoc(colRef, data);
+  }
+  return Promise.resolve({ id: `mock-${Date.now()}` });
+};
+
+export const query = (colRef: any, ...queryConsts: any[]) => {
+  if (isFirebaseConfigured) {
+    return realQuery(colRef, ...queryConsts);
+  }
+  return { type: 'query', colRef };
+};
+
+export const where = (field: string, op: string, val: any) => {
+  if (isFirebaseConfigured) {
+    return realWhere(field, op as any, val);
+  }
+  return { type: 'where', field, op, val };
+};
+
+export const orderBy = (field: string, direction?: 'asc' | 'desc') => {
+  if (isFirebaseConfigured) {
+    return realOrderBy(field, direction);
+  }
+  return { type: 'orderBy', field, direction };
+};
+
+export const limit = (num: number) => {
+  if (isFirebaseConfigured) {
+    return realLimit(num);
+  }
+  return { type: 'limit', num };
+};
+
+export const onSnapshot = (queryObj: any, next: (snap: any) => void) => {
+  if (isFirebaseConfigured) {
+    return realOnSnapshot(queryObj, next);
+  }
+  // Return dummy snap or nothing, call immediately representing empty
+  next({ docs: [], size: 0, forEach: () => {} });
+  return () => {};
+};
+
+export const serverTimestamp = () => {
+  if (isFirebaseConfigured) {
+    return realServerTimestamp();
+  }
+  return new Date().toISOString();
+};
+
+interface FirebaseStatus {
+  isConfigured: boolean;
+  projectId: string;
+}
+
+export const getFirebaseStatus = (): FirebaseStatus => {
+  return {
+    isConfigured: isFirebaseConfigured,
+    projectId: projectId || ''
+  };
+};
+
 export type { User };

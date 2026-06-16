@@ -6,3 +6,10 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Firebase debug & configuration
+.firebase/
+.firebaserc
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
