@@ -15,7 +15,7 @@ export async function syncAdminStateToFirestore(adminState: any): Promise<boolea
     });
     return true;
   } catch (error) {
-    console.error("Firestore syncAdminStateToFirestore error:", error);
+    console.warn("Firestore syncAdminStateToFirestore warning:", error);
     return false;
   }
 }
@@ -35,7 +35,7 @@ export async function loadAdminStateFromFirestore(): Promise<any | null> {
     }
     return null;
   } catch (error) {
-    console.error("Firestore loadAdminStateFromFirestore error:", error);
+    console.warn("Firestore loadAdminStateFromFirestore warning:", error);
     return null;
   }
 }
@@ -55,7 +55,7 @@ export async function createFirebaseIntakeItem(item: any): Promise<string | null
     });
     return docRef.id;
   } catch (error) {
-    console.error("Firestore createFirebaseIntakeItem error:", error);
+    console.warn("Firestore createFirebaseIntakeItem warning:", error);
     return null;
   }
 }
@@ -75,7 +75,7 @@ export async function updateFirebaseIntakeItem(id: string, patch: any): Promise<
     });
     return true;
   } catch (error) {
-    console.error("Firestore updateFirebaseIntakeItem error:", error);
+    console.warn("Firestore updateFirebaseIntakeItem warning:", error);
     return false;
   }
 }
@@ -95,7 +95,7 @@ export async function createFirebaseAuditLog(log: any): Promise<string | null> {
     });
     return docRef.id;
   } catch (error) {
-    console.error("Firestore createFirebaseAuditLog error:", error);
+    console.warn("Firestore createFirebaseAuditLog warning:", error);
     return null;
   }
 }
@@ -114,7 +114,7 @@ export async function uploadPilotAttachment(file: File, metadata?: any): Promise
     const url = `https://firebasestorage.googleapis.com/v0/b/placeholder/o/${encodeURIComponent(path)}?alt=media`;
     return { url, path };
   } catch (error) {
-    console.error("Firebase Storage uploadPilotAttachment error:", error);
+    console.warn("Firebase Storage uploadPilotAttachment warning:", error);
     return null;
   }
 }
@@ -134,7 +134,7 @@ export async function syncFeatureFlagsToFirestore(flags: any[]): Promise<{ ok: b
     }
     return { ok: true, messageKu: 'هاوکاتکردنی فلوگەکانی تایبەتمەندی بە سەرکەوتوویی ئەنجامدرا.' };
   } catch (error: any) {
-    console.error("syncFeatureFlagsToFirestore error:", error);
+    console.warn("syncFeatureFlagsToFirestore warning:", error);
     return { ok: false, messageKu: `هاوکاتکردنی فلوگەکانی تایبەتمەندی سەرکەوتوو نەبوو: ${error.message || error}` };
   }
 }
@@ -154,7 +154,7 @@ export async function syncServiceConfigsToFirestore(services: any[]): Promise<{ 
     }
     return { ok: true, messageKu: 'هاوکاتکردنی ڕێکخستنەکانی خزمەتگوزاری بە سەرکەوتوویی ئەنجامدرا.' };
   } catch (error: any) {
-    console.error("syncServiceConfigsToFirestore error:", error);
+    console.warn("syncServiceConfigsToFirestore warning:", error);
     return { ok: false, messageKu: `هاوکاتکردنی خزمەتگوزارییەکان سەرکەوتوو نەبوو: ${error.message || error}` };
   }
 }
@@ -174,7 +174,7 @@ export async function syncPromptConfigsToFirestore(prompts: any[]): Promise<{ ok
     }
     return { ok: true, messageKu: 'هاوکاتکردنی ڕێنمایییەکان بە سەرکەوتوویی ئەنجامدرا.' };
   } catch (error: any) {
-    console.error("syncPromptConfigsToFirestore error:", error);
+    console.warn("syncPromptConfigsToFirestore warning:", error);
     return { ok: false, messageKu: `هاوکاتکردنی ڕێنمایییەکان سەرکەوتوو نەبوو: ${error.message || error}` };
   }
 }
@@ -194,7 +194,7 @@ export async function syncWorkflowStepsToFirestore(steps: any[]): Promise<{ ok: 
     }
     return { ok: true, messageKu: 'هاوکاتکردنی هەنگاوەکانی کار بە سەرکەوتوویی ئەنجامدرا.' };
   } catch (error: any) {
-    console.error("syncWorkflowStepsToFirestore error:", error);
+    console.warn("syncWorkflowStepsToFirestore warning:", error);
     return { ok: false, messageKu: `هاوکاتکردنی هەنگاوەکانی کار سەرکەوتوو نەبوو: ${error.message || error}` };
   }
 }
@@ -215,7 +215,7 @@ export async function syncContentSectionsToFirestore(sections: any[]): Promise<{
     }
     return { ok: true, messageKu: 'هاوکاتکردنی بەشەکانی ناوەڕۆک بە سەرکەوتوویی ئەنجامدرا.' };
   } catch (error: any) {
-    console.error("syncContentSectionsToFirestore error:", error);
+    console.warn("syncContentSectionsToFirestore warning:", error);
     return { ok: false, messageKu: `هاوکاتکردنی بەشەکانی ناوەڕۆک سەرکەوتوو نەبوو: ${error.message || error}` };
   }
 }
@@ -238,7 +238,7 @@ export async function testFirebaseConnection(): Promise<{ ok: boolean; code?: st
       messageKu: 'پەیوەندی Firestore بە سەرکەوتوویی تاقی کرایەوە.'
     };
   } catch (error: any) {
-    console.error("testFirebaseConnection error:", error);
+    console.warn("testFirebaseConnection warning:", error);
     const errStr = error?.message || String(error);
     if (errStr.includes('permission') || errStr.includes('permission_denied') || error?.code === 'permission-denied') {
       return {

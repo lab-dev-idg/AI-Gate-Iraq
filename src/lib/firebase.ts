@@ -48,7 +48,7 @@ if (isFirebaseConfigured) {
     db = firebaseDb;
     googleProvider = new GoogleAuthProvider();
   } catch (error) {
-    console.error("Failed to initialize active Firebase client", error);
+    console.warn("Failed to initialize active Firebase client", error);
   }
 }
 
@@ -81,7 +81,7 @@ const notifyPilotListeners = (user: any | null) => {
     try {
       listener(user);
     } catch (e) {
-      console.error("Error notifying auth listener:", e);
+      console.warn("Error notifying auth listener:", e);
     }
   });
 };
