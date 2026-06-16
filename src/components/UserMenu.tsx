@@ -66,7 +66,7 @@ export function UserMenu() {
   }
 
   const currentDomain = typeof window !== 'undefined' ? window.location.hostname : '';
-  const consoleUrl = `https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/providers`;
+  const consoleUrl = `https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/settings`;
 
   return (
     <>

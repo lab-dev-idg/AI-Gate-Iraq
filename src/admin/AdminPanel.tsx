@@ -21,7 +21,18 @@ import {
   clearAdminState,
   updateIntakeStatus,
   updateIntakeNote,
-  updateFeatureFlag
+  updateFeatureFlag,
+  updateServiceConfig,
+  reorderServiceConfig,
+  addPromptConfig,
+  deletePromptConfig,
+  updatePromptConfig,
+  reorderPromptConfig,
+  addWorkflowStep,
+  deleteWorkflowStep,
+  updateWorkflowStep,
+  reorderWorkflowStep,
+  updateContentSection
 } from './adminStore';
 
 // Import our newly created Kurdish Super Admin screens
@@ -29,6 +40,14 @@ import { AdminDashboard } from './screens/AdminDashboard';
 import { IntakeManager } from './screens/IntakeManager';
 import { AuditLog } from './screens/AuditLog';
 import { AdminSettings } from './screens/AdminSettings';
+
+// Patch 3 Control Managers
+import { ContentManager } from './screens/ContentManager';
+import { ServiceManager } from './screens/ServiceManager';
+import { PromptManager } from './screens/PromptManager';
+import { WorkflowManager } from './screens/WorkflowManager';
+import { LocalizationManager } from './screens/LocalizationManager';
+import { FeatureFlagsManager } from './screens/FeatureFlagsManager';
 
 export default function AdminPanel() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -84,6 +103,65 @@ export default function AdminPanel() {
     handleLogout();
   };
 
+  // Content manager handler
+  const handleUpdateContent = (id: string, patch: any) => {
+    const updated = updateContentSection(id, patch);
+    setAdminData(updated);
+  };
+
+  // Service manager handlers
+  const handleUpdateService = (key: string, patch: any) => {
+    const updated = updateServiceConfig(key, patch);
+    setAdminData(updated);
+  };
+
+  const handleReorderService = (key: string, direction: 'up' | 'down') => {
+    const updated = reorderServiceConfig(key, direction);
+    setAdminData(updated);
+  };
+
+  // Prompt manager handlers
+  const handleAddPrompt = (serviceKey: string) => {
+    const updated = addPromptConfig(serviceKey);
+    setAdminData(updated);
+  };
+
+  const handleDeletePrompt = (id: string) => {
+    const updated = deletePromptConfig(id);
+    setAdminData(updated);
+  };
+
+  const handleUpdatePrompt = (id: string, patch: any) => {
+    const updated = updatePromptConfig(id, patch);
+    setAdminData(updated);
+  };
+
+  const handleReorderPrompt = (id: string, direction: 'up' | 'down') => {
+    const updated = reorderPromptConfig(id, direction);
+    setAdminData(updated);
+  };
+
+  // Workflow manager handlers
+  const handleAddWorkflow = (serviceKey: string) => {
+    const updated = addWorkflowStep(serviceKey);
+    setAdminData(updated);
+  };
+
+  const handleDeleteWorkflow = (id: string) => {
+    const updated = deleteWorkflowStep(id);
+    setAdminData(updated);
+  };
+
+  const handleUpdateWorkflow = (id: string, patch: any) => {
+    const updated = updateWorkflowStep(id, patch);
+    setAdminData(updated);
+  };
+
+  const handleReorderWorkflow = (id: string, direction: 'up' | 'down') => {
+    const updated = reorderWorkflowStep(id, direction);
+    setAdminData(updated);
+  };
+
   // If not authenticated, render the access code barrier
   if (!isAuthenticated) {
     return (
@@ -129,6 +207,56 @@ export default function AdminPanel() {
         />
       )}
 
+      {activeSection === 'content' && (
+        <ContentManager
+          contents={adminData.contents}
+          onUpdateContent={handleUpdateContent}
+          onResetToDefault={handleResetAllData}
+        />
+      )}
+
+      {activeSection === 'services' && (
+        <ServiceManager
+          services={adminData.services}
+          onUpdateService={handleUpdateService}
+          onReorderService={handleReorderService}
+        />
+      )}
+
+      {activeSection === 'prompts' && (
+        <PromptManager
+          prompts={adminData.prompts}
+          services={adminData.services}
+          onAddPrompt={handleAddPrompt}
+          onDeletePrompt={handleDeletePrompt}
+          onUpdatePrompt={handleUpdatePrompt}
+          onReorderPrompt={handleReorderPrompt}
+        />
+      )}
+
+      {activeSection === 'workflows' && (
+        <WorkflowManager
+          workflows={adminData.workflows}
+          services={adminData.services}
+          onAddWorkflow={handleAddWorkflow}
+          onDeleteWorkflow={handleDeleteWorkflow}
+          onUpdateWorkflow={handleUpdateWorkflow}
+          onReorderWorkflow={handleReorderWorkflow}
+        />
+      )}
+
+      {activeSection === 'localization' && (
+        <LocalizationManager />
+      )}
+
+      {activeSection === 'flags' && (
+        <FeatureFlagsManager
+          flags={adminData.flags}
+          onUpdateFlag={handleUpdateFlag}
+          onResetToDefault={handleResetAllData}
+        />
+      )}
+
       {activeSection === 'audit' && (
         <AuditLog
           logs={adminData.logs}
@@ -143,58 +271,6 @@ export default function AdminPanel() {
           onClearAllData={handleClearAllData}
         />
       )}
-
-      {/* Screens that will be built in Patch 3 (Placeholders for now) */}
-      {activeSection !== 'dashboard' &&
-        activeSection !== 'intake' &&
-        activeSection !== 'audit' &&
-        activeSection !== 'settings' && (
-          <div className="space-y-6">
-            <div className="bg-slate-900/45 border border-slate-800 rounded-3xl p-6 md:p-8 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none" />
-              <div className="relative z-10 space-y-3 text-right">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-emerald-400 text-xs font-bold leading-normal">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Super Admin Control Center</span>
-                </div>
-                <h1 className="text-xl md:text-2xl font-black text-white">
-                  کۆنترۆڵ کردنی: {
-                    activeSection === 'content' ? 'ناوەڕۆک' :
-                    activeSection === 'services' ? 'خزمەتگوزارییەکان' :
-                    activeSection === 'prompts' ? 'پرۆمپتەکان' :
-                    activeSection === 'workflows' ? 'ڕێڕەوی کار' :
-                    activeSection === 'localization' ? 'زمانەکان' : 'فڵاگی تایبەتمەندی'
-                  }
-                </h1>
-                <p className="text-xs md:text-sm text-slate-400 font-medium max-w-2xl leading-relaxed">
-                  ئەم بەشە لە پاچی کۆتاییدا (Patch 3) بەتەواوی بەستراوە دەکرێت بۆ نوسینەوە و ڕێکخستنی سەرجەم بابەتەکانی سەر ڕوکاری سەرەکی بە شێوەی دینامیکی.
-                </p>
-              </div>
-            </div>
-
-            <Card className="bg-slate-900/10 border-slate-800/60 p-8 md:p-12 text-center rounded-2xl space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-2">
-                {(() => {
-                  switch (activeSection) {
-                    case 'content': return <FileText className="w-8 h-8" />;
-                    case 'services': return <Briefcase className="w-8 h-8" />;
-                    case 'prompts': return <Sparkles className="w-8 h-8" />;
-                    case 'workflows': return <Sliders className="w-8 h-8" />;
-                    case 'localization': return <Globe2 className="w-8 h-8" />;
-                    case 'flags': return <ShieldAlert className="w-8 h-8" />;
-                    default: return <Layers className="w-8 h-8" />;
-                  }
-                })()}
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-lg font-black text-white">مۆدێلی نەخشەی کار (Data Spec)</h2>
-                <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-                  مۆدێلی زانیاری پێویست بۆ ئەم ڕوپەڕە بەسەرکەوتوویی لەگەڵ `adminStore` دا دابین کراوە و لە پاچی داهاتوودا نوێ دەکرێتەوە.
-                </p>
-              </div>
-            </Card>
-          </div>
-        )}
     </AdminLayout>
   );
 }

@@ -39,7 +39,53 @@ Welcome to the **AI Gate Iraq Super Admin Control Center** documentation portal.
 
 ---
 
-## ⚠️ 3. Crucial Pilot Constraints & Production Transition
+## 🛠️ 3. No-Code Platform Control Modules (Patch 3)
+
+The AI Gate Iraq Control Center features six specialized controllers allowing admins to modify content, services, prompt chips, workflow steps, localization keys, and feature flags dynamically:
+
+### A. Content Manager (ناوەڕۆک)
+- **Purpose**: Manage general site text, headlines, and descriptions without redeploying code.
+- **Features**: 
+  - Dual-language editor supporting **Kurdish Sorani** and **Arabic**.
+  - Dropdown selector to choose any content fragment.
+  - Live sandbox preview pane visualizing change impacts immediately.
+
+### B. Service Manager (خزمەتگوزارییەکان)
+- **Purpose**: Toggle, reorder, and configure individual platform sub-capabilities (e.g., AI Advisor, Border Status).
+- **Features**:
+  - Live reordering via interactive upward/downward ordering arrows.
+  - Granular service status modifier: `Active`, `Demo Only`, `Coming Soon`, or `Disabled`.
+  - Dynamic pilot note and administrator note fields per module.
+
+### C. Prompt Manager (پرۆمپتەکان)
+- **Purpose**: Create and edit floating prompt assistance chips.
+- **Features**:
+  - Filter prompts by individual active tools (e.g., AI Business Advisor).
+  - Add, edit, or delete dynamic prompt button labels and matching AI system prompts in both languages.
+  - Instant on/off activation toggle per prompt chip.
+
+### D. Workflow Manager (ڕێڕەوی کار)
+- **Purpose**: Define dynamic progress metrics and compliance guide checklists (e.g. KYC stages).
+- **Features**:
+  - Dynamic step addition, removal, and reordering.
+  - Customized description builders for localized target audiences.
+
+### E. Localization Manager (زمانەکان)
+- **Purpose**: Manage UI-wide translated keys and system-wide terms dynamically.
+- **Features**:
+  - Full-text search matching translation keys, Arabic, or Kurdish values.
+  - Register new system localization variables.
+  - Single-click JSON export of the translation map representing site-wide diction.
+
+### F. Feature Flags Manager (فڵاگەکان)
+- **Purpose**: Toggle site-wide business logics on or off in real-time.
+- **Features**:
+  - Live activation toggles for `show_pilot_limits` (Warning Banner) and `enable_multimodal` (Multimodal file interaction).
+  - High-visibility status indicators showing flag active status immediately.
+
+---
+
+## ⚠️ 4. Crucial Pilot Constraints & Production Transition
 
 AI Gate Iraq utilizes localized client memory engines (`localStorage` and `sessionStorage`) for state persistence during this demo state.
 
