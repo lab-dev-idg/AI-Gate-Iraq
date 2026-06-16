@@ -105,8 +105,18 @@ The platform connects our dynamic Super Admin configurations directly to the liv
 
 ## ⚠️ 5. Crucial Pilot Constraints & Production Transition
 
-AI Gate Iraq utilizes localized client memory engines (`localStorage` and `sessionStorage`) for state persistence during this demo state.
+AI Gate Iraq utilizes localized client memory engines (`localStorage` and `sessionStorage`) for state persistence during this demo state. Specifically:
+- **Admin Configuration Key**: Versioned state is saved as `ai-gate-iraq-admin-config-v1` inside the user's browser local memory storage.
+- **Admin Session Authorization**: Gated temporarily on verification of `ai-gate-iraq-admin-auth` stored inside security session tables.
 
-To transition this pilot build to standard multi-tenant enterprise production:
-1. **Mount Dedicated Database Schemas**: Swap the static data adapters located inside `/src/admin/adminStore.ts` with Cloud Firestore collections or Cloud SQL schemas.
-2. **Setup Server OAuth & Authentication**: Protect the `/admin` ingress route behind secure JWT validation services and proper Role-Based Access Control (RBAC) validations verified on back-end gateways.
+### 🛡️ Core Production Readiness Requirements
+To transition this dynamic pilot build into a robust, secure, and fully scalable multi-tenant enterprise solution:
+
+1. **Real Authentication & Identity Providers**: Protection of the `/admin` ingress route behind secure corporate IDPs like Firebase Authentication, Google Identity Platform, or Microsoft Entra ID. Never rely on shared browser passcode states in production.
+2. **Robust Database Persistence**: Replace local/client memory state handlers inside `/src/admin/adminStore.ts` with server-side transactions using secure Google Cloud SQL PostgreSQL schemas or Cloud Firestore collections.
+3. **Role-Based Access Control (RBAC)**: Enforce strict authorization rules specifying who can read, create, delete, or update configurator keys with administrative operations.
+4. **Server-Side Audit Logs**: Transition audit trail entries out of ephemeral browser states into read-only, append-only, tamper-proof logging databases managed by the server.
+5. **Encrypted Enterprise Contact Information**: All public inquiry and Intake Manager contact attributes (emails, phone numbers, and messages) must be encrypted at-rest using corporate key managers like Cloud KMS.
+6. **Secure External File Storage**: Large file uploads should be processed via dedicated backend signed URLs directly to authenticated private buckets like Google Cloud Storage (GCS) containing malware detection scanning.
+7. **Scheduled System Backups & Disaster Recovery**: Active snapshots of dynamic UI and state databases scheduled automatically.
+8. **Live Performance Monitoring**: Setup application latency, error rates, and API failures logs natively via Cloud Monitoring, OpenTelemetry, or Sentry.
