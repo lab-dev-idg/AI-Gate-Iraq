@@ -60,7 +60,7 @@ This script acts as a guide for presenters, technical leads, and stakeholders sh
 When showcasing **AI Gate Iraq**, maintaining absolute honesty builds immense trust. Be proactive about describing the project boundaries.
 
 ### What NOT to Claim ❌
-- **Do NOT claim live automated connections to government databases or state systems** (e.g., *"This is directly pulling live API databases from the border customs offices"*).
+- **Do NOT claim live automated connections to restricted databases or protected third-party systems** (e.g., *"This is directly pulling live databases from border offices"*).
 - **Do NOT claim financial certification** (e.g., *"This is an official exchange platform approved by the Central Bank of Iraq"*).
 - **Do NOT claim real-time GPS tracking of active commercial vehicles in the wild**.
 
