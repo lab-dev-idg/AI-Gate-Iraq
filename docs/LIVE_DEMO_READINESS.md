@@ -15,7 +15,7 @@ Ensure the following variables are securely populated within the host container/
 | Variable | Deployment Environment Value | Purpose |
 | :--- | :--- | :--- |
 | `GEMINI_API_KEY` | *Your secure Gemini API Key* | Power the Business Advisor conversational proxy. |
-| `GEMINI_MODEL` | `gemini-3.5-flash` | The recommended high-speed, cost-effective LLM. |
+| `GEMINI_MODEL` | `gemini-2.5-flash` | The recommended high-speed, cost-effective LLM. |
 | `NODE_ENV` | `production` | Enables optimized production asset serving. |
 | `PORT` | `3000` | Standard internal ingress port. |
 

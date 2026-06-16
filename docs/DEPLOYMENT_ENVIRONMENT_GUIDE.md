@@ -31,7 +31,7 @@ To run the full-stack system locally:
 1. **Create .env Configuration**: Set the variables at the root directory:
    ```env
    GEMINI_API_KEY=your_actual_secures_developer_key
-   GEMINI_MODEL=gemini-3.5-flash
+   GEMINI_MODEL=gemini-2.5-flash
    NODE_ENV=development
    ```
 2. **Launch Dev Server**:
@@ -53,7 +53,7 @@ When deploying to environments like Google Cloud Run, AWS Elastic Beanstalk, or 
 ### Production Environment Variables
 Configure secure environment variables under the cloud service properties:
 - `GEMINI_API_KEY`: Provide your production API key.
-- `GEMINI_MODEL`: Defaults to `gemini-3.5-flash`.
+- `GEMINI_MODEL`: Defaults to `gemini-2.5-flash`.
 - `NODE_ENV`: Set to `production` (tells Express to server static files from `/dist` directly, completely avoiding any hot development compilation and maximizing loading speed).
 
 ---
