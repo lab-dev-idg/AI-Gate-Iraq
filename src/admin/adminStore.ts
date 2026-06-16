@@ -577,31 +577,55 @@ export function getPublicContentSections(): AdminContentSection[] {
 export async function syncCurrentAdminStateToCloud(): Promise<{ ok: boolean; messageKu: string }> {
   try {
     const state = loadAdminState();
-    
-    // 1. Sync global admin state document
-    const okGlobal = await syncAdminStateToFirestore(state);
-    if (!okGlobal) {
-      return { ok: false, messageKu: 'سەرکەوتوو نەبوو لە نووسینی ڕێکخستنی سەرەکی لەسەر فایەربەیس.' };
-    }
-    
-    // 2. Sync all collections
-    const flagRes = await syncFeatureFlagsToFirestore(state.flags);
-    const serviceRes = await syncServiceConfigsToFirestore(state.services);
-    const promptRes = await syncPromptConfigsToFirestore(state.prompts);
-    const workflowRes = await syncWorkflowStepsToFirestore(state.workflows);
-    const contentRes = await syncContentSectionsToFirestore(state.contents);
-    
-    if (!flagRes.ok || !serviceRes.ok || !promptRes.ok || !workflowRes.ok || !contentRes.ok) {
-      return { 
-        ok: false, 
-        messageKu: 'داتای سەرەکی هاوکاتکرا، بەڵام هاوکاتکردنی هەندێک کۆکراوەکانی لاوەکی ڕووبەڕووی کێشە بووەوە.' 
+
+    const globalOk = await syncAdminStateToFirestore(state);
+    const flagsResult = await syncFeatureFlagsToFirestore(state.flags);
+    const servicesResult = await syncServiceConfigsToFirestore(state.services);
+    const promptsResult = await syncPromptConfigsToFirestore(state.prompts);
+    const workflowsResult = await syncWorkflowStepsToFirestore(state.workflows);
+    const contentsResult = await syncContentSectionsToFirestore(state.contents);
+
+    const results = [
+      flagsResult,
+      servicesResult,
+      promptsResult,
+      workflowsResult,
+      contentsResult
+    ];
+
+    const failed = results.filter(result => !result.ok);
+
+    if (!globalOk) {
+      return {
+        ok: false,
+        messageKu: failed[0]?.messageKu || 'هاوکاتکردنی داتای سەرەکی بۆ فایەربەیس سەرکەوتوو نەبوو.'
       };
     }
-    
-    return { ok: true, messageKu: 'تەواوی داتای ئادمین بە سەرکەوتوویی لەگەڵ فایەربەیس هاوکاتکرا.' };
+
+    if (failed.length > 0) {
+      return {
+        ok: false,
+        messageKu: failed[0].messageKu || 'هەندێک بەشی داتا هاوکات نەکران.'
+      };
+    }
+
+    addAuditLog(
+      'هاوکاتکردنی فایەربەیس',
+      'cloud_sync',
+      'admin_state',
+      'داتای ئادمین بە شێوەی دەستی بۆ Firestore هاوکات کرا.'
+    );
+
+    return {
+      ok: true,
+      messageKu: 'داتای ئادمین بە سەرکەوتوویی بۆ فایەربەیس هاوکات کرا.'
+    };
   } catch (error: any) {
-    console.error("syncCurrentAdminStateToCloud error:", error);
-    return { ok: false, messageKu: `هەڵەیەک ڕوویدا لە کاتی هاوکاتکردن: ${error.message || error}` };
+    console.error('syncCurrentAdminStateToCloud error:', error);
+    return {
+      ok: false,
+      messageKu: `هاوکاتکردن سەرکەوتوو نەبوو: ${error?.message || error}`
+    };
   }
 }
 
@@ -610,29 +634,43 @@ export async function syncCurrentAdminStateToCloud(): Promise<{ ok: boolean; mes
  */
 export async function loadAdminStateFromCloud(): Promise<{ ok: boolean; state?: AdminState; messageKu: string }> {
   try {
-    const cloud = await loadAdminStateFromFirestore();
-    if (!cloud) {
-      return { ok: false, messageKu: 'هیچ داتایەکی گونجاو لە فایەربەیس نەدۆزرایەوە.' };
+    const cloudState = await loadAdminStateFromFirestore();
+
+    if (!cloudState) {
+      return {
+        ok: false,
+        messageKu: 'هیچ داتایەکی هاوکاتکراو لە Firestore نەدۆزرایەوە.'
+      };
     }
-    
+
     const mergedState: AdminState = {
-      services: cloud.services || DEFAULT_ADMIN_STATE.services,
-      prompts: cloud.prompts || DEFAULT_ADMIN_STATE.prompts,
-      workflows: cloud.workflows || DEFAULT_ADMIN_STATE.workflows,
-      flags: cloud.flags || DEFAULT_ADMIN_STATE.flags,
-      intake: cloud.intake || DEFAULT_ADMIN_STATE.intake,
-      contents: cloud.contents || DEFAULT_ADMIN_STATE.contents,
-      logs: cloud.logs || DEFAULT_ADMIN_STATE.logs,
+      services: cloudState.services || DEFAULT_ADMIN_STATE.services,
+      prompts: cloudState.prompts || DEFAULT_ADMIN_STATE.prompts,
+      workflows: cloudState.workflows || DEFAULT_ADMIN_STATE.workflows,
+      flags: cloudState.flags || DEFAULT_ADMIN_STATE.flags,
+      intake: cloudState.intake || DEFAULT_ADMIN_STATE.intake,
+      contents: cloudState.contents || DEFAULT_ADMIN_STATE.contents,
+      logs: cloudState.logs || DEFAULT_ADMIN_STATE.logs,
     };
-    
-    return { 
-      ok: true, 
-      state: mergedState, 
-      messageKu: 'داتاکان بە سەرکەوتوویی لە فایەربەیسەوە خوێندرانەوە و ئامادەن بۆ پاشەکەوتکردن.' 
+
+    addAuditLog(
+      'هێنانەوە لە فایەربەیس',
+      'cloud_sync',
+      'admin_state',
+      'داتای ئادمین بە شێوەی دەستی لە Firestore هێنرایەوە.'
+    );
+
+    return {
+      ok: true,
+      state: mergedState,
+      messageKu: 'داتای Firestore بە سەرکەوتوویی هێنرایەوە.'
     };
   } catch (error: any) {
-    console.error("loadAdminStateFromCloud error:", error);
-    return { ok: false, messageKu: `هەڵەیەک لە خوێندنەوەی فایەربەیس ڕوویدا: ${error.message || error}` };
+    console.error('loadAdminStateFromCloud error:', error);
+    return {
+      ok: false,
+      messageKu: `هێنانەوەی داتا سەرکەوتوو نەبوو: ${error?.message || error}`
+    };
   }
 }
 
