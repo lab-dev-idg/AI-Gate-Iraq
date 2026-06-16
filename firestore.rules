@@ -1,69 +1,101 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Default fallback: Block all access to prevent open database vulnerabilities
-    match /{document=**} {
-      allow read, write: if false;
+
+    function signedIn() {
+      return request.auth != null;
     }
 
-    // 1. adminConfig (Store configuration overrides)
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/adminUsers/$(request.auth.uid));
+    }
+
+    function isStringField(fieldName, maxLen) {
+      return request.resource.data[fieldName] is string
+        && request.resource.data[fieldName].size() > 0
+        && request.resource.data[fieldName].size() <= maxLen;
+    }
+
+    function validPublicIntakeCreate() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'name',
+        'company',
+        'contact',
+        'serviceInterest',
+        'category',
+        'message',
+        'status',
+        'createdAt',
+        'updatedAt'
+      ])
+      && request.resource.data.status == 'new'
+      && isStringField('name', 120)
+      && isStringField('contact', 160)
+      && isStringField('serviceInterest', 120)
+      && isStringField('message', 2500);
+    }
+
+    match /adminUsers/{uid} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow create, update, delete: if false;
+    }
+
     match /adminConfig/global {
-      allow read: if true; // Public must read customized brand headers
-      allow write: if request.auth != null; // TODO: Implement request.auth.token.isAdmin == true for production RBAC
+      allow read: if true;
+      allow create, update: if isAdmin();
+      allow delete: if false;
     }
 
-    // 2. featureFlags
     match /featureFlags/{flagKey} {
-      allow read: if true; // Public reads toggles dynamically
-      allow write: if request.auth != null; // TODO: Restrict config writes strictly to Admins
+      allow read: if true;
+      allow create, update: if isAdmin();
+      allow delete: if false;
     }
 
-    // 3. serviceConfigs
     match /serviceConfigs/{serviceKey} {
       allow read: if true;
-      allow write: if request.auth != null; // TODO: Restrict edits strictly to Admins
+      allow create, update: if isAdmin();
+      allow delete: if false;
     }
 
-    // 4. promptConfigs
     match /promptConfigs/{promptId} {
       allow read: if true;
-      allow write: if request.auth != null; // TODO: Restrict edits strictly to Admins
+      allow create, update: if isAdmin();
+      allow delete: if false;
     }
 
-    // 5. workflowSteps
     match /workflowSteps/{stepId} {
       allow read: if true;
-      allow write: if request.auth != null; // TODO: Restrict edits strictly to Admins
+      allow create, update: if isAdmin();
+      allow delete: if false;
     }
 
-    // 6. contentSections
     match /contentSections/{sectionId} {
       allow read: if true;
-      allow write: if request.auth != null; // TODO: Restrict edits strictly to Admins
+      allow create, update: if isAdmin();
+      allow delete: if false;
     }
 
-    // 7. intakeItems (Dynamic Public Inquiries)
     match /intakeItems/{intakeId} {
-      // Allow general public to submit forms without auth, but enforce 'new' status
-      allow create: if request.resource.data.status == 'new';
-      // Restrict read and write/update capabilities completely to Authed Admins
-      allow read, update: if request.auth != null; // TODO: Implement request.auth.token.isAdmin == true
-      allow delete: if false; // Deny general deletes
+      allow create: if validPublicIntakeCreate();
+      allow read, update: if isAdmin();
+      allow delete: if false;
     }
 
-    // 8. auditLogs (Administrative auditable changes log)
     match /auditLogs/{logId} {
-      // System writes on admin edits or authed actions
-      allow create: if request.auth != null;
-      // Admins read
-      allow read: if request.auth != null; // TODO: Implement request.auth.token.isAdmin == true
-      allow update, delete: if false; // Immutable logs
+      allow create, read: if isAdmin();
+      allow update, delete: if false;
     }
 
-    // 9. pilotAttachments
     match /pilotAttachments/{attachmentId} {
-      allow create, read: if request.auth != null;
+      allow create, read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
