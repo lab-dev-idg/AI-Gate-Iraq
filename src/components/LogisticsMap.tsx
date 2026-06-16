@@ -245,8 +245,8 @@ export function LogisticsMap() {
           {lang === 'ar' ? 'نشرة خرائط المنافذ' : 'نەخشەی دەروازەکان'}
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-4 p-0 overflow-hidden relative">
-        <div ref={mapRef} className="w-full h-48 md:h-64 rounded-b-2xl" />
+      <CardContent className="p-0 overflow-hidden relative">
+        <div ref={mapRef} className="w-full h-64 md:h-[450px] rounded-b-2xl" />
         {!isReady && (
           <div className="absolute inset-0 bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-6 text-center rounded-b-2xl">
             <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">

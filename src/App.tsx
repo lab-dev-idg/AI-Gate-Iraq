@@ -179,7 +179,7 @@ export default function App() {
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col h-screen bg-[#F8FAFC] dark:bg-[#090D16]" dir="rtl">
+      <div className="flex flex-col h-dvh min-h-dvh w-full max-w-full overflow-hidden bg-[#F8FAFC] dark:bg-[#090D16]" dir="rtl">
         {/* Header */}
         <AppHeader lang={lang} setLang={setLang} t={t}>
           <SessionManager
@@ -206,8 +206,9 @@ export default function App() {
           onActionClick={handleOnboardingAction}
         />
 
-        {/* Main Container */}
-        <main className="flex-1 overflow-hidden max-w-7xl mx-auto w-full flex flex-col lg:grid lg:grid-cols-12 gap-5 p-4 md:p-6 min-h-0">
+        {/* Main/App-Shell Layout Container */}
+        {/* Responsive layout lock: do not introduce fixed mobile widths or desktop sidebar below lg. */}
+        <main className="flex-1 w-full max-w-7xl mx-auto min-w-0 overflow-y-auto lg:overflow-hidden overflow-x-hidden flex flex-col lg:grid lg:grid-cols-12 gap-5 p-4 md:p-6 min-h-0">
           
           {/* Mobile & Tablet Service Selector */}
           <MobileServiceNav activeService={activeService} setActiveService={setActiveService} lang={lang} />
@@ -218,7 +219,7 @@ export default function App() {
           </div>
 
           {/* Workspace Area */}
-          <div className="flex-1 lg:col-span-9 flex flex-col gap-6 min-h-0 h-full">
+          <div className="flex-1 lg:col-span-9 min-w-0 max-w-full overflow-visible lg:overflow-hidden flex flex-col gap-6 h-auto lg:h-full">
             {activeService === 'assistant' ? (
               <AssistantWorkspace
                 lang={lang}
@@ -235,7 +236,7 @@ export default function App() {
                 promptChips={promptChips}
               />
             ) : (
-              <Card className="flex-1 flex flex-col min-h-0 overflow-hidden border border-slate-200/60 dark:border-slate-800/60 shadow-md bg-white dark:bg-slate-900/30 rounded-2xl p-4 md:p-6 h-full">
+              <Card className="flex-1 flex flex-col min-h-0 overflow-x-hidden border border-slate-200/60 dark:border-slate-800/60 shadow-md bg-white dark:bg-slate-900/30 rounded-2xl p-4 md:p-6 h-full">
                 {/* Workspace Title & Meta Header */}
                 <div className="flex items-center gap-3 border-b pb-4 mb-5 border-slate-100 dark:border-slate-800/80 shrink-0 font-arabic">
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm bg-slate-50 dark:bg-slate-950/20">
@@ -261,15 +262,15 @@ export default function App() {
                 </div>
 
                 {/* Workspace Content Viewport */}
-                <div className="flex-1 min-h-0 overflow-y-auto pr-1 pb-4 cs-scroll">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-1 pb-4 cs-scroll">
+                  <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
                     {/* Active Workspace Main Service Details Column */}
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="xl:col-span-8 space-y-6 min-w-0">
                       <ServiceWorkspace activeService={activeService} lang={lang} t={t} />
                     </div>
 
                     {/* Professional business workflow checklist / next steps guide column */}
-                    <div className="lg:col-span-1 space-y-6">
+                    <div className="xl:col-span-4 space-y-6 min-w-0">
                       <WorkflowGuide
                         activeService={activeService}
                         lang={lang}

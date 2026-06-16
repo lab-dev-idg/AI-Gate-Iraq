@@ -5,7 +5,7 @@ const LogisticsMap = lazy(() => import('@/src/components/LogisticsMap').then(m =
 
 export const MapWorkspace = () => {
   return (
-    <div className="max-w-3xl h-[600px] bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl overflow-hidden shadow-sm">
+    <div className="max-w-3xl w-full">
       <Suspense fallback={<WorkspaceLoader />}>
         <LogisticsMap />
       </Suspense>

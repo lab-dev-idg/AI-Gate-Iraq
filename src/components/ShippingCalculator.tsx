@@ -127,38 +127,38 @@ export function ShippingCalculator() {
           </TooltipProvider>
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-4 space-y-4">
+      <CardContent className="pt-5 p-6 space-y-4">
         {/* Origin & Destination */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.calculator.origin}</Label>
+        <div className="grid grid-cols-2 gap-3" dir="rtl">
+          <div className="space-y-1.5 text-right">
+            <Label className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider font-arabic">{t.calculator.origin}</Label>
             <Select value={origin} onValueChange={setOrigin}>
-              <SelectTrigger className="h-10 text-xs bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl">
+              <SelectTrigger className="h-11 text-xs bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl px-4 font-semibold">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {ORIGINS.map(o => <SelectItem key={o} value={o} className="text-xs">{o}</SelectItem>)}
+                {ORIGINS.map(o => <SelectItem key={o} value={o} className="text-xs font-medium">{o}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.calculator.destination}</Label>
+          <div className="space-y-1.5 text-right">
+            <Label className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider font-arabic">{t.calculator.destination}</Label>
             <Select value={destination} onValueChange={setDestination}>
-              <SelectTrigger className="h-10 text-xs bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl">
+              <SelectTrigger className="h-11 text-xs bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl px-4 font-semibold">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {DESTINATIONS.map(d => <SelectItem key={d} value={d} className="text-xs">{d}</SelectItem>)}
+                {DESTINATIONS.map(d => <SelectItem key={d} value={d} className="text-xs font-medium">{d}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
         </div>
 
         {/* Weight Input */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="weight" className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">{t.calculator.weight}</Label>
-            <Scale className="w-3.5 h-3.5 text-emerald-500/80" />
+        <div className="space-y-2 text-right" dir="rtl">
+          <div className="flex items-center justify-between mb-1">
+            <Label htmlFor="weight" className="text-xs font-black text-slate-700 dark:text-slate-300 font-arabic">{t.calculator.weight}</Label>
+            <Scale className="w-3.5 h-3.5 text-emerald-500/85" />
           </div>
           <Input
             id="weight"
@@ -166,16 +166,16 @@ export function ShippingCalculator() {
             placeholder="0.00"
             value={weight}
             onChange={(e) => setWeight(e.target.value)}
-            className="h-10 text-right bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl"
+            className="h-11 text-right bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl px-4 font-semibold shadow-inner focus-visible:ring-emerald-500"
             dir="ltr"
           />
         </div>
 
         {/* Dimensions Grid */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">{t.calculator.dimensions}</Label>
-            <Maximize className="w-3.5 h-3.5 text-emerald-500/80" />
+        <div className="space-y-2 text-right" dir="rtl">
+          <div className="flex items-center justify-between mb-1">
+            <Label className="text-xs font-black text-slate-700 dark:text-slate-300 font-arabic">{t.calculator.dimensions}</Label>
+            <Maximize className="w-3.5 h-3.5 text-emerald-500/85" />
           </div>
           <div className="grid grid-cols-3 gap-2">
             <Input
@@ -183,7 +183,7 @@ export function ShippingCalculator() {
               type="number"
               value={length}
               onChange={(e) => setLength(e.target.value)}
-              className="h-10 text-center text-xs bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl"
+              className="h-11 text-center text-xs bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl font-semibold shadow-inner focus-visible:ring-emerald-500"
               dir="ltr"
             />
             <Input
@@ -191,7 +191,7 @@ export function ShippingCalculator() {
               type="number"
               value={width}
               onChange={(e) => setWidth(e.target.value)}
-              className="h-10 text-center text-xs bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl"
+              className="h-11 text-center text-xs bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl font-semibold shadow-inner focus-visible:ring-emerald-500"
               dir="ltr"
             />
             <Input
@@ -199,48 +199,48 @@ export function ShippingCalculator() {
               type="number"
               value={height}
               onChange={(e) => setHeight(e.target.value)}
-              className="h-10 text-center text-xs bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl"
+              className="h-11 text-center text-xs bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl font-semibold shadow-inner focus-visible:ring-emerald-500"
               dir="ltr"
             />
           </div>
         </div>
 
         {/* Shipping Speed */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">{t.calculator.speed}</Label>
-            <Zap className="w-3.5 h-3.5 text-emerald-500/80" />
+        <div className="space-y-2 text-right" dir="rtl">
+          <div className="flex items-center justify-between mb-1">
+            <Label className="text-xs font-black text-slate-700 dark:text-slate-300 font-arabic">{t.calculator.speed}</Label>
+            <Zap className="w-3.5 h-3.5 text-emerald-500/85" />
           </div>
           <Select value={speed} onValueChange={setSpeed}>
-            <SelectTrigger className="h-10 text-xs bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl">
+            <SelectTrigger className="h-11 text-xs bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl px-4 font-semibold">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="standard" className="text-xs">{t.calculator.speedStandard}</SelectItem>
-              <SelectItem value="express" className="text-xs">{t.calculator.speedExpress}</SelectItem>
-              <SelectItem value="urgent" className="text-xs">{t.calculator.speedUrgent}</SelectItem>
+              <SelectItem value="standard" className="text-xs font-medium">{t.calculator.speedStandard}</SelectItem>
+              <SelectItem value="express" className="text-xs font-medium">{t.calculator.speedExpress}</SelectItem>
+              <SelectItem value="urgent" className="text-xs font-medium">{t.calculator.speedUrgent}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {/* Result Area */}
-        <div className="mt-4 p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/80 space-y-3">
+        <div className="mt-5 p-5 rounded-2xl bg-slate-50/50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/80 space-y-3">
           <div className="flex flex-col items-center">
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-widest mb-1">{t.calculator.estimatedCost}</p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-widest mb-1.5 font-sans">{t.calculator.estimatedCost}</p>
             {estimatedCost !== null ? (
               <div className="text-center">
-                <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight flex items-center justify-center gap-0.5">
-                  <DollarSign className="w-4 h-4" />
+                <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight flex items-center justify-center gap-0.5">
+                  <DollarSign className="w-5 h-5 shrink-0" />
                   {estimatedCost.toFixed(2)}
                 </div>
                 {iqdCost !== null && (
-                  <div className="text-xs font-bold text-slate-500 mt-1 font-mono">
+                  <div className="text-sm font-bold text-slate-500 mt-1 font-mono">
                     ≈ {iqdCost.toLocaleString()} IQD
                   </div>
                 )}
               </div>
             ) : (
-              <div className="text-xs text-slate-400 dark:text-slate-500 italic py-2">{t.calculator.completeInfo}</div>
+              <div className="text-xs text-slate-400 dark:text-slate-500 italic py-2 font-arabic">{t.calculator.completeInfo}</div>
             )}
           </div>
         </div>

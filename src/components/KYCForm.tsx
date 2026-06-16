@@ -75,13 +75,13 @@ export const KYCForm = () => {
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t.kyc.subtitle}</p>
       </CardHeader>
       
-      <CardContent className="pt-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">{t.kyc.companyName}</Label>
+      <CardContent className="pt-5 p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 text-right">
+          <div className="space-y-1.5" dir="rtl">
+            <Label className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider font-arabic mb-0.5 block">{t.kyc.companyName}</Label>
             <Input 
               type="text" 
-              className="bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 h-10 rounded-xl" 
+              className="bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 h-11 rounded-xl px-4 text-xs font-semibold shadow-inner focus-visible:ring-emerald-500" 
               placeholder={t.kyc.companyNamePlaceholder}
               value={formData.companyName}
               onChange={(e) => setFormData({...formData, companyName: e.target.value})}
@@ -89,11 +89,11 @@ export const KYCForm = () => {
             />
           </div>
           
-          <div className="space-y-2">
-            <Label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">{t.kyc.licenseNumber}</Label>
+          <div className="space-y-1.5" dir="rtl">
+            <Label className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider font-arabic mb-0.5 block">{t.kyc.licenseNumber}</Label>
             <Input 
               type="text" 
-              className="bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 h-10 rounded-xl" 
+              className="bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 h-11 rounded-xl px-4 text-xs font-semibold shadow-inner focus-visible:ring-emerald-500" 
               placeholder={t.kyc.licensePlaceholder}
               value={formData.licenseNumber}
               onChange={(e) => setFormData({...formData, licenseNumber: e.target.value})}
@@ -139,7 +139,7 @@ export const KYCForm = () => {
             {isSubmitting ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
-              t.kyc.submit
+              <span className="font-arabic">{t.kyc.submit}</span>
             )}
           </Button>
         </form>

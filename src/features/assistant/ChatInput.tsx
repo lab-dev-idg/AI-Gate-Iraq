@@ -26,7 +26,7 @@ export const ChatInput = ({
   };
 
   return (
-    <div className="p-4 md:p-5 bg-slate-50/50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800/80">
+    <div className="p-4 md:p-5 bg-slate-50/50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800/80 shrink-0 w-full max-w-full pb-[env(safe-area-inset-bottom)] sm:pb-5">
       <div className="relative flex items-center gap-2 max-w-4xl mx-auto">
         <Input
           placeholder={placeholder}
@@ -45,7 +45,7 @@ export const ChatInput = ({
           <Send className="w-4 h-4" />
         </Button>
       </div>
-      <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 mt-3.5 uppercase tracking-widest font-black opacity-80">
+      <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 mt-2 md:mt-3.5 uppercase tracking-widest font-black opacity-80 hidden xs:block">
         {footerText}
       </p>
     </div>

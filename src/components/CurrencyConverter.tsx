@@ -91,56 +91,56 @@ export function CurrencyConverter() {
           {t.converter.title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-4 space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="amount" className="text-xs font-bold uppercase tracking-wider text-slate-500 mr-1">{t.converter.amount}</Label>
+      <CardContent className="pt-5 p-6 space-y-5">
+        <div className="space-y-2 text-right">
+          <Label htmlFor="amount" className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 font-arabic block mb-1.5">{t.converter.amount}</Label>
           <Input
             id="amount"
             type="number"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="h-10 text-right bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl"
+            className="h-11 theme-input text-right bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl px-4 text-sm font-semibold shadow-inner focus-visible:ring-emerald-500"
             dir="ltr"
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-2 items-end">
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500 mr-1">{t.converter.from}</Label>
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 items-center pt-1" dir="rtl">
+          <div className="space-y-2 text-right">
+            <Label className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 font-arabic block mb-1.5">{t.converter.from}</Label>
             <Select value={fromCurrency} onValueChange={setFromCurrency}>
-              <SelectTrigger className="h-10 bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl">
+              <SelectTrigger className="h-11 bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl px-4 text-xs font-semibold focus-visible:ring-emerald-500">
                 <SelectValue placeholder={lang === 'ar' ? 'العملة' : 'دراو'} />
               </SelectTrigger>
               <SelectContent>
                 {currencies.map(c => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                  <SelectItem key={c} value={c} className="text-xs font-medium">{c}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="flex justify-center -my-1">
-            <Button variant="ghost" size="icon" onClick={swapCurrencies} className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
-              <ArrowLeftRight className="w-4 h-4 text-emerald-500 rotate-90 lg:rotate-0" />
+          <div className="flex justify-center md:pt-7">
+            <Button variant="ghost" size="icon" onClick={swapCurrencies} className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 h-10 w-10 shrink-0 border border-slate-100 dark:border-slate-800 shadow-sm">
+              <ArrowLeftRight className="w-4 h-4 text-emerald-500 rotate-90 md:rotate-0" />
             </Button>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500 mr-1">{t.converter.to}</Label>
+          <div className="space-y-2 text-right">
+            <Label className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 font-arabic block mb-1.5">{t.converter.to}</Label>
             <Select value={toCurrency} onValueChange={setToCurrency}>
-              <SelectTrigger className="h-10 bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl">
+              <SelectTrigger className="h-11 bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl px-4 text-xs font-semibold focus-visible:ring-emerald-500">
                 <SelectValue placeholder={lang === 'ar' ? 'العملة' : 'دراو'} />
               </SelectTrigger>
               <SelectContent>
                 {currencies.map(c => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                  <SelectItem key={c} value={c} className="text-xs font-medium">{c}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
         </div>
 
-        <div className="mt-4 p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/80 flex flex-col items-center justify-center space-y-1">
+        <div className="mt-4 p-5 rounded-2xl bg-slate-50/50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/80 flex flex-col items-center justify-center space-y-1">
           {isLoading ? (
             <RefreshCw className="w-5 h-5 animate-spin text-emerald-500" />
           ) : result !== null ? (
@@ -148,12 +148,12 @@ export function CurrencyConverter() {
               <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">
                 {result.toLocaleString(undefined, { maximumFractionDigits: 2 })} {toCurrency}
               </div>
-              <div className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-widest">
+              <div className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-widest font-sans">
                 {t.converter.marketRate} {lastUpdate}
               </div>
             </>
           ) : (
-             <div className="text-sm text-slate-500">{t.converter.noRate}</div>
+            <div className="text-xs text-slate-400 dark:text-slate-500 italic py-1 font-arabic">{t.converter.noRate}</div>
           )}
         </div>
       </CardContent>

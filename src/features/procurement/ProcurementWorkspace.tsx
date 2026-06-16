@@ -5,7 +5,7 @@ const ProcurementSourcing = lazy(() => import('@/src/components/ProcurementSourc
 
 export const ProcurementWorkspace = () => {
   return (
-    <div className="max-w-3xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
+    <div className="max-w-3xl w-full text-slate-800 dark:text-slate-100">
       <Suspense fallback={<WorkspaceLoader />}>
         <ProcurementSourcing />
       </Suspense>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Package, Search, Truck, CheckCircle2, Factory, Clock, History, X, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from './AuthProvider';
@@ -168,24 +169,32 @@ export function ShipmentTracker() {
           </Button>
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-4 space-y-4">
+      <CardContent className="pt-5 p-6 space-y-4">
         {!showHistory ? (
           <>
-            <div className="flex gap-2">
-              <Input 
-                placeholder={t.tracker.placeholder} 
-                value={trackingId}
-                onChange={(e) => setTrackingId(e.target.value)}
-                className="bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl h-10 text-right font-sans text-xs"
-                onKeyDown={(e) => e.key === 'Enter' && handleTrack()}
-              />
-              <Button onClick={() => handleTrack()} disabled={isSearching} size="icon" className="h-10 w-10 bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-xl shadow-md shrink-0">
-                <Search className={`w-4 h-4 ${isSearching ? 'animate-spin' : ''}`} />
-              </Button>
+            <div className="space-y-2 text-right" dir="rtl">
+              <Label className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider font-arabic mb-0.5 block">{lang === 'ar' ? 'رقم التتبع (السلسلة الرقمية)' : 'ژمارەی بەدواداچوون'}</Label>
+              <div className="flex gap-2">
+                <Input 
+                  placeholder={t.tracker.placeholder} 
+                  value={trackingId}
+                  onChange={(e) => setTrackingId(e.target.value)}
+                  className="bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl h-11 text-right font-sans text-xs font-semibold shadow-inner focus-visible:ring-emerald-500"
+                  onKeyDown={(e) => e.key === 'Enter' && handleTrack()}
+                />
+                <Button onClick={() => handleTrack()} disabled={isSearching} size="icon" className="h-11 w-11 bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-xl shadow-md shrink-0 transition-transform active:scale-95">
+                  <Search className={`w-4 h-4 ${isSearching ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
+              <p className="text-[10px] text-slate-450 dark:text-slate-500 leading-normal font-medium">
+                {lang === 'ar' 
+                  ? 'رقم تجريبي معتمد: LX123456789 أو US987654321' 
+                  : 'ژمارەی نموونەیی کارا: LX123456789 یان US987654321'}
+              </p>
             </div>
 
             {error && (
-              <p className="text-xs text-rose-500 text-right leading-relaxed font-medium">{error}</p>
+              <p className="text-xs text-rose-500 text-right leading-relaxed font-semibold bg-rose-500/5 p-3 rounded-xl border border-rose-500/10">{error}</p>
             )}
 
             <AnimatePresence mode="wait">

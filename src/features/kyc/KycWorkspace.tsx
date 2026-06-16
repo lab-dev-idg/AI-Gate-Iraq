@@ -5,7 +5,7 @@ const KYCForm = lazy(() => import('@/src/components/KYCForm').then(m => ({ defau
 
 export const KycWorkspace = () => {
   return (
-    <div className="max-w-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-2 shadow-sm text-slate-800 dark:text-slate-100">
+    <div className="max-w-3xl w-full text-slate-800 dark:text-slate-100">
       <Suspense fallback={<WorkspaceLoader />}>
         <KYCForm />
       </Suspense>

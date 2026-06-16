@@ -88,63 +88,64 @@ export function ProcurementSourcing() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               onSubmit={handleSubmit} 
-              className="space-y-3"
+              className="space-y-4 text-right"
+              dir="rtl"
             >
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.procurement.itemName}</Label>
+                <Label className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider font-arabic mb-0.5 block">{t.procurement.itemName}</Label>
                 <Input 
                   required
                   placeholder={t.procurement.itemNamePlaceholder}
                   value={formData.itemName}
                   onChange={e => setFormData({...formData, itemName: e.target.value})}
-                  className="h-10 text-xs text-right bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl"
+                  className="h-11 text-xs text-right bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl px-4 font-semibold shadow-inner focus-visible:ring-emerald-500"
                 />
               </div>
  
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.procurement.qty}</Label>
+                  <Label className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider font-arabic mb-0.5 block">{t.procurement.qty}</Label>
                   <Input 
                     required
                     type="number"
                     placeholder="1000"
                     value={formData.qty}
                     onChange={e => setFormData({...formData, qty: e.target.value})}
-                    className="h-10 text-xs text-right bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl"
+                    className="h-11 text-xs text-right bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl px-4 font-semibold shadow-inner focus-visible:ring-emerald-500"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.procurement.targetPrice}</Label>
+                  <Label className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider font-arabic mb-0.5 block">{t.procurement.targetPrice}</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-2.5 top-3 w-3.5 h-3.5 text-slate-400" />
+                    <DollarSign className="absolute left-3 top-3.5 w-3.5 h-3.5 text-slate-400" />
                     <Input 
                       placeholder={lang === 'ar' ? 'اختياري' : 'ناچاری نییە'}
                       type="number"
                       value={formData.targetPrice}
                       onChange={e => setFormData({...formData, targetPrice: e.target.value})}
-                      className="h-10 text-xs text-right pl-8 bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl"
+                      className="h-11 text-xs text-right pl-9 pr-4 bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl font-semibold shadow-inner focus-visible:ring-emerald-500"
                     />
                   </div>
                 </div>
               </div>
  
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.procurement.notes}</Label>
+                <Label className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider font-arabic mb-0.5 block">{t.procurement.notes}</Label>
                 <Textarea 
                   placeholder={t.procurement.notes + "..."}
                   value={formData.notes}
                   onChange={e => setFormData({...formData, notes: e.target.value})}
-                  className="min-h-[80px] text-xs text-right resize-none bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl p-3"
+                  className="min-h-[100px] text-xs text-right resize-none bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl p-3.5 font-semibold shadow-inner focus-visible:ring-emerald-500"
                 />
               </div>
  
-              <Button type="submit" disabled={isSubmitting} className="w-full bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-bold h-11 tracking-wide shadow-md shadow-emerald-500/10 rounded-xl transition-all">
+              <Button type="submit" disabled={isSubmitting} className="w-full bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-bold h-11 tracking-wider shadow-md shadow-emerald-500/10 rounded-xl transition-all">
                 {isSubmitting ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
-                  <div className="flex items-center justify-center gap-1.5 w-full">
+                  <div className="flex items-center justify-center gap-2 w-full font-arabic">
                     <span>{t.procurement.submit}</span>
-                    <Send className="w-4 h-4 rtl:-rotate-180" />
+                    <Send className="w-4 h-4 rtl:-rotate-180 shrink-0" />
                   </div>
                 )}
               </Button>
