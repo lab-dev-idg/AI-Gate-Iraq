@@ -22,10 +22,10 @@ const ai = new GoogleGenAI({
   }
 });
 
-let GEMINI_MODEL = (process.env.GEMINI_MODEL || "gemini-3.5-flash").trim();
+let GEMINI_MODEL = (process.env.GEMINI_MODEL || "gemini-2.5-flash").trim();
 console.log("Raw environment GEMINI_MODEL:", process.env.GEMINI_MODEL);
 
-// Robust check: if the env contains "=", split and grab the value portion (e.g. "GEMINI_MODEL = gemini-3.5-flash")
+// Robust check: if the env contains "=", split and grab the value portion.
 if (GEMINI_MODEL.includes("=")) {
   GEMINI_MODEL = GEMINI_MODEL.split("=").pop()!.trim();
 }
