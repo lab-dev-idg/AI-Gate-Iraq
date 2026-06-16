@@ -437,3 +437,128 @@ export function getAdminFeatureFlagEnabled(flagKey: string, defaultVal = true): 
   }
   return defaultVal;
 }
+
+export function createIntakeItem(input: {
+  name: string;
+  company: string;
+  contact: string;
+  serviceInterest: string;
+  category: string;
+  message: string;
+}): AdminState {
+  const state = loadAdminState();
+  const newItem: AdminIntakeItem = {
+    id: `intake-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+    name: input.name,
+    company: input.company || '',
+    contact: input.contact,
+    serviceInterest: input.serviceInterest,
+    category: input.category || 'public_inquiry',
+    message: input.message,
+    status: 'new',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  const updatedState = {
+    ...state,
+    intake: [newItem, ...state.intake]
+  };
+  saveAdminState(updatedState);
+
+  addAuditLog(
+    'داواکاری نوێ تۆمارکرا',
+    'intake',
+    newItem.id,
+    'داواکارییەکی نوێ لە فۆڕمی گشتییەوە زیادکرا'
+  );
+
+  return loadAdminState();
+}
+
+export function getPublicServiceConfig(): Array<{
+  id: string;
+  key: string;
+  titleKu: string;
+  titleAr: string;
+  titleEn: string;
+  descriptionKu: string;
+  descriptionAr: string;
+  descriptionEn: string;
+  enabled: boolean;
+  visible: boolean;
+  order: number;
+  status: 'active' | 'demo_only' | 'coming_soon' | 'disabled';
+  pilotNoteKu?: string;
+  pilotNoteAr?: string;
+}> {
+  try {
+    const state = loadAdminState();
+    return state.services
+      .filter(s => s.enabled && s.visible)
+      .sort((a, b) => a.order - b.order)
+      .map(s => ({
+        id: s.id,
+        key: s.key,
+        titleKu: s.titleKu,
+        titleAr: s.titleAr,
+        titleEn: s.titleEn,
+        descriptionKu: s.descriptionKu,
+        descriptionAr: s.descriptionAr,
+        descriptionEn: s.descriptionEn,
+        enabled: s.enabled,
+        visible: s.visible,
+        order: s.order,
+        status: s.status,
+        pilotNoteKu: s.pilotNoteKu,
+        pilotNoteAr: s.pilotNoteAr,
+      }));
+  } catch (e) {
+    return [];
+  }
+}
+
+export function getPublicPromptConfig(): AdminPromptConfig[] {
+  try {
+    const state = loadAdminState();
+    return state.prompts
+      .filter(p => p.enabled)
+      .sort((a, b) => a.order - b.order);
+  } catch (e) {
+    return [];
+  }
+}
+
+export function getPublicWorkflowConfig(): AdminWorkflowStep[] {
+  try {
+    const state = loadAdminState();
+    return state.workflows
+      .filter(w => w.enabled)
+      .sort((a, b) => a.order - b.order);
+  } catch (e) {
+    return [];
+  }
+}
+
+export function getPublicFeatureFlags(): Record<string, boolean> {
+  try {
+    const state = loadAdminState();
+    const flags: Record<string, boolean> = {};
+    state.flags.forEach(f => {
+      flags[f.key] = f.enabled;
+    });
+    return flags;
+  } catch (e) {
+    return {};
+  }
+}
+
+export function getPublicContentSections(): AdminContentSection[] {
+  try {
+    const state = loadAdminState();
+    return state.contents.filter(c => c.visible);
+  } catch (e) {
+    return [];
+  }
+}
+

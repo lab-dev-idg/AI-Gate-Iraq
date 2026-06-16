@@ -9,7 +9,8 @@ export type ServiceKey =
   | 'kyc'
   | 'procurement'
   | 'tracking'
-  | 'map';
+  | 'map'
+  | 'inquiry';
 
 export interface BorderStatus {
   name: string;

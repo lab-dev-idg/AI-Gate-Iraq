@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { SERVICES, ServiceKey } from '@/src/lib/services';
+import { getAdminFeatureFlagEnabled } from '@/src/admin/adminStore';
 
 interface MobileServiceNavProps {
   activeService: ServiceKey;
@@ -12,9 +13,12 @@ export const MobileServiceNav = ({
   setActiveService,
   lang,
 }: MobileServiceNavProps) => {
+  const isInquiryEnabled = getAdminFeatureFlagEnabled('enable_inquiry_form', true);
+  const visibleServices = SERVICES.filter(s => s.key !== 'inquiry' || isInquiryEnabled);
+
   return (
     <div className="lg:hidden shrink-0 overflow-x-auto no-scrollbar scroll-smooth p-1 border-b border-slate-100 dark:border-slate-800/60 flex gap-1.5 items-center bg-slate-50/50 dark:bg-slate-900/40">
-      {SERVICES.map((srv) => {
+      {visibleServices.map((srv) => {
         const Icon = srv.icon;
         const isActive = activeService === srv.key;
         return (

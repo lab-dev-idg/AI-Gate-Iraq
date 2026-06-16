@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Send, Paperclip, X, FileText, Image, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { getAdminFeatureFlagEnabled } from '@/src/admin/adminStore';
 
 interface ChatInputProps {
   input: string;
@@ -25,6 +26,7 @@ export const ChatInput = ({
   const [attachment, setAttachment] = useState<File | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isFileUploadEnabled = getAdminFeatureFlagEnabled('enable_file_upload', true);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -135,15 +137,17 @@ export const ChatInput = ({
         />
 
         {/* Attachment Click Trigger Button */}
-        <Button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          variant="outline"
-          className="h-12 w-12 shrink-0 rounded-2xl bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 p-0"
-          title={lang === 'ar' ? 'إرفاق ملف' : 'هاوپێچکردنی فایل'}
-        >
-          <Paperclip className="w-5 h-5" />
-        </Button>
+        {isFileUploadEnabled && (
+          <Button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            variant="outline"
+            className="h-12 w-12 shrink-0 rounded-2xl bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 p-0"
+            title={lang === 'ar' ? 'إرفاق ملف' : 'هاوپێچکردنی فایل'}
+          >
+            <Paperclip className="w-5 h-5" />
+          </Button>
+        )}
 
         {/* Input & Send Action element */}
         <div className="relative flex-1">

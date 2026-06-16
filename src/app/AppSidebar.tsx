@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { SERVICES, ServiceKey } from '@/src/lib/services';
+import { getAdminFeatureFlagEnabled } from '@/src/admin/adminStore';
 
 interface AppSidebarProps {
   activeService: ServiceKey;
@@ -15,6 +16,9 @@ export const AppSidebar = ({
   lang,
   t,
 }: AppSidebarProps) => {
+  const isInquiryEnabled = getAdminFeatureFlagEnabled('enable_inquiry_form', true);
+  const visibleServices = SERVICES.filter(s => s.key !== 'inquiry' || isInquiryEnabled);
+
   return (
     <Card className="hidden lg:flex w-72 flex-col shrink-0 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm h-full font-arabic">
       <div className="p-4 border-b border-rose-500/10 bg-gradient-to-r from-slate-50 to-white dark:from-slate-950/20 dark:to-slate-900">
@@ -26,7 +30,7 @@ export const AppSidebar = ({
         </p>
       </div>
       <div className="flex-1 overflow-y-auto p-3 space-y-1 cs-scroll">
-        {SERVICES.map((srv) => {
+        {visibleServices.map((srv) => {
           const Icon = srv.icon;
           const isActive = activeService === srv.key;
           return (

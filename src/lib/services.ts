@@ -1,4 +1,5 @@
 import { Bot, Sparkles, MapPin, DollarSign, Package, UserCheck, Building2, FileText, Globe, LucideIcon } from 'lucide-react';
+import { getAdminServiceConfig, getAdminPromptChips } from '@/src/admin/adminStore';
 
 export type ServiceKey =
   | 'assistant'
@@ -9,7 +10,8 @@ export type ServiceKey =
   | 'kyc'
   | 'procurement'
   | 'tracking'
-  | 'map';
+  | 'map'
+  | 'inquiry';
 
 export interface ServiceItem {
   key: ServiceKey;
@@ -82,10 +84,22 @@ export const SERVICES: ServiceItem[] = [
     label_ar: 'خريطة المنافذ',
     icon: Globe,
     color: 'text-emerald-500',
+  },
+  {
+    key: 'inquiry',
+    label_ku: 'داوای دیمۆ / پەیوەندی',
+    label_ar: 'طلب ديمو / اتصال',
+    icon: Sparkles,
+    color: 'text-emerald-500',
   }
 ];
 
 export const getServiceName = (service: ServiceKey, lang: 'ku' | 'ar'): string => {
+  const adminConfig = getAdminServiceConfig(service, lang);
+  if (adminConfig && adminConfig.title) {
+    return adminConfig.title;
+  }
+
   switch (service) {
     case 'assistant':
       return lang === 'ar' ? 'الاستشارات العامة' : 'ڕاوێژی گشتی';
@@ -105,10 +119,17 @@ export const getServiceName = (service: ServiceKey, lang: 'ku' | 'ar'): string =
       return lang === 'ar' ? 'تتبع الشحنات' : 'بەدواداچوونی بار';
     case 'map':
       return lang === 'ar' ? 'الخارطة اللوجستية' : 'نەخشەی دەروازەکان';
+    case 'inquiry':
+      return lang === 'ar' ? 'داوای دیمۆ / پەیوەندی' : 'داوای دیمۆ / پەیوەندی';
   }
 };
 
 export const getPromptChips = (service: ServiceKey, lang: 'ku' | 'ar') => {
+  const adminPrompts = getAdminPromptChips(service, lang);
+  if (adminPrompts && adminPrompts.length > 0) {
+    return adminPrompts;
+  }
+
   switch (service) {
     case 'currency':
       return [

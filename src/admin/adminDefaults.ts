@@ -191,6 +191,18 @@ export const DEFAULT_ADMIN_STATE: AdminState = {
       labelKu: 'پشتیوانیکردنی دەستکاریکردنی فایل',
       descriptionKu: 'چالاککردنی وەرگرتن و سەرنجدانی فایل لە بواری یاریدەدەری زیرەکدا.',
       enabled: true
+    },
+    {
+      key: 'enable_inquiry_form',
+      labelKu: 'نیشاندانی فۆڕمی داواکاری و دیمۆ',
+      descriptionKu: 'ڕێگەدان بە بەکارهێنەرانی گشتی بۆ پڕکردنەوەی فۆڕمی پەیوەندی و دیمۆ.',
+      enabled: true
+    },
+    {
+      key: 'enable_file_upload',
+      labelKu: 'ڕێگادان بە بارکردنی فایل',
+      descriptionKu: 'ڕێگەدان بە بارکردنی فایل و بەڵگە جۆراوجۆرەکان بۆ یاریدەدەرە هۆشمەندەکە.',
+      enabled: true
     }
   ],
   intake: [

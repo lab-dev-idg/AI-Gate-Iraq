@@ -75,7 +75,7 @@ export const AssistantWorkspace = ({
             onChange={(e) => setChatScope(e.target.value as ServiceKey)}
             className="text-[10px] font-black border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5 bg-white dark:bg-slate-900 cursor-pointer text-slate-700 dark:text-slate-200 shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 transition-colors"
           >
-            {SERVICES.map((srv) => (
+            {SERVICES.filter(s => s.key !== 'inquiry').map((srv) => (
               <option key={srv.key} value={srv.key}>
                 {lang === 'ar' ? srv.label_ar : srv.label_ku}
               </option>

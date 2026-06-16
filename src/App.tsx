@@ -33,6 +33,8 @@ import AssistantWorkspace from '@/src/features/assistant/AssistantWorkspace';
 
 // Super Admin Center feature
 import AdminPanel from '@/src/admin/AdminPanel';
+import { PublicInquiryForm } from '@/src/features/inquiry/PublicInquiryForm';
+import { getAdminFeatureFlagEnabled } from '@/src/admin/adminStore';
 
 export default function App() {
   const isAdminRoute = window.location.pathname === '/admin';
@@ -265,31 +267,38 @@ export default function App() {
                       {activeService === 'procurement' && (lang === 'ar' ? 'صياغة عروض الأسعار والبحث عن بضائع لتمكين التجارة الآمنة.' : 'نووسینی داوای نرخ لەگەڵ بەدواداچوونی سەرچاوەی کارگەکان.')}
                       {activeService === 'tracking' && (lang === 'ar' ? 'استقصاء مسار الحاويات والبضائع بنقرة واحدة عبر لوحة التحكم ومكتب التسليم.' : 'بەدواداچوونی گونجاو بە ژمارەی مۆڵەت فەرمی بۆ بینینی خاڵ بە خاڵی گەیشتنی بار.')}
                       {activeService === 'map' && (lang === 'ar' ? 'اكتشف مواقع الموانئ البرية ومرافئ التنزيل الجغرافي النشطة في عاصمة التجارة.' : 'بینینی شوێن و داتا لۆجیستییەکان لەسەر نەخشەی چالاکی هاوردەکردنی کاڵاکان.')}
+                      {activeService === 'inquiry' && (lang === 'ar' ? 'أرسل تفاصيل طلبك أو استفسارك للتواصل الفوري مع إدارة البوابة.' : 'زانیاری و داواکارییەکانت بنێرە بۆ بەستنەوەی خێرا لەگەڵ ستافی تایبەت.')}
                     </p>
                   </div>
                 </div>
 
                 {/* Workspace Content Viewport */}
                 <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-1 pb-4 cs-scroll">
-                  <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-                    {/* Active Workspace Main Service Details Column */}
-                    <div className="xl:col-span-8 space-y-6 min-w-0">
-                      <ServiceWorkspace activeService={activeService} lang={lang} t={t} />
+                  {activeService === 'inquiry' ? (
+                    <div className="w-full">
+                      <PublicInquiryForm />
                     </div>
+                  ) : (
+                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+                      {/* Active Workspace Main Service Details Column */}
+                      <div className="xl:col-span-8 space-y-6 min-w-0">
+                        <ServiceWorkspace activeService={activeService} lang={lang} t={t} />
+                      </div>
 
-                    {/* Professional business workflow checklist / next steps guide column */}
-                    <div className="xl:col-span-4 space-y-6 min-w-0">
-                      <WorkflowGuide
-                        activeService={activeService}
-                        lang={lang}
-                        onQuestionClick={(questionPrompt) => {
-                          setChatScope(activeService);
-                          setActiveService('assistant');
-                          setTimeout(() => handleSend(questionPrompt), 150);
-                        }}
-                      />
+                      {/* Professional business workflow checklist / next steps guide column */}
+                      <div className="xl:col-span-4 space-y-6 min-w-0">
+                        <WorkflowGuide
+                          activeService={activeService}
+                          lang={lang}
+                          onQuestionClick={(questionPrompt) => {
+                            setChatScope(activeService);
+                            setActiveService('assistant');
+                            setTimeout(() => handleSend(questionPrompt), 150);
+                          }}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </Card>
             )}

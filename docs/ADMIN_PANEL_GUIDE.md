@@ -80,12 +80,30 @@ The AI Gate Iraq Control Center features six specialized controllers allowing ad
 ### F. Feature Flags Manager (فڵاگەکان)
 - **Purpose**: Toggle site-wide business logics on or off in real-time.
 - **Features**:
-  - Live activation toggles for `show_pilot_limits` (Warning Banner) and `enable_multimodal` (Multimodal file interaction).
+  - Live activation toggles for `show_pilot_limits` (Warning Banner), `enable_multimodal` (Multimodal file interaction), `enable_inquiry_form` (Kurdish Public Inquiry Form), and `enable_file_upload` (Chat file attachment/upload capabilities).
   - High-visibility status indicators showing flag active status immediately.
 
 ---
 
-## ⚠️ 4. Crucial Pilot Constraints & Production Transition
+## 📨 4. Public Inquiry & Safe Live Integration (Patch 4)
+
+The platform connects our dynamic Super Admin configurations directly to the live public-facing user interface in a safe, sandboxed, and robust way:
+
+### A. Kurdish Public Inquiry Form (فۆڕمی پەیوەندی)
+- **Route**: Reachable from the sidebar or mobile menu via the **"داوای دیمۆ / پەیوەندی"** (Request Demo / Contact) navigation button.
+- **Form Fields**: Full Name, Company, Contact Address (Phone/Email), Service Interest dropdown, and Message text block.
+- **State Flow**: Fully mapped to `createIntakeItem`. Submission automatically pushes inquiry records directly into the local `intake` store and registers an administrative auditable action inside the global Audit Log.
+
+### B. Safe Live Override Checks
+- **Dynamic Service Titles**: Public workspaces automatically read customized labels from the Admin Service Manager with automated hardcoded fallbacks if disabled.
+- **Dynamic Prompt Chips**: Floating assistance buttons read, filter, and display custom prompts managed inside the Dynamic Prompt Manager.
+- **Dynamic Feature Flags**:
+  - `enable_inquiry_form`: Turn on/off the "Request Demo / Contact" submission interface instantly.
+  - `enable_file_upload`: Turn on/off the file/image attachment buttons dynamically in the AI Chat.
+
+---
+
+## ⚠️ 5. Crucial Pilot Constraints & Production Transition
 
 AI Gate Iraq utilizes localized client memory engines (`localStorage` and `sessionStorage`) for state persistence during this demo state.
 
