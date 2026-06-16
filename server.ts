@@ -22,10 +22,10 @@ const ai = new GoogleGenAI({
   }
 });
 
-let GEMINI_MODEL = (process.env.GEMINI_MODEL || "gemini-2.5-flash").trim();
+let GEMINI_MODEL = (process.env.GEMINI_MODEL || "gemini-3.5-flash").trim();
 console.log("Raw environment GEMINI_MODEL:", process.env.GEMINI_MODEL);
 
-// Robust check: if the env contains "=", split and grab the value portion.
+// Robust check: if the env contains "=", split and grab the value portion (e.g. "GEMINI_MODEL = gemini-3.5-flash")
 if (GEMINI_MODEL.includes("=")) {
   GEMINI_MODEL = GEMINI_MODEL.split("=").pop()!.trim();
 }
@@ -36,6 +36,11 @@ GEMINI_MODEL = GEMINI_MODEL.replace(/^['"]|['"]$/g, "").trim();
 // Strip any "models/" prefix if it exists to satisfy @google/genai SDK format constraints
 if (GEMINI_MODEL.startsWith("models/")) {
   GEMINI_MODEL = GEMINI_MODEL.substring("models/".length);
+}
+
+// Convert gemini-2.5-flash to gemini-3.5-flash as the recommended text model for general business tasks
+if (GEMINI_MODEL === "gemini-2.5-flash") {
+  GEMINI_MODEL = "gemini-3.5-flash";
 }
 
 console.log("Using resolved GEMINI_MODEL name:", GEMINI_MODEL);

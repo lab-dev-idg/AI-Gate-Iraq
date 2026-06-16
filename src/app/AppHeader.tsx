@@ -53,6 +53,15 @@ export const AppHeader = ({ lang, setLang, t, children }: AppHeaderProps) => {
             </Badge>
           </div>
           {children}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => window.location.href = '/admin'}
+            className="h-7 sm:h-8 px-2.5 sm:px-3.5 text-[10px] sm:text-[11px] font-extrabold border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all font-arabic whitespace-nowrap leading-none shrink-0 rounded-lg flex items-center gap-1 bg-slate-50/50 dark:bg-slate-900/50"
+            title="چوونەژوورەوەی سەرپەرشتیاری پایلۆت"
+          >
+            ئادمین
+          </Button>
           <UserMenu />
           <FeedbackDialog />
           <div className="hidden lg:flex items-center gap-1.5">
