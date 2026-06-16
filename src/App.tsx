@@ -31,7 +31,15 @@ import WorkflowGuide from '@/src/app/WorkflowGuide';
 // AI assistant feature
 import AssistantWorkspace from '@/src/features/assistant/AssistantWorkspace';
 
+// Super Admin Center feature
+import AdminPanel from '@/src/admin/AdminPanel';
+
 export default function App() {
+  const isAdminRoute = window.location.pathname === '/admin';
+  if (isAdminRoute) {
+    return <AdminPanel />;
+  }
+
   const { lang, setLang, t } = useLanguage();
   const [activeService, setActiveService] = useState<ServiceKey>(() => loadSession().activeService || 'assistant');
   const [chatScope, setChatScope] = useState<ServiceKey>(() => loadSession().chatScope || 'assistant');
