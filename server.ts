@@ -1,6 +1,5 @@
 import express from 'express';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
@@ -135,10 +134,12 @@ async function startServer() {
     const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });
     app.use(vite.middlewares);
   } else {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const distPath = path.resolve(__dirname);
-    app.use(express.static(distPath, { maxAge: '1y', immutable: true, index: false }));
+    const distPath = path.resolve(process.cwd(), 'dist');
+    app.use('/assets', express.static(path.join(distPath, 'assets'), {
+      maxAge: '1y',
+      immutable: true,
+    }));
+    app.use(express.static(distPath, { index: false }));
     app.get('*', (_req, res) => res.sendFile(path.join(distPath, 'index.html')));
   }
 
@@ -147,4 +148,7 @@ async function startServer() {
   });
 }
 
-void startServer();
+void startServer().catch(error => {
+  console.error('Server startup failed:', error);
+  process.exit(1);
+});
