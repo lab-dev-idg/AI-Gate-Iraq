@@ -6,6 +6,10 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
     function isAdmin() {
       return signedIn()
         && exists(/databases/$(database)/documents/adminUsers/$(request.auth.uid));
@@ -29,13 +33,45 @@ service cloud.firestore {
       && isStringField('message', 2500);
     }
 
+    function validWorkspaceWrite(uid) {
+      return isOwner(uid)
+        && request.resource.data.keys().hasOnly([
+          'ownerUid', 'session', 'updatedAtMs', 'updatedAt', 'schemaVersion'
+        ])
+        && request.resource.data.ownerUid == uid
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.updatedAtMs is int
+        && request.resource.data.session is map;
+    }
+
     match /users/{uid} {
-      allow read, create, update: if signedIn() && request.auth.uid == uid;
+      allow read, create, update: if isOwner(uid);
       allow delete: if false;
+
+      match /workspace/{workspaceId} {
+        allow read: if isOwner(uid);
+        allow create, update: if validWorkspaceWrite(uid);
+        allow delete: if false;
+      }
+
+      match /conversations/{conversationId} {
+        allow read, create, update: if isOwner(uid);
+        allow delete: if isOwner(uid);
+      }
+
+      match /drafts/{draftId} {
+        allow read, create, update, delete: if isOwner(uid);
+      }
+
+      match /shipments/{shipmentId} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid);
+        allow delete: if false;
+      }
     }
 
     match /adminUsers/{uid} {
-      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow read: if isAdmin() || isOwner(uid);
       allow create, update, delete: if false;
     }
 
@@ -86,7 +122,7 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    match /pilotAttachments/{attachmentId} {
+    match /attachments/{attachmentId} {
       allow create, read: if isAdmin();
       allow update, delete: if false;
     }
