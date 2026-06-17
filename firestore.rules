@@ -19,22 +19,19 @@ service cloud.firestore {
 
     function validPublicIntakeCreate() {
       return request.resource.data.keys().hasOnly([
-        'id',
-        'name',
-        'company',
-        'contact',
-        'serviceInterest',
-        'category',
-        'message',
-        'status',
-        'createdAt',
-        'updatedAt'
+        'id', 'name', 'company', 'contact', 'serviceInterest',
+        'category', 'message', 'status', 'createdAt', 'updatedAt'
       ])
       && request.resource.data.status == 'new'
       && isStringField('name', 120)
       && isStringField('contact', 160)
       && isStringField('serviceInterest', 120)
       && isStringField('message', 2500);
+    }
+
+    match /users/{uid} {
+      allow read, create, update: if signedIn() && request.auth.uid == uid;
+      allow delete: if false;
     }
 
     match /adminUsers/{uid} {
