@@ -4,6 +4,7 @@ import { Message } from '../types/chat';
 
 const STORAGE_KEY = 'ai_gate_iraq_session';
 const VERSION = '1.0.0';
+const WORKSPACE_CHANGE_EVENT = 'ai-gate-workspace-change';
 
 export const DEFAULT_SESSION = (lang: 'ku' | 'ar' = 'ku'): BusinessSession => ({
   version: VERSION,
@@ -17,26 +18,22 @@ export const DEFAULT_SESSION = (lang: 'ku' | 'ar' = 'ku'): BusinessSession => ({
   updatedAt: Date.now()
 });
 
-/**
- * Safely loads the business session from localStorage.
- */
+function notifyWorkspaceChanged(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(WORKSPACE_CHANGE_EVENT));
+  }
+}
+
 export function loadSession(currentLang: 'ku' | 'ar' = 'ku'): BusinessSession {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
-    if (!data) {
-      return DEFAULT_SESSION(currentLang);
-    }
+    if (!data) return DEFAULT_SESSION(currentLang);
     const session = JSON.parse(data) as BusinessSession;
-    if (session.version !== VERSION) {
-      // Version mismatch cleanup if structure changed dramatically
-      return DEFAULT_SESSION(currentLang);
-    }
+    if (session.version !== VERSION) return DEFAULT_SESSION(currentLang);
     return {
       ...DEFAULT_SESSION(currentLang),
       ...session,
-      drafts: {
-        ...session.drafts
-      }
+      drafts: { ...session.drafts }
     };
   } catch (error) {
     console.error('Failed to load session from local storage:', error);
@@ -44,17 +41,11 @@ export function loadSession(currentLang: 'ku' | 'ar' = 'ku'): BusinessSession {
   }
 }
 
-/**
- * Safely saves the session changes to localStorage.
- */
 export function saveSession(changes: Partial<BusinessSession>): void {
   try {
     const current = loadSession(changes.language);
     let messages = changes.chatMessages !== undefined ? changes.chatMessages : current.chatMessages;
-
-    // Safety cap: Limit to top 80 chat messages to protect localStorage size limits
     if (messages && messages.length > 80) {
-      // Keep the very first assistant greeting message, and the most recent 79 messages
       messages = [messages[0], ...messages.slice(-79)];
     }
 
@@ -68,33 +59,28 @@ export function saveSession(changes: Partial<BusinessSession>): void {
       },
       updatedAt: Date.now()
     };
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    notifyWorkspaceChanged();
   } catch (error) {
     console.error('Failed to save session to local storage:', error);
   }
 }
 
-/**
- * Erases the active local session.
- */
 export function clearSession(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
+    notifyWorkspaceChanged();
   } catch (error) {
     console.error('Failed to clear session from local storage:', error);
   }
 }
 
-/**
- * Records a prompt chosen or sent by the user to the list of recent prompts.
- */
 export function addRecentPrompt(text: string, serviceKey: ServiceKey): void {
   try {
     const current = loadSession();
     const cleanText = text.trim();
     if (!cleanText) return;
-
-    // Remove duplicates to keep list distinct and tidy
     const filtered = current.recentPrompts.filter(p => p.text.toLowerCase() !== cleanText.toLowerCase());
     const newPrompt: RecentPrompt = {
       id: `prompt_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
@@ -102,18 +88,12 @@ export function addRecentPrompt(text: string, serviceKey: ServiceKey): void {
       serviceKey,
       timestamp: Date.now()
     };
-
-    // Keep top 6 items
-    const limited = [newPrompt, ...filtered].slice(0, 6);
-    saveSession({ recentPrompts: limited });
+    saveSession({ recentPrompts: [newPrompt, ...filtered].slice(0, 6) });
   } catch (error) {
     console.error('Failed to record recent prompt:', error);
   }
 }
 
-/**
- * Records a key customer business action (e.g. calculation, shipment search).
- */
 export function addServiceAction(actionName: string, serviceKey: ServiceKey): void {
   try {
     const current = loadSession();
@@ -123,16 +103,12 @@ export function addServiceAction(actionName: string, serviceKey: ServiceKey): vo
       serviceKey,
       timestamp: Date.now()
     };
-    const limited = [newAction, ...current.recentServiceActions].slice(0, 10);
-    saveSession({ recentServiceActions: limited });
+    saveSession({ recentServiceActions: [newAction, ...current.recentServiceActions].slice(0, 10) });
   } catch (error) {
     console.error('Failed to record service action:', error);
   }
 }
 
-/**
- * Generates an elegant and clear text or JSON payload for business record exporting.
- */
 export function exportSessionSummary(session: BusinessSession, lang: 'ku' | 'ar'): { text: string; filename: string } {
   const isAr = lang === 'ar';
   const datetime = new Date(session.updatedAt).toLocaleDateString([], {
@@ -149,7 +125,7 @@ export function exportSessionSummary(session: BusinessSession, lang: 'ku' | 'ar'
     text += `       ملخص جلسة العمل - AI Gate Iraq    \n`;
     text += `=========================================\n`;
     text += `تاريخ التصدير: ${datetime}\n`;
-    text += `المستندات المحلية والمسودات قيد التحضير:\n\n`;
+    text += `المستندات والمسودات قيد التحضير:\n\n`;
 
     if (session.drafts.kycCompanyName) {
       text += `[معلومات توثيق التاجر (KYC)]:\n`;
@@ -184,18 +160,14 @@ export function exportSessionSummary(session: BusinessSession, lang: 'ku' | 'ar'
 
     text += `[الاستشارات والمحادثات مع المساعد الذكي] (${session.chatMessages.length} رسالة):\n`;
     session.chatMessages.forEach((msg, idx) => {
-      const roleName = msg.role === 'user' ? 'التاجر' : 'المساعد الذكي';
-      text += `${idx + 1}. [${roleName}]: ${msg.text}\n\n`;
+      text += `${idx + 1}. [${msg.role === 'user' ? 'التاجر' : 'المساعد الذكي'}]: ${msg.text}\n\n`;
     });
-
-    text += `-----------------------------------------\n`;
-    text += `ملاحظة: هذه البيانات تم تصديرها من التخزين المؤقت المحلي لمتصفحك فقط للحفاظ على الخصوصية الكاملة للأعمال.\n`;
   } else {
     text += `=========================================\n`;
     text += `       کورتەی دانیشتنی کار - AI Gate Iraq  \n`;
     text += `=========================================\n`;
     text += `ڕێکەوتی هەناردەکردن: ${datetime}\n`;
-    text += `بەڵگەنامە و ڕەشنووسە ناوخۆییەکانی ئامادەکردن:\n\n`;
+    text += `بەڵگەنامە و ڕەشنووسەکانی ئامادەکردن:\n\n`;
 
     if (session.drafts.kycCompanyName) {
       text += `[زانیاری تۆمارکانی بازرگان / KYC]:\n`;
@@ -228,14 +200,10 @@ export function exportSessionSummary(session: BusinessSession, lang: 'ku' | 'ar'
       text += `- گواستنەوە: لە ${session.drafts.costOrigin || '-'} بۆ ${session.drafts.costDestination || '-'}\n\n`;
     }
 
-    text += `[ڕاوێژکاری و وتووێژ لەگەڵ یاور دیسک] (${session.chatMessages.length} نامە):\n`;
+    text += `[ڕاوێژکاری و وتووێژ لەگەڵ یاوەری زیرەک] (${session.chatMessages.length} نامە):\n`;
     session.chatMessages.forEach((msg, idx) => {
-      const roleName = msg.role === 'user' ? 'بازرگان' : 'یاوەری زیرەک';
-      text += `${idx + 1}. [${roleName}]: ${msg.text}\n\n`;
+      text += `${idx + 1}. [${msg.role === 'user' ? 'بازرگان' : 'یاوەری زیرەک'}]: ${msg.text}\n\n`;
     });
-
-    text += `-----------------------------------------\n`;
-    text += `تێبینی: ئەم زانیارییانە لە وێبگەڕی ناوخۆیی خۆتەوە دەرهێنراون بە مەبەستی پاراستنی نهێنێ مەلەفە بازرگانییەکانت.\n`;
   }
 
   const filename = `AI_Gate_Iraq_Session_${new Date().toISOString().slice(0, 10)}.txt`;
