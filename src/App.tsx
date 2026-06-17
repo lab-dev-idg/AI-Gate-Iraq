@@ -32,14 +32,14 @@ import WorkflowGuide from '@/src/app/WorkflowGuide';
 import AssistantWorkspace from '@/src/features/assistant/AssistantWorkspace';
 
 // Super Admin Center feature
-import AdminPanel from '@/src/admin/AdminPanel';
+import SecureAdminPanel from '@/src/admin/SecureAdminPanel';
 import { PublicInquiryForm } from '@/src/features/inquiry/PublicInquiryForm';
 import { getAdminFeatureFlagEnabled } from '@/src/admin/adminStore';
 
 export default function App() {
   const isAdminRoute = window.location.pathname === '/admin';
   if (isAdminRoute) {
-    return <AdminPanel />;
+    return <SecureAdminPanel />;
   }
 
   const { lang, setLang, t } = useLanguage();
