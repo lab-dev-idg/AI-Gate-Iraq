@@ -1,269 +1,86 @@
-import { useEffect, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { Anchor, ExternalLink, MapPin, Plane, Truck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, AlertTriangle, Anchor, Truck, Plane } from 'lucide-react';
 import { useLanguage } from '@/src/lib/LanguageContext';
 
-declare global {
-  interface Window {
-    google: any;
-    initMap: () => void;
-    gm_authFailure?: () => void;
-    __googleMapsAuthFailed?: boolean;
-    onGoogleMapsAuthFailed?: () => void;
-  }
-}
-
-const LOGISTICS_HUBS = [
-  { 
-    name: 'بەندەری ئوم قەسر', 
-    lat: 30.0381, 
-    lng: 47.9261, 
-    description: 'Umm Qasr Port',
-    type: 'port'
-  },
-  { 
-    name: 'دەروازەی ئیبراهیم خەلیل', 
-    lat: 37.1594, 
-    lng: 42.5639, 
-    description: 'Ibrahim Khalil Border',
-    type: 'border'
-  },
-  { 
-    name: 'فڕۆکەخانەی هەولێر', 
-    lat: 36.2369, 
-    lng: 43.9592, 
-    description: 'Erbil Airport',
-    type: 'airport'
-  },
+const HUBS = [
+  { id: 'umm-qasr', nameKu: 'بەندەری ئوم قەسر', nameAr: 'ميناء أم قصر', subtitle: 'Umm Qasr Port', lat: 30.0381, lng: 47.9261, type: 'port' },
+  { id: 'ibrahim-khalil', nameKu: 'دەروازەی ئیبراهیم خەلیل', nameAr: 'منفذ إبراهيم الخليل', subtitle: 'Ibrahim Khalil Border', lat: 37.1594, lng: 42.5639, type: 'border' },
+  { id: 'erbil-airport', nameKu: 'فڕۆکەخانەی نێودەوڵەتی هەولێر', nameAr: 'مطار أربيل الدولي', subtitle: 'Erbil International Airport', lat: 36.2369, lng: 43.9592, type: 'airport' },
+  { id: 'basra-port', nameKu: 'بەندەری بەسرە', nameAr: 'ميناء البصرة', subtitle: 'Basra Logistics Area', lat: 30.5085, lng: 47.7804, type: 'port' },
 ];
 
-const ICONS: Record<string, string> = {
-  port: 'https://cdn-icons-png.flaticon.com/512/2892/2892695.png', // Ship
-  border: 'https://cdn-icons-png.flaticon.com/512/2554/2554904.png', // Truck
-  airport: 'https://cdn-icons-png.flaticon.com/512/2311/2311894.png', // Plane
-};
-
 export function LogisticsMap() {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const [isReady, setIsReady] = useState(false);
-  const [mapError, setMapError] = useState<string | null>(null);
   const { lang } = useLanguage();
+  const [activeId, setActiveId] = useState(HUBS[0].id);
+  const active = HUBS.find(hub => hub.id === activeId) || HUBS[0];
 
-  useEffect(() => {
-    // Intercept Google Maps Auth & Activation failures
-    const handleAuthFailure = () => {
-      console.warn("Google Maps SDK failed to authenticate or load (maybe ApiNotActivatedMapError).");
-      setMapError("ApiNotActivatedMapError");
-    };
-
-    window.gm_authFailure = handleAuthFailure;
-    window.onGoogleMapsAuthFailed = handleAuthFailure;
-
-    // If an authentication failure was already caught before mount, use it immediately
-    if (window.__googleMapsAuthFailed) {
-      handleAuthFailure();
-      return;
-    }
-
-    if (typeof window.google?.maps?.Map === 'function') {
-      setIsReady(true);
-      return;
-    }
-
-    const interval = setInterval(() => {
-      if (typeof window.google?.maps?.Map === 'function') {
-        setIsReady(true);
-        clearInterval(interval);
-      }
-    }, 100);
-
-    const script = document.getElementById('google-maps-script');
-    const handleLoad = () => {
-      if (typeof window.google?.maps?.Map === 'function') {
-        setIsReady(true);
-        clearInterval(interval);
-      }
-    };
-    const handleError = () => {
-      setMapError("ScriptLoadError");
-    };
-
-    script?.addEventListener('load', handleLoad);
-    script?.addEventListener('error', handleError);
-
-    return () => {
-      clearInterval(interval);
-      script?.removeEventListener('load', handleLoad);
-      script?.removeEventListener('error', handleError);
-      window.onGoogleMapsAuthFailed = undefined;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!isReady || !mapRef.current || mapError) return;
-
-    try {
-      const map = new window.google.maps.Map(mapRef.current, {
-        center: { lat: 33.3152, lng: 44.3661 }, // Baghdad center
-        zoom: 5,
-        styles: [
-          {
-            featureType: 'all',
-            elementType: 'labels.text.fill',
-            style: { color: '#ffffff' }
-          },
-          {
-            featureType: 'water',
-            elementType: 'geometry',
-            stylers: [{ color: '#0e1726' }]
-          },
-          {
-            featureType: 'landscape',
-            elementType: 'geometry',
-            stylers: [{ color: '#1b2e4b' }]
-          }
-        ]
-      });
-
-      LOGISTICS_HUBS.forEach((hub) => {
-        const marker = new window.google.maps.Marker({
-          position: { lat: hub.lat, lng: hub.lng },
-          map,
-          title: hub.name,
-          icon: {
-            url: ICONS[hub.type],
-            scaledSize: new window.google.maps.Size(32, 32),
-            origin: new window.google.maps.Point(0, 0),
-            anchor: new window.google.maps.Point(16, 32),
-          },
-          animation: window.google.maps.Animation.DROP
-        });
-
-        const infoWindow = new window.google.maps.InfoWindow({
-          content: `
-            <div style="color: #1e293b; padding: 8px; font-family: sans-serif;">
-              <h3 style="margin: 0; font-size: 14px; font-weight: bold;">${hub.name}</h3>
-              <p style="margin: 4px 0 0; font-size: 11px; color: #64748b;">${hub.description}</p>
-            </div>
-          `
-        });
-
-        marker.addListener('click', () => {
-          infoWindow.open(map, marker);
-        });
-      });
-    } catch (e: any) {
-      console.error("Error creating map instance:", e);
-      setMapError("MapInitError");
-    }
-  }, [isReady, mapError]);
-
-  const errorDetails = {
-    ku: {
-      title: "کێشە لە کاراکردنی نەخشەدا هەیە",
-      desc: "کلیلی Google Maps بنیاتنراوە بەڵام 'Maps JavaScript API' لە Google Cloud Console بۆ ئەم کلیلی کاتییە کارا نەکراوە (ApiNotActivatedMapError).",
-      step1: "١. سەردانی Google Cloud Console بکە.",
-      step2: "٢. پڕۆژەی دروست هەڵبژێرە و بچۆ بەشی 'APIs & Services'.",
-      step3: "٣. بەدوای 'Maps JavaScript API' بگەڕێ و کلیک لە 'Enable' بکە.",
-      alternative: "مەڵبەندە لۆجیستییە بەردەستەکان و دەروازەکانی عێراق:",
-    },
-    ar: {
-      title: "هناك مشكلة في تفعيل الخريطة",
-      desc: "مفتاح Google Maps تم توفيره ولكن 'Maps JavaScript API' غير ممكّن في واجهة تحكم Google Cloud Console لهذا المفتاح (ApiNotActivatedMapError).",
-      step1: "١. اطلب لوحة تحكم Google Cloud Console.",
-      step2: "٢. اختر مشروعك الخاص واذهب إلى قسم 'APIs & Services'.",
-      step3: "٣. ابحث عن 'Maps JavaScript API' واضغط على تمكين 'Enable'.",
-      alternative: "المراكز اللوجستية والمنافذ المتاحة في العراق:",
-    }
-  };
-
-  const h = errorDetails[lang as 'ku' | 'ar'] || errorDetails['ku'];
-
-  if (mapError) {
-    return (
-      <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white dark:bg-slate-900/80 rounded-2xl transition-all duration-300 hover:shadow-lg">
-        <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800/80">
-          <CardTitle className="text-lg flex items-center gap-2 font-arabic text-slate-950 dark:text-white">
-            <MapPin className="w-5 h-5 text-emerald-500 animate-pulse" />
-            {lang === 'ar' ? 'المنافذ والمراكز اللوجستية' : 'مەڵبەند و دەروازە لۆجیستییەکان'}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 flex flex-col gap-4">
-          <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 text-xs text-slate-700 dark:text-slate-300">
-            <div className="flex items-start gap-2.5">
-              <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-              <div>
-                <h4 className="font-bold text-amber-800 dark:text-amber-400 mb-1">{h.title}</h4>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-2">
-                  {h.desc}
-                </p>
-                <div className="space-y-1">
-                  <p className="font-semibold text-slate-700 dark:text-slate-300">{lang === 'ar' ? 'خطوات التفعيل السهلة:' : 'ڕێکاری ئاسانی چالاککردن:'}</p>
-                  <p className="text-slate-500 dark:text-slate-400">{h.step1}</p>
-                  <p className="text-slate-500 dark:text-slate-400">{h.step2}</p>
-                  <p className="text-slate-500 dark:text-slate-400">{h.step3}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-2.5 uppercase tracking-wide">
-              {h.alternative}
-            </p>
-            <div className="grid grid-cols-1 gap-2">
-              {LOGISTICS_HUBS.map((hub, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 bg-slate-50/50 dark:bg-slate-950/40 rounded-xl border border-slate-100 dark:border-slate-800/80 transition-all hover:bg-slate-50 dark:hover:bg-slate-900/60">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                      {hub.type === 'port' ? <Anchor className="w-3.5 h-3.5" /> : hub.type === 'airport' ? <Plane className="w-3.5 h-3.5" /> : <Truck className="w-3.5 h-3.5" />}
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-950 dark:text-white">{hub.name}</p>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500">{hub.description}</p>
-                    </div>
-                  </div>
-                  <div className="text-right text-[10px] font-mono text-slate-400">
-                    <span className="bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded font-semibold text-slate-600 dark:text-slate-400">
-                      {hub.lat.toFixed(4)}°, {hub.lng.toFixed(4)}°
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const embedUrl = useMemo(
+    () => `https://www.google.com/maps?q=${active.lat},${active.lng}&z=10&output=embed`,
+    [active.lat, active.lng],
+  );
+  const externalUrl = `https://www.google.com/maps/search/?api=1&query=${active.lat},${active.lng}`;
 
   return (
-    <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white dark:bg-slate-900/80 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800/80">
-        <CardTitle className="text-lg flex items-center gap-2 font-arabic text-slate-950 dark:text-white">
-          <MapPin className="w-5 h-5 text-emerald-500" />
-          {lang === 'ar' ? 'نشرة خرائط المنافذ' : 'نەخشەی دەروازەکان'}
+    <Card className="overflow-hidden rounded-2xl border border-slate-700 bg-[#0E1728] text-slate-100 shadow-lg">
+      <CardHeader className="border-b border-slate-700/80 pb-4">
+        <CardTitle className="flex items-center gap-2 text-xl font-black text-white">
+          <MapPin className="h-5 w-5 text-emerald-400" />
+          {lang === 'ar' ? 'خريطة المراكز اللوجستية' : 'نەخشەی مەڵبەندە لۆجیستییەکان'}
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-0 overflow-hidden relative">
-        <div ref={mapRef} className="w-full h-64 md:h-[450px] rounded-b-2xl" />
-        {!isReady && (
-          <div className="absolute inset-0 bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-6 text-center rounded-b-2xl">
-            <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
-              <MapPin className="w-6 h-6 text-emerald-500" />
+
+      <CardContent className="space-y-5 p-5">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {HUBS.map(hub => {
+            const Icon = hub.type === 'port' ? Anchor : hub.type === 'airport' ? Plane : Truck;
+            const selected = hub.id === active.id;
+            return (
+              <button
+                key={hub.id}
+                onClick={() => setActiveId(hub.id)}
+                className={`rounded-xl border p-3 text-right transition ${selected ? 'border-emerald-400/60 bg-emerald-500/15' : 'border-slate-700 bg-[#111D31] hover:border-slate-500 hover:bg-slate-800'}`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className={`rounded-lg p-2 ${selected ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-300'}`}><Icon className="h-4 w-4" /></span>
+                  <div>
+                    <p className="text-sm font-black text-white">{lang === 'ar' ? hub.nameAr : hub.nameKu}</p>
+                    <p className="mt-1 text-xs font-medium text-slate-300">{hub.subtitle}</p>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-slate-700 bg-[#091222]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700/80 p-4">
+            <div>
+              <h3 className="text-lg font-black text-white">{lang === 'ar' ? active.nameAr : active.nameKu}</h3>
+              <p className="mt-1 text-xs font-medium text-slate-300">{active.subtitle} · {active.lat.toFixed(4)}, {active.lng.toFixed(4)}</p>
             </div>
-            <p className="text-sm font-medium text-slate-800 dark:text-white mb-1 font-arabic">
-              {lang === 'ar' ? 'الخريطة ليست نشطة' : 'نەخشە کارا نەکراوە'}
-            </p>
-            <p className="text-xs text-slate-400">
-              {lang === 'ar' 
-                ? 'يرجى تعيين مفتاح Google Maps في الإعدادات.' 
-                : 'تکایە کلیلی Google Maps لە ڕێکخستنەکان دابنێ'}
-            </p>
+            <a href={externalUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-black text-emerald-300 hover:bg-emerald-500/20">
+              <ExternalLink className="h-4 w-4" />
+              {lang === 'ar' ? 'فتح في خرائط Google' : 'کردنەوە لە Google Maps'}
+            </a>
           </div>
-        )}
+          <iframe
+            title={active.subtitle}
+            src={embedUrl}
+            className="h-[430px] w-full border-0 bg-slate-900"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
+
+        <p className="text-xs font-medium leading-6 text-slate-300">
+          {lang === 'ar'
+            ? 'المواقع المعروضة مرجعية لتسهيل التخطيط اللوجستي. تحقّق من حالة المنفذ ومواعيد العمل من الجهة المشغّلة قبل اتخاذ القرار.'
+            : 'شوێنە پیشاندراوەکان بۆ ڕێنمایی پلاندانانی لۆجیستیکن؛ پێش بڕیاردان دۆخی دەروازە و کاتی کارکردن لە دەزگای بەڕێوەبەر پشتڕاست بکەرەوە.'}
+        </p>
       </CardContent>
     </Card>
   );
 }
 
+export default LogisticsMap;
