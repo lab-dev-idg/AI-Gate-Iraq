@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/src/components/AuthProvider';
 import { readCloudWorkspace, subscribeCloudWorkspace, WorkspaceSyncState, writeCloudWorkspace } from '@/src/lib/cloudWorkspace';
 import { clearSession, DEFAULT_SESSION, loadSession, saveSession } from '@/src/lib/sessionStore';
@@ -13,7 +13,7 @@ interface Params {
   messages: Message[];
   setActiveService: (value: ServiceKey) => void;
   setChatScope: (value: ServiceKey) => void;
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  setMessages: Dispatch<SetStateAction<Message[]>>;
 }
 
 export function useWorkspaceSync(params: Params) {
@@ -32,6 +32,22 @@ export function useWorkspaceSync(params: Params) {
     params.setActiveService(session.activeService);
     params.setChatScope(session.chatScope);
     queueMicrotask(() => { applyingCloud.current = false; });
+  };
+
+  const pushCurrentSession = async (uid: string) => {
+    if (!navigator.onLine) {
+      setState('offline');
+      return;
+    }
+    setState('syncing');
+    try {
+      const at = await writeCloudWorkspace(uid, loadSession(params.lang));
+      latestCloud.current = at;
+      setLastSyncedAt(at);
+      setState('synced');
+    } catch {
+      setState(navigator.onLine ? 'error' : 'offline');
+    }
   };
 
   useEffect(() => {
@@ -90,25 +106,28 @@ export function useWorkspaceSync(params: Params) {
 
   useEffect(() => {
     if (!user || hydratedUid.current !== user.uid || applyingCloud.current) return;
-    const timer = window.setTimeout(async () => {
-      if (!navigator.onLine) return setState('offline');
-      setState('syncing');
-      try {
-        const session = loadSession(params.lang);
-        session.chatMessages = params.messages;
-        session.activeService = params.activeService;
-        session.chatScope = params.chatScope;
-        session.language = params.lang;
-        const at = await writeCloudWorkspace(user.uid, session);
-        latestCloud.current = at;
-        setLastSyncedAt(at);
-        setState('synced');
-      } catch {
-        setState(navigator.onLine ? 'error' : 'offline');
-      }
-    }, 900);
+    const timer = window.setTimeout(() => void pushCurrentSession(user.uid), 900);
     return () => window.clearTimeout(timer);
   }, [user?.uid, params.messages, params.activeService, params.chatScope, params.lang]);
+
+  useEffect(() => {
+    const onWorkspaceChange = () => {
+      if (user && hydratedUid.current === user.uid && !applyingCloud.current) {
+        window.setTimeout(() => void pushCurrentSession(user.uid), 700);
+      }
+    };
+    const onOnline = () => { if (user) void pushCurrentSession(user.uid); };
+    const onOffline = () => setState(user ? 'offline' : 'guest');
+
+    window.addEventListener('ai-gate-workspace-change', onWorkspaceChange);
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('ai-gate-workspace-change', onWorkspaceChange);
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
+  }, [user?.uid, params.lang]);
 
   return { user, state, lastSyncedAt };
 }
