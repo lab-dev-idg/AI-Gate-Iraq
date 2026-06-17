@@ -67,7 +67,7 @@ export const AdminLayout = ({
               AI Gate Iraq
             </span>
             <span className="text-[11px] font-sans text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2.5 py-0.5 select-none font-extrabold uppercase tracking-wide">
-              Pilot Admin
+              ADMIN
             </span>
           </div>
           <div className="hidden md:block h-4 w-px bg-slate-800" />

@@ -40,7 +40,7 @@ export const ChatInput = ({
 
     let finalPrompt = trimmedInput;
     if (attachment) {
-      finalPrompt = `${trimmedInput}\n\n[Attachment selected: ${attachment.name} — pilot file analysis support is limited in this demo.]`.trim();
+      throw new Error('FILE_UPLOAD_UNAVAILABLE');
     }
 
     onSend(finalPrompt);

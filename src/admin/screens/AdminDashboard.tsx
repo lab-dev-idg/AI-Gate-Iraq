@@ -81,7 +81,7 @@ export const AdminDashboard = ({ adminData, onSectionChange, onResetData }: Admi
             <h3 className="text-sm font-bold text-white flex items-center justify-between border-b border-slate-800/60 pb-3">
               <span className="flex items-center gap-2">
                 <Logs className="w-4 h-4 text-emerald-400" />
-                <span>دوایین کردارەکانی تاقیکاری</span>
+                <span>دوایین کردارەکان</span>
               </span>
               <button
                 onClick={() => onSectionChange('audit')}
@@ -133,7 +133,7 @@ export const AdminDashboard = ({ adminData, onSectionChange, onResetData }: Admi
                 onClick={() => onSectionChange('settings')}
                 className="w-full h-11 bg-slate-800/80 hover:bg-slate-800 text-slate-300 border border-slate-700/50 rounded-xl text-xs font-bold font-sans flex items-center justify-center gap-1.5"
               >
-                <span>ڕێکخستنەکانی پایلۆت</span>
+                <span>ڕێکخستنەکانی پلاتفۆرم</span>
               </Button>
             </div>
           </Card>
@@ -168,10 +168,10 @@ export const AdminDashboard = ({ adminData, onSectionChange, onResetData }: Admi
           <Card className="bg-amber-500/5 border border-amber-500/20 p-5 rounded-2xl space-y-3">
             <h4 className="text-xs font-black text-amber-500 flex items-center gap-2">
               <Sparkles className="w-4 h-4 shrink-0" />
-              <span>ئاگاداری گرنگی پایلۆت</span>
+              <span>ئاگاداری گرنگ</span>
             </h4>
             <p className="text-[11px] text-amber-500/80 leading-relaxed">
-              ئەم داشبۆردە تەنها نوێنەرایەتی ڕوکارێکی لۆکاڵ دەکات بۆ نیشاندانی تاقیکاری بەڕێوەبردن (Admin Gateway). گشت گۆڕانکارییەکان لێرە بە سادەیی لە لۆکاڵ ستۆریجدا پاشەکەوت دەکرێن و بۆ ڕاستەقینە کارا دەبن بەبێ بوونی جێگیری داتابەیسی سەلامەت.
+              گۆڕانکارییەکانی بەڕێوەبەرایەتی لە Firestore هاوکات دەکرێن و بە ڕێگەپێدانی هەژماری سەرپەرشتیار پارێزراون.
             </p>
           </Card>
         </div>

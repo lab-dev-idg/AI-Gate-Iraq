@@ -235,7 +235,7 @@ export const ContentManager = ({ contents, onUpdateContent, onResetToDefault }: 
               <div className="bg-amber-500/5 border border-amber-500/15 p-3 rounded-xl flex items-start gap-2 text-amber-500">
                 <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
                 <p className="text-[10px] leading-normal font-medium">
-                  لەم وەشانە تاقیکارییەدا، پاشەکەوتکردن بە فەرمی لە LocalStorage دەپارێزرێت بۆ ئەوەی بێ زانینی هێڵی داتابەیس پشکنینەکان کارا بن.
+                  ناوەڕۆک لە Firestore هاوکات دەکرێت و LocalStorage تەنها بۆ cache ـی ناوخۆیی بەکاردێت.
                 </p>
               </div>
             </div>

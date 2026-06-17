@@ -223,7 +223,7 @@ export const ServiceManager = ({ services, onUpdateService, onReorderService }: 
                     className="w-full h-10 bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-3 text-xs focus:ring-emerald-500 focus:border-emerald-500"
                   >
                     <option value="active">چالاک (Active)</option>
-                    <option value="demo_only">تەنها بۆ نمایش (Demo Only)</option>
+                    
                     <option value="coming_soon">بەم زووانە (Coming Soon)</option>
                     <option value="disabled">لەکارخراوە (Disabled)</option>
                   </select>
@@ -279,11 +279,11 @@ export const ServiceManager = ({ services, onUpdateService, onReorderService }: 
 
                 {/* Optional Pilot Notes fields */}
                 <div className="space-y-1.5 sm:col-span-2 pt-1">
-                  <label className="text-xs font-bold text-slate-300 block">تێبینی پایلۆت (نیشاندانی تێکستی بچوک لە ماڵپەڕ لەژێر فۆرمەکە)</label>
+                  <label className="text-xs font-bold text-slate-300 block">تێبینی بەکارهێنان</label>
                   <Input
                     value={pilotNoteKu}
                     onChange={(e) => setPilotNoteKu(e.target.value)}
-                    placeholder="نموونە: ئەم بەشە تەنها دیمۆیە..."
+                    placeholder="تێبینی بەکارهێنان بنووسە..."
                     className="bg-slate-950/60 border-slate-800 text-slate-200 text-xs rounded-xl h-10"
                   />
                 </div>

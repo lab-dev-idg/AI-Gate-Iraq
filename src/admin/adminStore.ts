@@ -83,7 +83,7 @@ export function addAuditLog(
   const state = loadAdminState();
   const newLog: AdminAuditLog = {
     id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-    actorName: 'سەرپەرشتیاری تاقیکاری (Admin)',
+    actorName: 'سەرپەرشتیار',
     action,
     entity,
     entityId,

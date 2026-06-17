@@ -119,9 +119,9 @@ export const FeatureFlagsManager = ({ flags, onUpdateFlag, onResetToDefault }: F
             
             <div className="space-y-4 text-xs leading-relaxed text-slate-400">
               <div className="space-y-1">
-                <p className="font-bold text-slate-200">١. هۆشداری تاقیکاری (show_pilot_limits)</p>
+                <p className="font-bold text-slate-200">١. ئاگاداری بەکارهێنان</p>
                 <p className="text-[11px] text-slate-500">
-                  ئەم لۆجیکە بڕیار دەدات ئایا ئۆنۆبۆردین و تێکستەکانی ئاگاداری کە دەڵێن ئەمە دەروازەیەکی فەرمی حکومەتی عێراق نییە نیشان بدرێت، تاکو لە کاتی تاقیکردنەوە پایلۆت دڵنیایی هەبێت.
+                  ئەم فڵاگە نیشاندانی ئاگادارییەکانی بەکارهێنان و پشتڕاستکردنەوەی زانیاری کۆنترۆڵ دەکات.
                 </p>
               </div>
 

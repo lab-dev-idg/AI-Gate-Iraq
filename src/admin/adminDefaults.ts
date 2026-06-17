@@ -15,8 +15,6 @@ export const DEFAULT_ADMIN_STATE: AdminState = {
       visible: true,
       order: 1,
       status: 'active',
-      pilotNoteKu: 'ئەمە وەشانێکی تاقیکارییە بۆ نیشاندانی توانای ڕاوێژکاری ژیری دەستکرد.',
-      pilotNoteAr: 'هذه نسخة تجريبية لاستعراض قدرات الذكاء الاصطناعي.',
       adminNote: 'Main service component'
     },
     {
@@ -32,8 +30,6 @@ export const DEFAULT_ADMIN_STATE: AdminState = {
       visible: true,
       order: 2,
       status: 'active',
-      pilotNoteKu: 'داتاکان تەنها بۆ تاقیکردنەوەی سەکۆکەیە.',
-      pilotNoteAr: 'البيانات لأغراض العرض التوضيحي فقط.',
       adminNote: 'Market overview engine'
     },
     {
@@ -182,7 +178,7 @@ export const DEFAULT_ADMIN_STATE: AdminState = {
   flags: [
     {
       key: 'show_pilot_limits',
-      labelKu: 'نیشاندانی هۆشداری تاقیکاری',
+      labelKu: 'نیشاندانی ئاگاداری بەکارهێنان',
       descriptionKu: 'نیشاندانی تێکستی ڕوونکەرەوە کە ئەمە ماڵپەڕێکی ڕاستەقینەی گومرگ یان بانک نییە.',
       enabled: true
     },
@@ -190,11 +186,11 @@ export const DEFAULT_ADMIN_STATE: AdminState = {
       key: 'enable_multimodal',
       labelKu: 'پشتیوانیکردنی دەستکاریکردنی فایل',
       descriptionKu: 'چالاککردنی وەرگرتن و سەرنجدانی فایل لە بواری یاریدەدەری زیرەکدا.',
-      enabled: true
+      enabled: false
     },
     {
       key: 'enable_inquiry_form',
-      labelKu: 'نیشاندانی فۆڕمی داواکاری و دیمۆ',
+      labelKu: 'نیشاندانی فۆڕمی پەیوەندی و داواکاری',
       descriptionKu: 'ڕێگەدان بە بەکارهێنەرانی گشتی بۆ پڕکردنەوەی فۆڕمی پەیوەندی و دیمۆ.',
       enabled: true
     },
@@ -202,7 +198,7 @@ export const DEFAULT_ADMIN_STATE: AdminState = {
       key: 'enable_file_upload',
       labelKu: 'ڕێگادان بە بارکردنی فایل',
       descriptionKu: 'ڕێگەدان بە بارکردنی فایل و بەڵگە جۆراوجۆرەکان بۆ یاریدەدەرە هۆشمەندەکە.',
-      enabled: true
+      enabled: false
     },
     {
       key: 'enable_firebase_sync',
@@ -211,34 +207,7 @@ export const DEFAULT_ADMIN_STATE: AdminState = {
       enabled: false
     }
   ],
-  intake: [
-    {
-      id: 'i1',
-      name: 'ڕزگار حەمە',
-      company: 'کۆمپانیای بازرگانی عێراقی نوێ',
-      contact: 'rizgar@test-iraq.com',
-      serviceInterest: 'procurement',
-      category: 'خۆراک و دەرمان',
-      message: 'سڵاو، ئێمە دەمانەوێت مەرجەکانی کرینی باری خۆراک لە بەندەری ئوم قەسرەوە بزانین.',
-      status: 'new',
-      adminNote: 'نیازی کڕینی ئارد و ڕۆن',
-      createdAt: '2026-06-16T10:00:00Z',
-      updatedAt: '2026-06-16T10:00:00Z'
-    },
-    {
-      id: 'i2',
-      name: 'ئازاد محەمەد',
-      company: 'کۆمپانیای لۆجیستی ئاریان',
-      contact: '+964 770 123 4567',
-      serviceInterest: 'tracking',
-      category: 'کەرەستەی بیناسازی',
-      message: 'پێویستمان بە سیستەمی بەدواداچوونی پێشەنگە بۆ سێ کانتینەر کە گەیشتوونەتە ئیبراهیم خەلیل.',
-      status: 'reviewing',
-      adminNote: 'پەیوەندی درا بە مۆبایلەکەیەوە بۆ ناردنی کۆد تاوتوێکرا',
-      createdAt: '2026-06-15T15:30:00Z',
-      updatedAt: '2026-06-16T09:15:00Z'
-    }
-  ],
+  intake: [],
   contents: [
     {
       id: 'c1',
@@ -251,14 +220,5 @@ export const DEFAULT_ADMIN_STATE: AdminState = {
       updatedAt: '2026-06-16T05:00:00Z'
     }
   ],
-  logs: [
-    {
-      id: 'log1',
-      actorName: 'سەرپەرشتیاری تاقیکاری (Admin)',
-      action: 'دروستکردن',
-      entity: 'سیستەم',
-      description: 'دەستپێکردنی تۆماری کۆنترۆڵی ئادمین بۆ دابینکردنی مۆدێلی نەخشەی بنەڕەتی.',
-      createdAt: '2026-06-16T05:10:00Z'
-    }
-  ]
+  logs: []
 };

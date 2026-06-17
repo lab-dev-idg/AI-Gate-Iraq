@@ -94,10 +94,10 @@ export const AdminSettings = ({
       <Card className="bg-amber-500/5 border border-amber-500/20 p-5 rounded-3xl space-y-2.5">
         <h3 className="text-xs font-black text-amber-500 flex items-center gap-2">
           <ShieldAlert className="w-4 h-4 shrink-0" />
-          <span>هۆشداری سەرپەرشتیاری تاقیکاری</span>
+          <span>ئاگاداری بەڕێوەبردنی داتا</span>
         </h3>
         <p className="text-xs text-amber-500/90 leading-relaxed font-medium">
-          ئەم داشبۆردە لە دۆخی پایلۆتدا داتا لە براوسەرەکەتدا (LocalStorage) هەڵدەگرێت. بۆ بەرهەمهێنانی ڕاستەقینە پێویستی بە داتابەیس و ئەمنیەتی فەرمی سێرڤەری مژارکراو هەیە.
+          ڕێکخستنەکان لە Firestore هاوکات دەکرێن؛ LocalStorage تەنها بۆ cache ـی ناوخۆیی بەکاردێت.
         </p>
       </Card>
 
@@ -106,14 +106,14 @@ export const AdminSettings = ({
         {/* Left column: Toggles & Feature flags */}
         <Card className="bg-slate-900/30 border-slate-800 p-6 rounded-2xl space-y-5">
           <h3 className="text-sm font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
-            <span>دۆخی پایلۆت و فڵاگەکان</span>
+            <span>فڵاگ و ڕێکخستنەکانی خزمەتگوزاری</span>
           </h3>
 
           <div className="space-y-4">
             {/* Show pilot banner limitator */}
             <div className="flex items-center justify-between gap-4 p-3 bg-slate-950/40 rounded-xl border border-slate-900">
               <div className="space-y-1 text-right">
-                <p className="text-xs font-bold text-slate-200">پیشاندانی ئاگاداری پایلۆت</p>
+                <p className="text-xs font-bold text-slate-200">پیشاندانی ئاگاداری بەکارهێنان</p>
                 <p className="text-[10px] text-slate-500">نیشاندانی تێکستێکی بچوک لە پلاتفۆرمی گشتیدا کە ئەمە ماڵپەڕێکی ڕاستەقینە نییە.</p>
               </div>
               <button
@@ -153,7 +153,7 @@ export const AdminSettings = ({
             <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center">
               <div>
                 <p className="text-xs font-bold text-slate-200">هەناردەکردن داتا</p>
-                <p className="text-[10px] text-slate-500 mt-1">هەناردەکردنی زانیاری پایلۆتی ئادمین بە جۆری پەڕگەی JSON فەرمی.</p>
+                <p className="text-[10px] text-slate-500 mt-1">هەناردەکردنی زانیاری بەڕێوەبەرایەتی بە جۆری پەڕگەی JSON فەرمی.</p>
               </div>
               <div className="flex gap-1.5 w-full sm:w-auto mt-2 sm:mt-0">
                 <Button
@@ -183,7 +183,7 @@ export const AdminSettings = ({
             <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center">
               <div>
                 <p className="text-xs font-bold text-slate-200">گەڕاندنەوە بۆ دۆخی سەرەتایی (Reset)</p>
-                <p className="text-[10px] text-slate-500 mt-1">گەڕێنەوەی سەرجەم گۆڕانکارییەکانی خزمەتگوزاری و تۆمار بۆ نەخشەی بنەڕەتی تاقیکاری.</p>
+                <p className="text-[10px] text-slate-500 mt-1">گەڕێنەوەی سەرجەم گۆڕانکارییەکانی خزمەتگوزاری و تۆمار بۆ ڕێکخستنی بنەڕەتی.</p>
               </div>
               <Button
                 onClick={triggerReset}
@@ -238,7 +238,7 @@ export const AdminSettings = ({
                 ) : (
                   <>
                     <WifiOff className="w-3.5 h-3.5 text-slate-500" />
-                    <span className="text-slate-500">پایلۆتی ناوخۆیی (Local Pilot)</span>
+                    <span className="text-slate-500">ڕێکخستن تەواو نییە</span>
                   </>
                 )}
               </div>
@@ -247,7 +247,7 @@ export const AdminSettings = ({
             <div className="flex items-center justify-between text-xs border-t border-slate-900/60 pt-2.5">
               <span className="text-slate-400 font-medium">مۆد (Mode):</span>
               <span className="font-bold text-slate-200">
-                {firebaseStatus.mode === 'firebase' ? 'Firebase Cloud' : 'Local Sandbox'}
+                {firebaseStatus.mode === 'firebase' ? 'Firebase Cloud' : 'Unconfigured'}
               </span>
             </div>
 
