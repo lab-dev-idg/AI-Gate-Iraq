@@ -1,78 +1,58 @@
-import { useState, useEffect } from 'react';
-import { RefreshCw, ArrowLeftRight, Landmark } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { AlertCircle, ArrowLeftRight, Landmark, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-
 import { useLanguage } from '@/src/lib/LanguageContext';
 import { loadSession, saveSession, addServiceAction } from '@/src/lib/sessionStore';
 
-interface Rates {
-  [key: string]: number;
-}
+interface Rates { [key: string]: number }
 
 export function CurrencyConverter() {
   const { lang, t } = useLanguage();
-  const [amount, setAmount] = useState<string>(() => loadSession().drafts.currencyAmount || '1');
-  const [fromCurrency, setFromCurrency] = useState<string>(() => loadSession().drafts.currencyFrom || 'USD');
-  const [toCurrency, setToCurrency] = useState<string>(() => loadSession().drafts.currencyTo || 'IQD');
+  const [amount, setAmount] = useState(() => loadSession().drafts.currencyAmount || '1');
+  const [fromCurrency, setFromCurrency] = useState(() => loadSession().drafts.currencyFrom || 'USD');
+  const [toCurrency, setToCurrency] = useState(() => loadSession().drafts.currencyTo || 'IQD');
   const [rates, setRates] = useState<Rates>({});
   const [result, setResult] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState<string>('');
+  const [lastUpdate, setLastUpdate] = useState('');
+  const [error, setError] = useState('');
 
   const currencies = ['USD', 'IQD', 'EUR', 'GBP', 'TRY', 'CNY', 'AED'];
 
   useEffect(() => {
-    saveSession({
-      drafts: {
-        currencyAmount: amount,
-        currencyFrom: fromCurrency,
-        currencyTo: toCurrency,
-      }
-    });
+    saveSession({ drafts: { currencyAmount: amount, currencyFrom: fromCurrency, currencyTo: toCurrency } });
   }, [amount, fromCurrency, toCurrency]);
 
   const fetchRates = async () => {
     setIsLoading(true);
+    setError('');
     try {
-      // Using a widely available free endpoint for basic USD rates
       const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
+      if (!response.ok) throw new Error(`RATE_HTTP_${response.status}`);
       const data = await response.json();
+      if (!data?.rates || typeof data.rates !== 'object') throw new Error('INVALID_RATE_RESPONSE');
       setRates(data.rates);
-      setLastUpdate(new Date().toLocaleTimeString());
-      
-      if (data.rates[toCurrency]) {
-        setResult(parseFloat(amount) * data.rates[toCurrency]);
-        addServiceAction(`Converted ${amount} ${fromCurrency} to ${toCurrency}`, 'currency');
-      }
-    } catch (error) {
-      console.error('Error fetching rates:', error);
-      // Fallback rates if API fails (approximate 2026 rates)
-      const fallbackRates: Rates = {
-        'IQD': 1310,
-        'USD': 1,
-        'EUR': 0.92,
-        'TRY': 33,
-        'AED': 3.67,
-      };
-      if (fromCurrency === 'USD') {
-         setRates(fallbackRates);
-      }
+      setLastUpdate(new Date().toLocaleTimeString(lang === 'ar' ? 'ar-IQ' : 'ku', { hour: '2-digit', minute: '2-digit' }));
+    } catch {
+      setRates({});
+      setResult(null);
+      setError(lang === 'ar' ? 'تعذر تحميل سعر الصرف الحالي. حاول مرة أخرى.' : 'نرخی ئێستای دراو بار نەکرا؛ تکایە دووبارە هەوڵ بدەوە.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchRates();
-  }, [fromCurrency]);
+  useEffect(() => { void fetchRates(); }, [fromCurrency]);
 
   useEffect(() => {
-    if (rates[toCurrency] && amount) {
-      setResult(parseFloat(amount) * rates[toCurrency]);
+    const numericAmount = Number(amount);
+    const rate = rates[toCurrency];
+    if (Number.isFinite(numericAmount) && numericAmount >= 0 && Number.isFinite(rate)) {
+      setResult(numericAmount * rate);
     } else {
       setResult(null);
     }
@@ -83,80 +63,88 @@ export function CurrencyConverter() {
     setToCurrency(fromCurrency);
   };
 
+  const recordConversion = () => {
+    if (result !== null) addServiceAction(`Converted ${amount} ${fromCurrency} to ${toCurrency}`, 'currency');
+  };
+
   return (
-    <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white dark:bg-slate-900/80 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800/80">
-        <CardTitle className="text-lg flex items-center gap-2 font-arabic text-slate-950 dark:text-white">
-          <Landmark className="w-5 h-5 text-emerald-500" />
+    <Card className="border border-slate-700 bg-[#0E1728] shadow-lg rounded-2xl text-slate-100">
+      <CardHeader className="border-b border-slate-700/80 pb-4">
+        <CardTitle className="flex items-center gap-2 text-xl font-black text-white">
+          <Landmark className="h-5 w-5 text-emerald-400" />
           {t.converter.title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-5 p-6 space-y-5">
+
+      <CardContent className="space-y-5 p-6">
         <div className="space-y-2 text-right">
-          <Label htmlFor="amount" className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 font-arabic block mb-1.5">{t.converter.amount}</Label>
+          <Label htmlFor="amount" className="block text-sm font-bold text-slate-200">{t.converter.amount}</Label>
           <Input
             id="amount"
             type="number"
+            min="0"
+            step="any"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="h-11 theme-input text-right bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl px-4 text-sm font-semibold shadow-inner focus-visible:ring-emerald-500"
+            onChange={event => setAmount(event.target.value)}
+            className="h-12 rounded-xl border-slate-600 bg-[#111D31] px-4 text-lg font-bold text-white placeholder:text-slate-500 focus-visible:border-emerald-400 focus-visible:ring-emerald-400/30"
             dir="ltr"
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 items-center pt-1" dir="rtl">
-          <div className="space-y-2 text-right">
-            <Label className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 font-arabic block mb-1.5">{t.converter.from}</Label>
-            <Select value={fromCurrency} onValueChange={setFromCurrency}>
-              <SelectTrigger className="h-11 bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl px-4 text-xs font-semibold focus-visible:ring-emerald-500">
-                <SelectValue placeholder={lang === 'ar' ? 'العملة' : 'دراو'} />
-              </SelectTrigger>
-              <SelectContent>
-                {currencies.map(c => (
-                  <SelectItem key={c} value={c} className="text-xs font-medium">{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex justify-center md:pt-7">
-            <Button variant="ghost" size="icon" onClick={swapCurrencies} className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 h-10 w-10 shrink-0 border border-slate-100 dark:border-slate-800 shadow-sm">
-              <ArrowLeftRight className="w-4 h-4 text-emerald-500 rotate-90 md:rotate-0" />
-            </Button>
-          </div>
-
-          <div className="space-y-2 text-right">
-            <Label className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 font-arabic block mb-1.5">{t.converter.to}</Label>
-            <Select value={toCurrency} onValueChange={setToCurrency}>
-              <SelectTrigger className="h-11 bg-slate-50/50 dark:bg-slate-900 border-slate-200/80 rounded-xl px-4 text-xs font-semibold focus-visible:ring-emerald-500">
-                <SelectValue placeholder={lang === 'ar' ? 'العملة' : 'دراو'} />
-              </SelectTrigger>
-              <SelectContent>
-                {currencies.map(c => (
-                  <SelectItem key={c} value={c} className="text-xs font-medium">{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-[1fr_auto_1fr]" dir="rtl">
+          <CurrencyField label={t.converter.from} value={fromCurrency} onChange={setFromCurrency} currencies={currencies} />
+          <Button type="button" variant="outline" size="icon" onClick={swapCurrencies} className="mx-auto h-11 w-11 rounded-full border-slate-600 bg-[#111D31] text-emerald-400 hover:bg-slate-700 hover:text-emerald-300">
+            <ArrowLeftRight className="h-4 w-4 rotate-90 md:rotate-0" />
+          </Button>
+          <CurrencyField label={t.converter.to} value={toCurrency} onChange={setToCurrency} currencies={currencies} />
         </div>
 
-        <div className="mt-4 p-5 rounded-2xl bg-slate-50/50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/80 flex flex-col items-center justify-center space-y-1">
+        {error && (
+          <div className="flex items-start gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm font-medium text-rose-200">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{error}</span>
+            <button onClick={() => void fetchRates()} className="mr-auto font-black text-rose-100 underline">{lang === 'ar' ? 'إعادة المحاولة' : 'دووبارە'}</button>
+          </div>
+        )}
+
+        <div className="rounded-2xl border border-slate-700 bg-[#091222] p-6 text-center">
           {isLoading ? (
-            <RefreshCw className="w-5 h-5 animate-spin text-emerald-500" />
+            <RefreshCw className="mx-auto h-6 w-6 animate-spin text-emerald-400" />
           ) : result !== null ? (
             <>
-              <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">
-                {result.toLocaleString(undefined, { maximumFractionDigits: 2 })} {toCurrency}
+              <div className="text-3xl font-black tracking-tight text-emerald-400" dir="ltr">
+                {toCurrency} {result.toLocaleString(undefined, { maximumFractionDigits: 2 })}
               </div>
-              <div className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-widest font-sans">
+              <div className="mt-2 text-xs font-bold text-slate-300">
                 {t.converter.marketRate} {lastUpdate}
               </div>
+              <button onClick={recordConversion} className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-black text-emerald-300 hover:bg-emerald-500/20">
+                {lang === 'ar' ? 'حفظ العملية' : 'تۆمارکردنی مامەڵە'}
+              </button>
             </>
-          ) : (
-            <div className="text-xs text-slate-400 dark:text-slate-500 italic py-1 font-arabic">{t.converter.noRate}</div>
-          )}
+          ) : !error ? (
+            <div className="text-sm font-medium text-slate-300">{t.converter.noRate}</div>
+          ) : null}
         </div>
       </CardContent>
     </Card>
   );
 }
+
+function CurrencyField({ label, value, onChange, currencies }: { label: string; value: string; onChange: (value: string) => void; currencies: string[] }) {
+  return (
+    <div className="space-y-2 text-right">
+      <Label className="block text-sm font-bold text-slate-200">{label}</Label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="h-12 rounded-xl border-slate-600 bg-[#111D31] px-4 text-sm font-black text-white focus:ring-emerald-400/30">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="border-slate-700 bg-[#111D31] text-white">
+          {currencies.map(currency => <SelectItem key={currency} value={currency} className="text-sm font-bold focus:bg-slate-700 focus:text-white">{currency}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+export default CurrencyConverter;
