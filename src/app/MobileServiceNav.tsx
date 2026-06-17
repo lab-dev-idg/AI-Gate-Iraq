@@ -17,7 +17,7 @@ export const MobileServiceNav = ({
   const visibleServices = SERVICES.filter(s => s.key !== 'inquiry' || isInquiryEnabled);
 
   return (
-    <div className="lg:hidden shrink-0 overflow-x-auto no-scrollbar scroll-smooth p-1 border-b border-slate-100 dark:border-slate-800/60 flex gap-1.5 items-center bg-slate-50/50 dark:bg-slate-900/40">
+    <div className="min-[880px]:hidden shrink-0 overflow-x-auto no-scrollbar scroll-smooth p-1 border-b border-slate-100 dark:border-slate-800/60 flex gap-1.5 items-center bg-slate-50/50 dark:bg-slate-900/40">
       {visibleServices.map((srv) => {
         const Icon = srv.icon;
         const isActive = activeService === srv.key;
