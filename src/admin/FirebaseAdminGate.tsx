@@ -10,6 +10,11 @@ interface Props {
   onBackToApp: () => void;
 }
 
+interface AdminAccessRecord {
+  active?: boolean;
+  role?: 'owner' | 'admin' | 'editor' | 'viewer' | string;
+}
+
 export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
   const { user, loading } = useAuth();
   const [checking, setChecking] = useState(false);
@@ -23,7 +28,7 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
       try {
         await signOut(auth);
       } catch {
-        // Keep the public error generic; internal auth details must not be exposed.
+        // Public responses remain generic and do not expose identity or backend details.
       }
       if (!cancelled) {
         setError('ڕێگەپێدانی چوونەژوورەوە نییە. تکایە بە هەژماری ڕێگەپێدراو هەوڵ بدەوە.');
@@ -35,7 +40,7 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
       setError('');
       try {
         const snapshot = await getDoc(doc(db, 'adminUsers', user.uid));
-        const data = snapshot.exists() ? snapshot.data() : null;
+        const data = snapshot.exists() ? (snapshot.data() as AdminAccessRecord) : null;
         const validRole = data?.role === 'owner' || data?.role === 'admin';
 
         if (!cancelled && data?.active === true && validRole) {
@@ -51,7 +56,7 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
       }
     };
 
-    verify();
+    void verify();
     return () => { cancelled = true; };
   }, [loading, user, onSuccess]);
 
