@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Database, Download, Trash2, FileOutput, ShieldAlert, Check, RefreshCw, HelpCircle } from 'lucide-react';
+import { Database, Download, Trash2, RefreshCw, HelpCircle, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,7 +38,6 @@ export function SessionManager({
 }: SessionManagerProps) {
   const [hasStoredSession, setHasStoredSession] = useState(false);
 
-  // Check if a valid saved session with history/drafts exists in localStorage
   const checkSession = () => {
     try {
       const saved = localStorage.getItem('ai_gate_iraq_session');
@@ -62,7 +60,7 @@ export function SessionManager({
 
   const handleResume = () => {
     const session = loadSession(lang);
-    
+
     if (session.chatMessages && session.chatMessages.length > 0) {
       setMessages(session.chatMessages);
     }
@@ -74,15 +72,15 @@ export function SessionManager({
     }
 
     toast.success(
-      lang === 'ar' 
-        ? 'تم استئناف جلسة العمل السابقة ومزامنة المسودات بنجاح!' 
-        : 'دانیشتنی کاری پێشوو و ڕەشەنوسەکان بە سەرکەوتوویی گەڕێندرانەوە!'
+      lang === 'ar'
+        ? 'تم استئناف مساحة العمل السابقة بنجاح.'
+        : 'شوێنی کاری پێشوو بە سەرکەوتوویی گەڕێندرایەوە.'
     );
   };
 
   const handleClear = () => {
     clearSession();
-    const cleanSession = DEFAULT_SESSION(lang);
+    DEFAULT_SESSION(lang);
     setMessages([
       {
         role: 'model',
@@ -94,21 +92,20 @@ export function SessionManager({
     setHasStoredSession(false);
 
     toast.warning(
-      lang === 'ar' 
-        ? 'تم مسح الجلسة المحلية وإعادة تعيين الحقول.' 
-        : 'دانیشتنی ناوخۆیی سڕدرایەوە و خانەکان پاککرانەوە.'
+      lang === 'ar'
+        ? 'تم مسح مساحة العمل من هذا الجهاز.'
+        : 'شوێنی کاری ئەم ئامێرە پاککرایەوە.'
     );
   };
 
   const handleExport = () => {
     const session = loadSession(lang);
-    // Explicitly merge latest memory first
     session.chatMessages = messages;
     session.activeService = activeService;
     session.chatScope = chatScope;
-    
+
     const { text, filename } = exportSessionSummary(session, lang);
-    
+
     const element = document.createElement('a');
     const file = new Blob([text], { type: 'text/plain;charset=utf-8' });
     element.href = URL.createObjectURL(file);
@@ -118,9 +115,9 @@ export function SessionManager({
     document.body.removeChild(element);
 
     toast.success(
-      lang === 'ar' 
-        ? 'تم تصدير ملخص الجلسة بنجاح!' 
-        : 'کورتەی دانیشتنی کار بە سەرکەوتوویی هەناردە کرا!'
+      lang === 'ar'
+        ? 'تم تصدير ملخص مساحة العمل بنجاح.'
+        : 'کورتەی شوێنی کار بە سەرکەوتوویی هەناردە کرا.'
     );
   };
 
@@ -128,35 +125,33 @@ export function SessionManager({
     <DropdownMenu>
       <DropdownMenuTrigger className="flex h-9 items-center px-3 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 dark:border-emerald-500/30 dark:bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 text-xs font-bold font-arabic rounded-xl gap-1.5 transition-all outline-none cursor-pointer">
         <Database className="w-4 h-4" />
-        <span>{lang === 'ar' ? 'جلسة العمل' : 'دانیشتنی کار'}</span>
+        <span>{lang === 'ar' ? 'مساحة العمل' : 'شوێنی کار'}</span>
         {hasStoredSession && (
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
         )}
       </DropdownMenuTrigger>
-      
+
       <DropdownMenuContent className="w-80 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl" align="end" dir="rtl">
         <DropdownMenuLabel className="font-arabic text-xs font-black text-slate-800 dark:text-slate-100 pb-2">
-          {lang === 'ar' ? 'ذاكرة استمرارية الأعمال الموقّتة' : 'یادگەی بەردەوامی کاروباری کاتی'}
+          {lang === 'ar' ? 'إدارة مساحة العمل' : 'بەڕێوەبردنی شوێنی کار'}
         </DropdownMenuLabel>
-        
+
         <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800 my-1" />
-        
-        {/* Privacy Note Block */}
+
         <div className="p-2.5 bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800 rounded-xl my-2 text-[10px] leading-relaxed text-slate-500 dark:text-slate-400 flex items-start gap-2">
-          <ShieldAlert className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+          <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
           <p className="font-medium text-right">
-            {lang === 'ar' 
-              ? 'يتم حفظ هذه البيانات محلياً على هذا المتصفح فقط ولا تتم مزامنتها سحابياً.'
-              : 'ئەمە تەنها لەسەر ئەم وێبگەڕە پاشەکەوت دەبێت و هاوکاتکردنی هەور نییە.'}
+            {lang === 'ar'
+              ? 'تُحفظ المسودات والإعدادات المؤقتة على هذا الجهاز لتسهيل الرجوع إليها أثناء العمل.'
+              : 'ڕەشنووس و ڕێکخستنە کاتییەکان لەسەر ئەم ئامێرە پاشەکەوت دەبن بۆ ئاسانکردنی بەردەوامی کار.'}
           </p>
         </div>
 
         <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800 my-1" />
 
-        {/* Action Options */}
         <div className="space-y-1 mt-1 font-arabic">
-          <DropdownMenuItem 
-            onClick={onOpenGuide} 
+          <DropdownMenuItem
+            onClick={onOpenGuide}
             className="flex items-center gap-2.5 p-2 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
           >
             <HelpCircle className="w-4 h-4 text-emerald-500" />
@@ -164,29 +159,29 @@ export function SessionManager({
           </DropdownMenuItem>
 
           {hasStoredSession && (
-            <DropdownMenuItem 
-              onClick={handleResume} 
+            <DropdownMenuItem
+              onClick={handleResume}
               className="flex items-center gap-2.5 p-2 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
             >
               <RefreshCw className="w-4 h-4 text-emerald-500" />
-              <span>{lang === 'ar' ? 'استئناف الجلسة السابقة' : 'گەڕانەوە بۆ دانیشتنی پێشوو'}</span>
+              <span>{lang === 'ar' ? 'استئناف مساحة العمل' : 'گەڕانەوە بۆ شوێنی کار'}</span>
             </DropdownMenuItem>
           )}
 
-          <DropdownMenuItem 
-            onClick={handleExport} 
+          <DropdownMenuItem
+            onClick={handleExport}
             className="flex items-center gap-2.5 p-2 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
           >
             <Download className="w-4 h-4 text-blue-500" />
-            <span>{lang === 'ar' ? 'تصدير ملخص الجلسة' : 'هەناردەکردنی کورتەی دانیشتن'}</span>
+            <span>{lang === 'ar' ? 'تصدير ملخص العمل' : 'هەناردەکردنی کورتەی کار'}</span>
           </DropdownMenuItem>
 
-          <DropdownMenuItem 
-            onClick={handleClear} 
+          <DropdownMenuItem
+            onClick={handleClear}
             className="flex items-center gap-2.5 p-2 rounded-lg text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 cursor-pointer"
           >
             <Trash2 className="w-4 h-4 text-rose-500" />
-            <span>{lang === 'ar' ? 'مسح الجلسة المحلية' : 'سڕینەوەی دانیشتنی ناوخۆیی'}</span>
+            <span>{lang === 'ar' ? 'مسح مساحة العمل' : 'سڕینەوەی شوێنی کار'}</span>
           </DropdownMenuItem>
         </div>
       </DropdownMenuContent>
