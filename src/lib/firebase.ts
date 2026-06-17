@@ -150,9 +150,13 @@ export const limit = (num: number) => {
   return realLimit(num);
 };
 
-export const onSnapshot = (queryObj: any, next: (snap: any) => void) => {
+export const onSnapshot = (
+  queryObj: any,
+  next: (snap: any) => void,
+  error?: (error: any) => void,
+) => {
   requireFirebase('firestore.onSnapshot');
-  return realOnSnapshot(queryObj, next);
+  return realOnSnapshot(queryObj, next, error);
 };
 
 export const serverTimestamp = () => {
