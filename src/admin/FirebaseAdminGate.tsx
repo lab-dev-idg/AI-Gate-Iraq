@@ -3,7 +3,7 @@ import { ShieldCheck, LogIn, Loader2, AlertCircle, ArrowLeft } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/src/components/AuthProvider';
-import { auth, googleProvider, signInWithPopup, doc, getDoc, db } from '@/src/lib/firebase';
+import { auth, googleProvider, signInWithPopup, signOut, doc, getDoc, db } from '@/src/lib/firebase';
 
 interface Props {
   onSuccess: () => void;
@@ -19,6 +19,17 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
     if (loading || !user) return;
     let cancelled = false;
 
+    const denyAccess = async () => {
+      try {
+        await signOut(auth);
+      } catch {
+        // Keep the public error generic; internal auth details must not be exposed.
+      }
+      if (!cancelled) {
+        setError('ڕێگەپێدانی چوونەژوورەوە نییە. تکایە بە هەژماری ڕێگەپێدراو هەوڵ بدەوە.');
+      }
+    };
+
     const verify = async () => {
       setChecking(true);
       setError('');
@@ -26,10 +37,15 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
         const snapshot = await getDoc(doc(db, 'adminUsers', user.uid));
         const data = snapshot.exists() ? snapshot.data() : null;
         const validRole = data?.role === 'owner' || data?.role === 'admin';
-        if (!cancelled && data?.active === true && validRole) onSuccess();
-        else if (!cancelled) setError('ئەم هەژمارە ڕێگەپێدانی سەرپەرشتیاری نییە.');
-      } catch (err: any) {
-        if (!cancelled) setError(`پشکنین سەرکەوتوو نەبوو: ${err?.message || err}`);
+
+        if (!cancelled && data?.active === true && validRole) {
+          onSuccess();
+          return;
+        }
+
+        await denyAccess();
+      } catch {
+        await denyAccess();
       } finally {
         if (!cancelled) setChecking(false);
       }
@@ -44,7 +60,10 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (err: any) {
-      setError(`چوونەژوورەوە سەرکەوتوو نەبوو: ${err?.message || err}`);
+      if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'auth/cancelled-popup-request') {
+        return;
+      }
+      setError('چوونەژوورەوە سەرکەوتوو نەبوو. تکایە دواتر دووبارە هەوڵ بدەوە.');
     }
   };
 
@@ -56,7 +75,7 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
             <ShieldCheck className="w-8 h-8" />
           </div>
           <h1 className="text-xl font-black">دەروازەی سەرپەرشتیار</h1>
-          <p className="text-xs text-slate-400">پشکنینی Firebase Authentication و adminUsers</p>
+          <p className="text-xs text-slate-400">چوونەژوورەوەی پارێزراو بۆ بەڕێوەبەرانی ڕێگەپێدراو</p>
         </div>
 
         <Card className="bg-[#111827]/70 border border-slate-800 rounded-2xl p-6 space-y-5">
@@ -65,21 +84,16 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
               <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
               <span className="text-xs">پشکنینی ناسنامە و ڕێگەپێدان...</span>
             </div>
-          ) : !user ? (
+          ) : (
             <Button onClick={login} className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold">
               <LogIn className="w-4 h-4 ml-2" />
               چوونەژوورەوە بە Google
             </Button>
-          ) : (
-            <div className="text-center space-y-2">
-              <p className="text-sm font-bold text-slate-200">{user.displayName || user.email}</p>
-              <p className="text-[10px] text-slate-500 font-mono break-all">{user.uid}</p>
-            </div>
           )}
 
           {error && (
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs leading-relaxed">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
