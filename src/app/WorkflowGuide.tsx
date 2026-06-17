@@ -12,11 +12,7 @@ interface WorkflowGuideProps {
   onQuestionClick: (prompt: string) => void;
 }
 
-export const WorkflowGuide = ({
-  activeService,
-  lang,
-  onQuestionClick,
-}: WorkflowGuideProps) => {
+export const WorkflowGuide = ({ activeService, lang, onQuestionClick }: WorkflowGuideProps) => {
   const workflow = BUSINESS_WORKFLOWS[activeService];
   if (!workflow) return null;
 
@@ -26,32 +22,21 @@ export const WorkflowGuide = ({
     documentsLabel: lang === 'ar' ? 'الوثائق والمستندات المطلوبة' : 'دۆکیومێنت و بەڵگەنامەکان',
     risksLabel: lang === 'ar' ? 'المخاطر والتحديات المحتملة' : 'مەترسی و بەربەستە باوەکان',
     nextActionsLabel: lang === 'ar' ? 'الإجراءات والخطوات التالية' : 'هەنگاوە پێشنیارکراوەکان',
-    askNextSteps: lang === 'ar' ? 'ما هي هذه الخطوات بالتفصيل؟' : 'ڕێگەچارە و هەنگاوەکان چیین؟',
-    askDocs: lang === 'ar' ? 'ما هي الوثائق المطلوبة؟' : 'چ بەڵگە جێگیرێک پێویستە؟',
-    askPrepare: lang === 'ar' ? 'اكتب لي مسودة طلب شراء رسمی' : 'داوا بکە بابەت بۆ بنووسێ',
-    explainResult: lang === 'ar' ? 'اشرح لي هذه النتيجة' : 'ئەم ئەنجامەم بۆ ڕوون بکەوە',
-    demoLabel: lang === 'ar' ? 'بيانات تجريبية / محاكاة محدودة' : 'داتای تەمسیلی و سنووردار'
   };
 
   return (
     <Card className="border border-slate-200/60 dark:border-slate-800/80 shadow-md bg-white dark:bg-slate-950/40 rounded-2xl overflow-hidden font-arabic transition-all hover:shadow-lg">
-      <div className="bg-emerald-500/10 dark:bg-emerald-500/5 px-4 py-3.5 border-b border-slate-150 dark:border-slate-800/50 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <UserCheck className="w-4 h-4" />
-          </div>
-          <span className="text-xs font-black text-slate-800 dark:text-white leading-tight">
-            {wTrans.checklistTitle}
-          </span>
+      <div className="bg-emerald-500/10 dark:bg-emerald-500/5 px-4 py-3.5 border-b border-slate-150 dark:border-slate-800/50 flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+          <UserCheck className="w-4 h-4" />
         </div>
-        <Badge variant="outline" className="text-[10px] font-mono px-2 py-0.5 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 whitespace-nowrap shrink-0">
-          {wTrans.demoLabel}
-        </Badge>
+        <span className="text-xs font-black text-slate-800 dark:text-white leading-tight">
+          {wTrans.checklistTitle}
+        </span>
       </div>
-      
+
       <CardContent className="p-5 space-y-5 text-xs font-sans">
-        {/* Required Inputs */}
-        {workflow.requiredInputs && workflow.requiredInputs.length > 0 && (
+        {workflow.requiredInputs?.length > 0 && (
           <div className="space-y-3">
             <h4 className="text-[10px] uppercase font-black tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 font-arabic">
               <Info className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -68,25 +53,23 @@ export const WorkflowGuide = ({
           </div>
         )}
 
-        {/* Required Documents */}
-        {workflow.documents && workflow.documents.length > 0 && (
+        {workflow.documents?.length > 0 && (
           <div className="space-y-3 border-t border-slate-100 dark:border-slate-800/40 pt-4">
             <h4 className="text-[10px] uppercase font-black tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 font-arabic">
               <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               {wTrans.documentsLabel}
             </h4>
             <div className="flex flex-wrap gap-2 justify-start" dir="rtl">
-              {workflow.documents.map((doc, idx) => (
+              {workflow.documents.map((item, idx) => (
                 <Badge key={idx} variant="secondary" className="bg-slate-100 dark:bg-slate-800/70 text-slate-700 dark:text-slate-350 border-none font-semibold text-[10.5px] py-1 px-3 rounded-lg break-words whitespace-normal">
-                  {lang === 'ar' ? doc.ar : doc.ku}
+                  {lang === 'ar' ? item.ar : item.ku}
                 </Badge>
               ))}
             </div>
           </div>
         )}
 
-        {/* Core Risks */}
-        {workflow.risks && workflow.risks.length > 0 && (
+        {workflow.risks?.length > 0 && (
           <div className="space-y-3 border-t border-slate-100 dark:border-slate-800/40 pt-4">
             <h4 className="text-[10px] uppercase font-black tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 font-arabic">
               <ShieldAlert className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -103,8 +86,7 @@ export const WorkflowGuide = ({
           </div>
         )}
 
-        {/* Next Actions */}
-        {workflow.nextActions && workflow.nextActions.length > 0 && (
+        {workflow.nextActions?.length > 0 && (
           <div className="space-y-3 border-t border-slate-100 dark:border-slate-800/40 pt-4">
             <h4 className="text-[10px] uppercase font-black tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 font-arabic">
               <Sparkles className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -121,8 +103,7 @@ export const WorkflowGuide = ({
           </div>
         )}
 
-        {/* Smart Action Buttons (Explicit UI interactive triggers) */}
-        {workflow.suggestedQuestions && workflow.suggestedQuestions.length > 0 && (
+        {workflow.suggestedQuestions?.length > 0 && (
           <div className="space-y-2 border-t border-slate-100 dark:border-slate-800/40 pt-4">
             {workflow.suggestedQuestions.map((q, idx) => (
               <Button
