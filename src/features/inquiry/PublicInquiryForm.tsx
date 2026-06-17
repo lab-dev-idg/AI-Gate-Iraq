@@ -1,254 +1,92 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Send, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
-import { createIntakeItem } from '@/src/admin/adminStore';
+import { FormEvent, useState } from 'react';
+import { AlertCircle, CheckCircle2, Loader2, Send, Trash2 } from 'lucide-react';
+import { createFirebaseIntakeItem } from '@/src/lib/firebaseAdminAdapter';
 
-interface PublicInquiryFormProps {
-  onSuccessSubmitted?: () => void;
-}
+const fieldClass = 'w-full rounded-xl border border-slate-600 bg-[#111D31] px-4 py-3 text-sm font-semibold text-white placeholder:text-slate-500 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20';
 
-export const PublicInquiryForm: React.FC<PublicInquiryFormProps> = ({ onSuccessSubmitted }) => {
-  const [name, setName] = useState('');
-  const [company, setCompany] = useState('');
-  const [contact, setContact] = useState('');
-  const [serviceInterest, setServiceInterest] = useState('ڕاوێژکاری بازرگانی AI');
-  const [message, setMessage] = useState('');
+export function PublicInquiryForm({ onSuccessSubmitted }: { onSuccessSubmitted?: () => void }) {
+  const [form, setForm] = useState({ name: '', company: '', contact: '', serviceInterest: 'ڕاوێژکاری بازرگانی AI', message: '' });
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
 
-  // Status & Validation
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const services = ['ڕاوێژکاری بازرگانی AI', 'کورتەی بازاڕ', 'دۆخی مەرزەکان', 'گۆڕینەوەی دراو', 'خەمڵاندنی تێچوو', 'KYC', 'دابینکردن و سەرچاوەدۆزی', 'بەدواداچوونی بار', 'نەخشەی لۆجستیک', 'پەیوەندی بازرگانی'];
+  const update = (key: keyof typeof form, value: string) => setForm(current => ({ ...current, [key]: value }));
 
-  const servicesList = [
-    'ڕاوێژکاری بازرگانی AI',
-    'کورتەی بازاڕ',
-    'دۆخی مەرزەکان',
-    'گۆڕینەوەی دراو',
-    'خەمڵاندنی تێچوو',
-    'ئەکاونتی بازرگانی KYC',
-    'دابینکردن و سەرچاوەدۆزی',
-    'بەدواداچوونی بار',
-    'نەخشەی لۆجستیک',
-    'دیمۆی گشتی'
-  ];
-
-  const handleClear = () => {
-    setName('');
-    setCompany('');
-    setContact('');
-    setServiceInterest('ڕاوێژکاری بازرگانی AI');
-    setMessage('');
-    setErrors({});
-    setIsSubmitted(false);
+  const clear = () => {
+    setForm({ name: '', company: '', contact: '', serviceInterest: 'ڕاوێژکاری بازرگانی AI', message: '' });
+    setError('');
+    setDone(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newErrors: { [key: string]: string } = {};
-
-    if (!name.trim()) {
-      newErrors.name = 'تکایە ناوت بنووسە.';
-    }
-    if (!contact.trim()) {
-      newErrors.contact = 'تکایە ڕێگای پەیوەندی بنووسە.';
-    }
-    if (!message.trim()) {
-      newErrors.message = 'تکایە پەیامێک بنووسە.';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    setError('');
+    if (!form.name.trim() || !form.contact.trim() || !form.message.trim()) {
+      setError('تکایە خانە پێویستەکان تەواو بکە.');
       return;
     }
 
+    setBusy(true);
     try {
-      createIntakeItem({
-        name: name.trim(),
-        company: company.trim(),
-        contact: contact.trim(),
-        serviceInterest,
+      const id = await createFirebaseIntakeItem({
+        ...form,
+        name: form.name.trim(),
+        company: form.company.trim(),
+        contact: form.contact.trim(),
+        message: form.message.trim(),
         category: 'public_inquiry',
-        message: message.trim()
       });
-
-      setIsSubmitted(true);
-      setErrors({});
-      if (onSuccessSubmitted) {
-        onSuccessSubmitted();
-      }
-    } catch (err) {
-      console.error('Error submitting inquiry:', err);
+      if (!id) throw new Error('SAVE_FAILED');
+      setDone(true);
+      onSuccessSubmitted?.();
+    } catch {
+      setError('داواکارییەکەت تۆمار نەکرا. تکایە پەیوەندیی ئینتەرنێت بپشکنە و دووبارە هەوڵ بدەوە.');
+    } finally {
+      setBusy(false);
     }
   };
 
-  return (
-    <div id="public-inquiry-container" className="bg-slate-900/40 backdrop-blur-md border border-slate-800/80 rounded-3xl p-6 md:p-8 relative overflow-hidden text-right leading-relaxed font-sans">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
-      
-      <div className="relative z-10 space-y-6">
-        <div className="flex flex-col md:flex-row-reverse md:items-center justify-between gap-4 border-b border-slate-800/60 pb-5">
-          <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs font-bold font-mono">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>پەیوەندی بازرگانی</span>
-            </div>
-            <h2 className="text-xl md:text-2xl font-black text-white">داواکاری پەیوەندی یان دیمۆ</h2>
-            <p className="text-xs md:text-sm text-slate-400 font-medium leading-relaxed">
-              ئەگەر دەتەوێت دیمۆ، ڕاوێژکاری، یان پەیوەندی بازرگانی بنێریت، ئەم فۆڕمە پڕ بکەوە. ئەمە لە دۆخی پایلۆتدا تەنها لە براوسەرەکەتدا هەڵدەگیرێت.
-            </p>
-          </div>
-        </div>
-
-        <AnimatePresence mode="wait">
-          {isSubmitted ? (
-            <motion.div
-              key="success"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6 text-center space-y-4 py-8"
-            >
-              <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-7 h-7" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-bold text-white">سەرکەوتوو بوو!</h3>
-                <p className="text-xs md:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
-                  داواکارییەکەت بە سەرکەوتوویی تۆمار کرا. لە دۆخی پایلۆتدا ئەم داتایە تەنها لە براوسەرەکەتدا هەڵگیراوە.
-                </p>
-              </div>
-              <button
-                onClick={handleClear}
-                className="mt-4 px-5 py-2 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-slate-950 text-xs font-bold rounded-xl transition duration-200"
-              >
-                ناردنی داواکارییەکی تر
-              </button>
-            </motion.div>
-          ) : (
-            <motion.form
-              key="form"
-              onSubmit={handleSubmit}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-300">
-                {/* Name */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-400 block pr-1">ناو <span className="text-emerald-400">*</span></label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => {
-                      setName(e.target.value);
-                      if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
-                    }}
-                    placeholder="ناوت بنووسە"
-                    className={`w-full bg-slate-950/40 border ${errors.name ? 'border-red-500/50 focus:border-red-500/80' : 'border-slate-800 focus:border-emerald-500/40'} rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/25 transition duration-200`}
-                  />
-                  {errors.name && (
-                    <p className="text-red-400 text-[10px] font-bold flex items-center gap-1 mt-1 justify-end">
-                      <span>{errors.name}</span>
-                      <AlertCircle className="w-3 h-3" />
-                    </p>
-                  )}
-                </div>
-
-                {/* Company */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-400 block pr-1">کۆمپانیا</label>
-                  <input
-                    type="text"
-                    value={company}
-                    onChange={(e) => setCompany(e.target.value)}
-                    placeholder="ناوی کۆمپانیا یان رێکخراو (ئارەزوومەندانە)"
-                    className="w-full bg-slate-950/40 border border-slate-800 focus:border-emerald-500/40 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/25 transition duration-200"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Contact */}
-                <div className="space-y-1.5 text-slate-300">
-                  <label className="text-xs font-bold text-slate-400 block pr-1">ژمارە یان ئیمەیل <span className="text-emerald-400">*</span></label>
-                  <input
-                    type="text"
-                    value={contact}
-                    onChange={(e) => {
-                      setContact(e.target.value);
-                      if (errors.contact) setErrors(prev => ({ ...prev, contact: '' }));
-                    }}
-                    placeholder="نموونە: info@company.com یان 0750XXXXXXX"
-                    className={`w-full bg-slate-950/40 border ${errors.contact ? 'border-red-500/50 focus:border-red-500/80' : 'border-slate-800 focus:border-emerald-500/40'} rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none text-left focus:ring-1 focus:ring-emerald-500/25 transition duration-200`}
-                  />
-                  {errors.contact && (
-                    <p className="text-red-400 text-[10px] font-bold flex items-center gap-1 mt-1 justify-end">
-                      <span>{errors.contact}</span>
-                      <AlertCircle className="w-3 h-3" />
-                    </p>
-                  )}
-                </div>
-
-                {/* Service Interest */}
-                <div className="space-y-1.5 text-slate-300">
-                  <label className="text-xs font-bold text-slate-400 block pr-1 font-sans">خزمەتگوزاریی ئارەزوومەند</label>
-                  <select
-                    value={serviceInterest}
-                    onChange={(e) => setServiceInterest(e.target.value)}
-                    className="w-full bg-slate-950/60 border border-slate-800 focus:border-emerald-500/40 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-emerald-500/25 transition duration-200 cursor-pointer"
-                  >
-                    {servicesList.map((srv) => (
-                      <option key={srv} value={srv} className="bg-slate-900 text-slate-200">
-                        {srv}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Message */}
-              <div className="space-y-1.5 text-slate-300">
-                <label className="text-xs font-bold text-slate-400 block pr-1">پەیام <span className="text-emerald-400">*</span></label>
-                <textarea
-                  value={message}
-                  onChange={(e) => {
-                    setMessage(e.target.value);
-                    if (errors.message) setErrors(prev => ({ ...prev, message: '' }));
-                  }}
-                  rows={4}
-                  placeholder="دەربارەی پرۆژەکەت یان جۆری هاوکاری زیاتر بنووسە..."
-                  className={`w-full bg-slate-950/40 border ${errors.message ? 'border-red-500/50 focus:border-red-500/80' : 'border-slate-800 focus:border-emerald-500/40'} rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/25 transition duration-200 max-h-40 min-h-[80px]`}
-                />
-                {errors.message && (
-                  <p className="text-red-400 text-[10px] font-bold flex items-center gap-1 mt-1 justify-end">
-                    <span>{errors.message}</span>
-                    <AlertCircle className="w-3 h-3" />
-                  </p>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-3 pt-3 justify-start">
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-slate-950 text-xs font-bold rounded-xl flex items-center gap-2 transition duration-200 shadow-md shadow-emerald-500/5 hover:scale-[1.02]"
-                >
-                  <Send className="w-3.5 h-3.5 transform rotate-270" />
-                  <span>ناردنی داواکاری</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className="px-4 py-2.5 bg-slate-950 hover:bg-slate-900 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700 text-xs font-bold rounded-xl flex items-center gap-2 transition duration-200"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>پاککردنەوە</span>
-                </button>
-              </div>
-            </motion.form>
-          )}
-        </AnimatePresence>
+  if (done) {
+    return (
+      <div className="rounded-3xl border border-emerald-500/30 bg-[#0E1728] p-10 text-center text-white" dir="rtl">
+        <CheckCircle2 className="mx-auto mb-4 h-12 w-12 text-emerald-400" />
+        <h2 className="text-2xl font-black">داواکارییەکەت تۆمار کرا</h2>
+        <p className="mx-auto mt-3 max-w-xl text-sm font-medium leading-7 text-slate-300">تیمەکەمان پێداچوونەوەی بۆ دەکات و لە ڕێگەی زانیاریی پەیوەندییەوە وەڵامت دەداتەوە.</p>
+        <button onClick={clear} className="mt-6 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-black text-slate-950 hover:bg-emerald-400">ناردنی داواکارییەکی تر</button>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-5 rounded-3xl border border-slate-700 bg-[#0E1728] p-6 text-slate-100 shadow-lg md:p-8" dir="rtl">
+      <div className="border-b border-slate-700/80 pb-5">
+        <span className="inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-300">پەیوەندی بازرگانی</span>
+        <h2 className="mt-3 text-2xl font-black text-white">داواکاری خزمەتگوزاری یان پەیوەندی</h2>
+        <p className="mt-2 max-w-2xl text-sm font-medium leading-7 text-slate-300">وردەکارییەکانت بنووسە؛ داواکارییەکەت بە پارێزراوی لە Firestore تۆمار دەکرێت و تیمەکەمان پێداچوونەوەی بۆ دەکات.</p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Field label="ناو" required><input required value={form.name} onChange={e => update('name', e.target.value)} placeholder="ناوت بنووسە" className={fieldClass} /></Field>
+        <Field label="کۆمپانیا"><input value={form.company} onChange={e => update('company', e.target.value)} placeholder="ناوی کۆمپانیا یان ڕێکخراو" className={fieldClass} /></Field>
+        <Field label="ژمارە یان ئیمەیل" required><input required value={form.contact} onChange={e => update('contact', e.target.value)} placeholder="info@company.com یان ژمارەی مۆبایل" className={fieldClass} /></Field>
+        <Field label="خزمەتگوزاریی ئارەزوومەند"><select value={form.serviceInterest} onChange={e => update('serviceInterest', e.target.value)} className={fieldClass}>{services.map(service => <option key={service} value={service} className="bg-[#111D31] text-white">{service}</option>)}</select></Field>
+      </div>
+
+      <Field label="پەیام" required><textarea required value={form.message} onChange={e => update('message', e.target.value)} placeholder="پێداویستی و وردەکاریی پرۆژەکەت بنووسە..." rows={5} className={`${fieldClass} min-h-32 resize-y`} /></Field>
+
+      {error && <div className="flex items-start gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm font-medium text-rose-200"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />{error}</div>}
+
+      <div className="flex flex-wrap gap-3 pt-2">
+        <button disabled={busy} className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-6 py-3 text-sm font-black text-slate-950 hover:bg-emerald-400 disabled:opacity-60">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}{busy ? 'تۆمارکردن...' : 'ناردنی داواکاری'}</button>
+        <button type="button" onClick={clear} disabled={busy} className="inline-flex items-center gap-2 rounded-xl border border-slate-600 bg-[#111D31] px-5 py-3 text-sm font-bold text-slate-200 hover:bg-slate-700"><Trash2 className="h-4 w-4" />پاککردنەوە</button>
+      </div>
+    </form>
   );
-};
+}
+
+function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+  return <label className="block space-y-2"><span className="block text-sm font-bold text-slate-200">{label}{required && <span className="text-emerald-400"> *</span>}</span>{children}</label>;
+}
+
+export default PublicInquiryForm;
