@@ -13,7 +13,7 @@ export const MobileServiceNav = ({ activeService, setActiveService, lang }: Mobi
   const visibleServices = SERVICES.filter(service => service.key !== 'inquiry' || isInquiryEnabled);
 
   return (
-    <nav className="mobile-service-nav min-[1024px]:hidden sticky top-[112px] z-30 -mx-3 shrink-0 border-y border-slate-200/80 bg-white/95 px-3 py-2 backdrop-blur-xl dark:border-slate-800/80 dark:bg-[#081426]/95 sm:-mx-4 sm:px-4">
+    <nav className="lg:hidden -mx-3 shrink-0 border-y border-slate-200/80 bg-white px-3 py-2 dark:border-slate-800/80 dark:bg-[#081426] sm:-mx-4 sm:px-4">
       <div className="no-scrollbar flex min-w-max snap-x snap-mandatory gap-2 overflow-x-auto scroll-smooth pb-0.5">
         {visibleServices.map(service => {
           const Icon = service.icon;
