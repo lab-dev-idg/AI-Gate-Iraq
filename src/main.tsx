@@ -1,7 +1,8 @@
-import {StrictMode} from 'react';
-import {createRoot} from 'react-dom/client';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import './responsive.css';
 import { AuthProvider } from '@/src/components/AuthProvider';
 import { LanguageProvider } from '@/src/lib/LanguageContext';
 
@@ -15,10 +16,9 @@ declare global {
 
 const googleMapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-// Only attempt to load the script if the key is present and doesn't look like a placeholder
 if (googleMapsKey && googleMapsKey !== 'YOUR_API_KEY' && googleMapsKey.trim() !== '') {
   window.gm_authFailure = () => {
-    console.warn("Google Maps authentication or activation failure detected early.");
+    console.warn('Google Maps authentication or activation failure detected early.');
     window.__googleMapsAuthFailed = true;
     if (typeof window.onGoogleMapsAuthFailed === 'function') {
       window.onGoogleMapsAuthFailed();
@@ -31,8 +31,6 @@ if (googleMapsKey && googleMapsKey !== 'YOUR_API_KEY' && googleMapsKey.trim() !=
     script.async = true;
     script.defer = true;
   }
-} else {
-  console.warn("Google Maps API key is missing or invalid. Map features will be disabled. Set VITE_GOOGLE_MAPS_API_KEY in settings.");
 }
 
 createRoot(document.getElementById('root')!).render(
