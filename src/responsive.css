@@ -1,17 +1,14 @@
 :root {
   --app-container-max: 1440px;
   --app-gutter: 12px;
-  --header-min-height: 72px;
-  --control-height: 48px;
-  --radius-card: 20px;
+  --sidebar-rail-width: 64px;
+  --sidebar-full-width: 288px;
   --surface-page: #071120;
   --surface-card: #0b1730;
   --surface-raised: #10203f;
   --text-primary: #f5f7fb;
   --text-secondary: #c7d2e4;
   --text-muted: #94a3b8;
-  --sidebar-rail-width: 64px;
-  --sidebar-full-width: 288px;
 }
 
 @media (min-width: 360px) {
@@ -71,77 +68,105 @@ textarea {
   min-width: 0;
 }
 
+/* One navigation model only: persistent sidebar on every viewport. */
 .mobile-service-nav {
   display: none !important;
 }
 
-main:has(> div > .hidden.lg\:flex) {
+/* Explicitly convert the existing app shell into a stable two-column layout. */
+main.max-w-7xl {
   display: flex !important;
   flex-direction: row !important;
   align-items: stretch !important;
   gap: 12px !important;
   width: 100% !important;
   max-width: var(--app-container-max) !important;
+  min-width: 0 !important;
   padding-inline: var(--app-gutter) !important;
 }
 
-main:has(> div > .hidden.lg\:flex) > div:has(> .hidden.lg\:flex) {
+/* Existing sidebar wrapper in App.tsx. */
+main.max-w-7xl > div.hidden.lg\:flex {
   display: flex !important;
   flex: 0 0 var(--sidebar-rail-width) !important;
   width: var(--sidebar-rail-width) !important;
   min-width: var(--sidebar-rail-width) !important;
-  height: auto !important;
+  max-width: var(--sidebar-rail-width) !important;
   min-height: 0 !important;
-  position: sticky !important;
-  top: 12px !important;
-  align-self: flex-start !important;
-  max-height: calc(100dvh - 110px) !important;
+  height: 100% !important;
+  align-self: stretch !important;
 }
 
-main:has(> div > .hidden.lg\:flex) > div:has(> .hidden.lg\:flex) > .hidden.lg\:flex {
+/* Existing AppSidebar card. */
+main.max-w-7xl > div.hidden.lg\:flex > .hidden.lg\:flex {
   display: flex !important;
   width: 100% !important;
   min-width: 0 !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  border-radius: 16px !important;
 }
 
-main:has(> div > .hidden.lg\:flex) > div:last-child {
+/* Workspace must always consume the remaining width and remain visible. */
+main.max-w-7xl > div.flex-1 {
+  display: flex !important;
   flex: 1 1 auto !important;
   width: auto !important;
   min-width: 0 !important;
   max-width: calc(100% - var(--sidebar-rail-width) - 12px) !important;
+  overflow: hidden !important;
 }
 
+/* Mobile/tablet: icon rail only. */
 @media (max-width: 1023px) {
-  main:has(> div > .hidden.lg\:flex) > div:has(> .hidden.lg\:flex) .hidden.lg\:flex > div:first-child {
+  main.max-w-7xl {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+
+  main.max-w-7xl > div.hidden.lg\:flex {
+    position: sticky !important;
+    top: 12px !important;
+    align-self: flex-start !important;
+    height: calc(100dvh - 140px) !important;
+    max-height: calc(100dvh - 140px) !important;
+  }
+
+  main.max-w-7xl > div.hidden.lg\:flex > .hidden.lg\:flex > div:first-child {
     display: none !important;
   }
 
-  main:has(> div > .hidden.lg\:flex) > div:has(> .hidden.lg\:flex) button {
+  main.max-w-7xl > div.hidden.lg\:flex button {
     justify-content: center !important;
-    padding-inline: 0 !important;
     min-height: 44px !important;
+    padding-inline: 0 !important;
   }
 
-  main:has(> div > .hidden.lg\:flex) > div:has(> .hidden.lg\:flex) button span {
+  main.max-w-7xl > div.hidden.lg\:flex button span {
     display: none !important;
   }
 
-  main:has(> div > .hidden.lg\:flex) > div:has(> .hidden.lg\:flex) button svg {
-    margin: 0 !important;
+  main.max-w-7xl > div.hidden.lg\:flex button svg {
     width: 20px !important;
     height: 20px !important;
+    margin: 0 !important;
   }
 }
 
+/* Desktop: full sidebar with labels. */
 @media (min-width: 1024px) {
-  main:has(> div > .hidden.lg\:flex) > div:has(> .hidden.lg\:flex) {
+  main.max-w-7xl {
+    gap: 20px !important;
+  }
+
+  main.max-w-7xl > div.hidden.lg\:flex {
     flex-basis: var(--sidebar-full-width) !important;
     width: var(--sidebar-full-width) !important;
     min-width: var(--sidebar-full-width) !important;
-    max-height: calc(100dvh - 120px) !important;
+    max-width: var(--sidebar-full-width) !important;
   }
 
-  main:has(> div > .hidden.lg\:flex) > div:last-child {
+  main.max-w-7xl > div.flex-1 {
     max-width: calc(100% - var(--sidebar-full-width) - 20px) !important;
   }
 }
