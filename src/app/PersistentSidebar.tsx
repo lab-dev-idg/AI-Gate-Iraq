@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Folder, MoreHorizontal, Plus, Search, X } from 'lucide-react';
 import { SERVICES, ServiceKey } from '@/src/lib/services';
 import { getAdminFeatureFlagEnabled } from '@/src/admin/adminStore';
-import { SavedConversation } from '@/src/lib/conversationStore';
+import { saveConversation, SavedConversation } from '@/src/lib/conversationStore';
+import { loadSession, saveSession } from '@/src/lib/sessionStore';
 import { SidebarProjectsPanel, SidebarSearchPanel } from '@/src/app/SidebarPanels';
 
 interface PersistentSidebarProps {
@@ -21,13 +22,19 @@ export default function PersistentSidebar({ activeService, setActiveService, lan
   const expanded = panel !== 'main';
 
   const startNewChat = () => {
-    window.dispatchEvent(new CustomEvent('ai-gate:new-chat'));
-    setPanel('main');
+    const session = loadSession(lang);
+    saveConversation(session.chatMessages, session.chatScope || 'assistant');
+    saveSession({ activeService: 'assistant', chatScope: 'assistant', chatMessages: [] });
+    window.location.reload();
   };
 
   const restoreConversation = (conversation: SavedConversation) => {
-    window.dispatchEvent(new CustomEvent('ai-gate:restore-chat', { detail: conversation }));
-    setPanel('main');
+    saveSession({
+      activeService: 'assistant',
+      chatScope: conversation.service,
+      chatMessages: conversation.messages,
+    });
+    window.location.reload();
   };
 
   return (
