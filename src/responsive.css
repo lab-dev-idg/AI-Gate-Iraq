@@ -10,6 +10,8 @@
   --text-primary: #f5f7fb;
   --text-secondary: #c7d2e4;
   --text-muted: #94a3b8;
+  --sidebar-rail-width: 64px;
+  --sidebar-full-width: 288px;
 }
 
 @media (min-width: 360px) {
@@ -17,7 +19,10 @@
 }
 
 @media (min-width: 768px) {
-  :root { --app-gutter: 24px; }
+  :root {
+    --app-gutter: 24px;
+    --sidebar-rail-width: 72px;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -67,18 +72,77 @@ textarea {
 }
 
 .mobile-service-nav {
-  scrollbar-gutter: stable;
+  display: none !important;
 }
 
-@media (max-width: 359px) {
-  .mobile-service-nav {
-    top: 122px;
+main:has(> div > .hidden.lg\:flex) {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch !important;
+  gap: 12px !important;
+  width: 100% !important;
+  max-width: var(--app-container-max) !important;
+  padding-inline: var(--app-gutter) !important;
+}
+
+main:has(> div > .hidden.lg\:flex) > div:has(> .hidden.lg\:flex) {
+  display: flex !important;
+  flex: 0 0 var(--sidebar-rail-width) !important;
+  width: var(--sidebar-rail-width) !important;
+  min-width: var(--sidebar-rail-width) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  position: sticky !important;
+  top: 12px !important;
+  align-self: flex-start !important;
+  max-height: calc(100dvh - 110px) !important;
+}
+
+main:has(> div > .hidden.lg\:flex) > div:has(> .hidden.lg\:flex) > .hidden.lg\:flex {
+  display: flex !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+main:has(> div > .hidden.lg\:flex) > div:last-child {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: calc(100% - var(--sidebar-rail-width) - 12px) !important;
+}
+
+@media (max-width: 1023px) {
+  main:has(> div > .hidden.lg\:flex) > div:has(> .hidden.lg\:flex) .hidden.lg\:flex > div:first-child {
+    display: none !important;
+  }
+
+  main:has(> div > .hidden.lg\:flex) > div:has(> .hidden.lg\:flex) button {
+    justify-content: center !important;
+    padding-inline: 0 !important;
+    min-height: 44px !important;
+  }
+
+  main:has(> div > .hidden.lg\:flex) > div:has(> .hidden.lg\:flex) button span {
+    display: none !important;
+  }
+
+  main:has(> div > .hidden.lg\:flex) > div:has(> .hidden.lg\:flex) button svg {
+    margin: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
   }
 }
 
-@media (min-width: 360px) and (max-width: 1023px) {
-  .mobile-service-nav {
-    top: 112px;
+@media (min-width: 1024px) {
+  main:has(> div > .hidden.lg\:flex) > div:has(> .hidden.lg\:flex) {
+    flex-basis: var(--sidebar-full-width) !important;
+    width: var(--sidebar-full-width) !important;
+    min-width: var(--sidebar-full-width) !important;
+    max-height: calc(100dvh - 120px) !important;
+  }
+
+  main:has(> div > .hidden.lg\:flex) > div:last-child {
+    max-width: calc(100% - var(--sidebar-full-width) - 20px) !important;
   }
 }
 
