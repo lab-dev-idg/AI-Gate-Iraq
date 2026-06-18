@@ -21,95 +21,35 @@ interface AssistantWorkspaceProps {
   promptChips: { label: string; prompt: string }[];
 }
 
-export const AssistantWorkspace = ({
-  lang,
-  t,
-  chatScope,
-  setChatScope,
-  messages,
-  input,
-  setInput,
-  isLoading,
-  onSend,
-  onSelectMessage,
-  chatScrollRef,
-  promptChips,
-}: AssistantWorkspaceProps) => {
-  const footerText = `AI Gate Iraq • 2026 • ${
-    lang === 'ar' ? 'البوابة الوطنية للتجارة والأعمال' : 'سەکۆی نیشتمانی بۆ بازرگانی و کار'
-  }`;
+export const AssistantWorkspace = (props: AssistantWorkspaceProps) => {
+  const { lang, t, chatScope, setChatScope, messages, input, setInput, isLoading, onSend, onSelectMessage, chatScrollRef, promptChips } = props;
+  const footerText = `AI Gate Iraq • 2026`;
 
-  // Mobile chat layout lock: this card must fill available width and height.
   return (
-    <Card className="flex-1 flex flex-col w-full max-w-full min-w-0 min-h-[calc(100dvh-140px)] lg:min-h-0 max-h-none overflow-hidden border border-slate-200/60 dark:border-slate-800/60 shadow-md bg-white dark:bg-slate-900/30 rounded-2xl h-full">
-      {/* Advisor Header */}
-      <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 shadow-sm">
-            <Bot className="w-5 h-5 flex-shrink-0" />
+    <Card className="flex min-h-[calc(100dvh-210px)] w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md dark:border-slate-800 dark:bg-[#0E1728] lg:min-h-0 lg:h-full">
+      <div className="flex shrink-0 flex-col gap-3 border-b border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-[#111D31] sm:flex-row sm:items-center sm:justify-between md:px-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+            <Bot className="h-5 w-5" />
           </div>
-          <div>
-            <h2 className="text-sm font-black text-slate-850 dark:text-white font-arabic flex items-center flex-wrap gap-1.5 leading-none">
+          <div className="min-w-0">
+            <h2 className="flex flex-wrap items-center gap-2 text-base font-black leading-tight text-slate-900 dark:text-white md:text-lg">
               {lang === 'ar' ? 'مستشار الأعمال واللوجستيات الذكي' : 'ڕاوێژکاری لۆجیستی و بازرگانی زیرەک'}
-              {chatScope !== 'assistant' && (
-                <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">
-                  {getServiceName(chatScope, lang)}
-                </span>
-              )}
+              {chatScope !== 'assistant' && <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black text-emerald-600 dark:text-emerald-300">{getServiceName(chatScope, lang)}</span>}
             </h2>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-medium leading-tight">
-              {lang === 'ar'
-                ? `مستشار الذكاء الاصطناعي مستعد لمساعدتك في: ${getServiceName(chatScope, 'ar')}`
-                : `ڕاوێژکاری زیرەک ئامادەیە بۆ یارمەتیدانت لە: ${getServiceName(chatScope, 'ku')}`}
+            <p className="mt-1 text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">
+              {lang === 'ar' ? `جاهز لمساعدتك في: ${getServiceName(chatScope, 'ar')}` : `ئامادەیە بۆ یارمەتیدانت لە: ${getServiceName(chatScope, 'ku')}`}
             </p>
           </div>
         </div>
-
-        {/* Scope Switcher Dropdown */}
-        <div className="flex items-center gap-2 font-arabic shrink-0 self-end sm:self-center">
-          <span className="text-[10px] text-slate-400 font-black hidden xs:inline">
-            {lang === 'ar' ? 'التركيز:' : 'تیشکۆ:'}
-          </span>
-          <select
-            value={chatScope}
-            onChange={(e) => setChatScope(e.target.value as ServiceKey)}
-            className="text-[10px] font-black border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5 bg-white dark:bg-slate-900 cursor-pointer text-slate-700 dark:text-slate-200 shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 transition-colors"
-          >
-            {SERVICES.filter(s => s.key !== 'inquiry').map((srv) => (
-              <option key={srv.key} value={srv.key}>
-                {lang === 'ar' ? srv.label_ar : srv.label_ku}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select value={chatScope} onChange={event => setChatScope(event.target.value as ServiceKey)} className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-black text-slate-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-[#091222] dark:text-slate-100 sm:w-auto sm:min-w-[190px]">
+          {SERVICES.filter(service => service.key !== 'inquiry').map(service => <option key={service.key} value={service.key}>{lang === 'ar' ? service.label_ar : service.label_ku}</option>)}
+        </select>
       </div>
 
-      {/* Chat Viewport */}
-      <ChatMessages
-        messages={messages}
-        isLoading={isLoading}
-        lang={lang}
-        t={t}
-        onSelectMessage={onSelectMessage}
-        chatScrollRef={chatScrollRef}
-      />
-
-      {/* Suggested prompt chips based on selected focus scope */}
-      <PromptChips
-        chips={promptChips}
-        onChipClick={onSend}
-      />
-
-      {/* Chat Input form */}
-      <ChatInput
-        input={input}
-        setInput={setInput}
-        onSend={(overridePrompt) => onSend(overridePrompt)}
-        isLoading={isLoading}
-        placeholder={t.chat.placeholder}
-        footerText={footerText}
-        lang={lang}
-      />
+      <ChatMessages messages={messages} isLoading={isLoading} lang={lang} t={t} onSelectMessage={onSelectMessage} chatScrollRef={chatScrollRef} />
+      <PromptChips chips={promptChips} onChipClick={onSend} />
+      <ChatInput input={input} setInput={setInput} onSend={overridePrompt => onSend(overridePrompt)} isLoading={isLoading} placeholder={t.chat.placeholder} footerText={footerText} lang={lang} />
     </Card>
   );
 };
