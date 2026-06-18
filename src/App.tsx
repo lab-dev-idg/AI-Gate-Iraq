@@ -108,103 +108,105 @@ export default function App() {
 
   return (
     <TooltipProvider>
-      <div className="flex h-dvh min-h-dvh w-full flex-col overflow-hidden bg-[#F8FAFC] dark:bg-[#090D16]" dir="rtl">
-        <AppHeader lang={lang} setLang={setLang} t={t}>
-          <SessionManager
+      <div className="flex h-dvh min-h-dvh w-full overflow-hidden bg-[#F8FAFC] dark:bg-[#090D16]" dir="ltr">
+        <PersistentSidebar activeService={activeService} setActiveService={setActiveService} lang={lang} />
+
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden" dir="rtl">
+          <AppHeader lang={lang} setLang={setLang} t={t}>
+            <SessionManager
+              lang={lang}
+              t={t}
+              activeService={activeService}
+              setActiveService={setActiveService}
+              chatScope={chatScope}
+              setChatScope={setChatScope}
+              messages={messages}
+              setMessages={setMessages}
+              onOpenGuide={() => setIsOnboardingOpen(true)}
+            />
+          </AppHeader>
+
+          <Toaster position="top-center" richColors />
+          <OnboardingGuide
             lang={lang}
             t={t}
-            activeService={activeService}
-            setActiveService={setActiveService}
-            chatScope={chatScope}
-            setChatScope={setChatScope}
-            messages={messages}
-            setMessages={setMessages}
-            onOpenGuide={() => setIsOnboardingOpen(true)}
+            isOpen={isOnboardingOpen}
+            onClose={() => {
+              saveSession({ hasCompletedOnboarding: true });
+              setIsOnboardingOpen(false);
+            }}
+            onActionClick={handleOnboardingAction}
           />
-        </AppHeader>
 
-        <Toaster position="top-center" richColors />
-        <OnboardingGuide
-          lang={lang}
-          t={t}
-          isOpen={isOnboardingOpen}
-          onClose={() => {
-            saveSession({ hasCompletedOnboarding: true });
-            setIsOnboardingOpen(false);
-          }}
-          onActionClick={handleOnboardingAction}
-        />
-
-        <main className="flex min-h-0 flex-1 overflow-hidden">
-          <PersistentSidebar activeService={activeService} setActiveService={setActiveService} lang={lang} />
-
-          <section className="min-w-0 flex-1 overflow-hidden p-2 sm:p-3 md:p-4 lg:p-5">
-            <div className="h-full min-h-0 min-w-0 overflow-hidden">
-              {activeService === 'assistant' ? (
-                <AssistantWorkspace
-                  lang={lang}
-                  t={t}
-                  chatScope={chatScope}
-                  setChatScope={setChatScope}
-                  messages={messages}
-                  input={input}
-                  setInput={setInput}
-                  isLoading={isLoading}
-                  onSend={handleSend}
-                  onSelectMessage={setSelectedMessage}
-                  chatScrollRef={chatScrollRef}
-                  promptChips={promptChips}
-                />
-              ) : (
-                <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-md dark:border-slate-800 dark:bg-[#0E1728] sm:p-4 md:p-5">
-                  <div className="mb-4 flex shrink-0 items-center gap-3 border-b border-slate-200 pb-4 dark:border-slate-800">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-900">
-                      {(() => {
-                        const service = SERVICES.find((item) => item.key === activeService);
-                        const Icon = service?.icon || Bot;
-                        return <Icon className={`h-5 w-5 ${service?.color || ''}`} />;
-                      })()}
-                    </div>
-                    <div className="min-w-0">
-                      <h2 className="truncate text-base font-black text-slate-900 dark:text-white md:text-lg">
-                        {getServiceName(activeService, lang)}
-                      </h2>
-                      <p className="mt-1 text-xs font-medium leading-5 text-slate-600 dark:text-slate-300">
-                        {getServiceDescription(activeService, lang)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="cs-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-3">
-                    {activeService === 'inquiry' ? (
-                      <PublicInquiryForm />
-                    ) : (
-                      <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
-                        <div className="min-w-0 space-y-5 xl:col-span-8">
-                          <ServiceWorkspace activeService={activeService} lang={lang} t={t} />
-                        </div>
-                        <div className="min-w-0 space-y-5 xl:col-span-4">
-                          <WorkflowGuide
-                            activeService={activeService}
-                            lang={lang}
-                            onQuestionClick={(questionPrompt) => {
-                              setChatScope(activeService);
-                              setActiveService('assistant');
-                              window.setTimeout(() => void handleSend(questionPrompt), 150);
-                            }}
-                          />
-                        </div>
+          <main className="min-h-0 flex-1 overflow-hidden">
+            <section className="h-full min-w-0 overflow-hidden p-2 sm:p-3 md:p-4 lg:p-5">
+              <div className="mx-auto h-full min-h-0 w-full max-w-[1200px] overflow-hidden">
+                {activeService === 'assistant' ? (
+                  <AssistantWorkspace
+                    lang={lang}
+                    t={t}
+                    chatScope={chatScope}
+                    setChatScope={setChatScope}
+                    messages={messages}
+                    input={input}
+                    setInput={setInput}
+                    isLoading={isLoading}
+                    onSend={handleSend}
+                    onSelectMessage={setSelectedMessage}
+                    chatScrollRef={chatScrollRef}
+                    promptChips={promptChips}
+                  />
+                ) : (
+                  <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-md dark:border-slate-800 dark:bg-[#0E1728] sm:p-4 md:p-5">
+                    <div className="mb-4 flex shrink-0 items-center gap-3 border-b border-slate-200 pb-4 dark:border-slate-800">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-900">
+                        {(() => {
+                          const service = SERVICES.find((item) => item.key === activeService);
+                          const Icon = service?.icon || Bot;
+                          return <Icon className={`h-5 w-5 ${service?.color || ''}`} />;
+                        })()}
                       </div>
-                    )}
-                  </div>
-                </Card>
-              )}
-            </div>
-          </section>
-        </main>
+                      <div className="min-w-0">
+                        <h2 className="truncate text-base font-black text-slate-900 dark:text-white md:text-lg">
+                          {getServiceName(activeService, lang)}
+                        </h2>
+                        <p className="mt-1 text-xs font-medium leading-5 text-slate-600 dark:text-slate-300">
+                          {getServiceDescription(activeService, lang)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="cs-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-3">
+                      {activeService === 'inquiry' ? (
+                        <PublicInquiryForm />
+                      ) : (
+                        <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+                          <div className="min-w-0 space-y-5 xl:col-span-8">
+                            <ServiceWorkspace activeService={activeService} lang={lang} t={t} />
+                          </div>
+                          <div className="min-w-0 space-y-5 xl:col-span-4">
+                            <WorkflowGuide
+                              activeService={activeService}
+                              lang={lang}
+                              onQuestionClick={(questionPrompt) => {
+                                setChatScope(activeService);
+                                setActiveService('assistant');
+                                window.setTimeout(() => void handleSend(questionPrompt), 150);
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                )}
+              </div>
+            </section>
+          </main>
+        </div>
 
         <Dialog open={Boolean(selectedMessage)} onOpenChange={(open) => !open && setSelectedMessage(null)}>
-          <DialogContent className="border-none bg-white shadow-2xl dark:bg-slate-800 sm:max-w-md">
+          <DialogContent className="border-none bg-white shadow-2xl dark:bg-slate-800 sm:max-w-md" dir="rtl">
             <DialogHeader className="border-b pb-4 dark:border-slate-700">
               <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                 <Bot className="h-6 w-6 text-primary" />
@@ -228,13 +230,7 @@ export default function App() {
                 const maps = chunk.maps;
                 if (!maps) return null;
                 return (
-                  <a
-                    key={index}
-                    href={maps.uri}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:border-primary/50 hover:bg-primary/5 dark:border-slate-700 dark:bg-slate-800"
-                  >
+                  <a key={index} href={maps.uri} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:border-primary/50 hover:bg-primary/5 dark:border-slate-700 dark:bg-slate-800">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
                       <MapPin className="h-4 w-4" />
                     </div>
