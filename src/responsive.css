@@ -1,0 +1,105 @@
+:root {
+  --app-container-max: 1440px;
+  --app-gutter: 12px;
+  --header-min-height: 72px;
+  --control-height: 48px;
+  --radius-card: 20px;
+  --surface-page: #071120;
+  --surface-card: #0b1730;
+  --surface-raised: #10203f;
+  --text-primary: #f5f7fb;
+  --text-secondary: #c7d2e4;
+  --text-muted: #94a3b8;
+}
+
+@media (min-width: 360px) {
+  :root { --app-gutter: 16px; }
+}
+
+@media (min-width: 768px) {
+  :root { --app-gutter: 24px; }
+}
+
+@media (min-width: 1024px) {
+  :root { --app-gutter: 32px; }
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 320px;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-container {
+  width: 100%;
+  max-width: var(--app-container-max);
+  margin-inline: auto;
+  padding-inline: var(--app-gutter);
+}
+
+img,
+svg,
+canvas,
+video {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
+.mobile-service-nav {
+  scrollbar-gutter: stable;
+}
+
+@media (max-width: 359px) {
+  .mobile-service-nav {
+    top: 122px;
+  }
+}
+
+@media (min-width: 360px) and (max-width: 1023px) {
+  .mobile-service-nav {
+    top: 112px;
+  }
+}
+
+@media (max-width: 767px) {
+  [data-radix-popper-content-wrapper] {
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  .prose {
+    font-size: 15px;
+    line-height: 1.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
