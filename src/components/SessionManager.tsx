@@ -26,6 +26,8 @@ interface SessionManagerProps {
   onOpenGuide: () => void;
 }
 
+const workspaceItemClass = 'flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-800 outline-none transition-colors focus:bg-slate-100 focus:text-slate-950 data-[highlighted]:bg-slate-100 data-[highlighted]:text-slate-950 dark:text-slate-100 dark:focus:bg-slate-800 dark:focus:text-white dark:data-[highlighted]:bg-slate-800 dark:data-[highlighted]:text-white';
+
 export function SessionManager(props: SessionManagerProps) {
   const {
     lang,
@@ -105,47 +107,54 @@ export function SessionManager(props: SessionManagerProps) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex h-9 items-center px-3 border border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-xl gap-1.5">
-        <StatusIcon className={`w-4 h-4 ${sync.state === 'syncing' ? 'animate-spin' : ''}`} />
+      <DropdownMenuTrigger className="flex h-9 items-center gap-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 text-xs font-bold text-emerald-600 outline-none ring-offset-background transition-colors hover:bg-emerald-500/10 focus-visible:ring-2 focus-visible:ring-emerald-500/40 dark:text-emerald-400">
+        <StatusIcon className={`h-4 w-4 ${sync.state === 'syncing' ? 'animate-spin' : ''}`} />
         <span>{lang === 'ar' ? 'مساحة العمل' : 'شوێنی کار'}</span>
-        <span className={`w-2 h-2 rounded-full ${status.dotClass}`} />
+        <span className={`h-2 w-2 rounded-full ${status.dotClass}`} />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="w-80 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl" align="end" dir="rtl">
-        <DropdownMenuLabel className="text-xs font-black">
+      <DropdownMenuContent
+        className="w-80 rounded-2xl border border-slate-200 bg-white p-3 text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-[#101827] dark:text-slate-100"
+        align="end"
+        dir="rtl"
+      >
+        <DropdownMenuLabel className="px-2 py-1.5 text-right text-xs font-black text-slate-700 dark:text-slate-200">
           {lang === 'ar' ? 'إدارة مساحة العمل' : 'بەڕێوەبردنی شوێنی کار'}
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
 
-        <div className="p-2.5 bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800 rounded-xl my-2 text-[10px] leading-relaxed flex items-start gap-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+        <div className="my-2 flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-[10px] leading-relaxed dark:border-slate-700 dark:bg-slate-950/60">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
           <div className="space-y-1 text-right">
-            <p className="font-black text-slate-700 dark:text-slate-200">{status.title}</p>
-            <p className="text-slate-500 dark:text-slate-400">{status.description}</p>
+            <p className="font-black text-slate-800 dark:text-slate-100">{status.title}</p>
+            <p className="text-slate-600 dark:text-slate-300">{status.description}</p>
           </div>
         </div>
 
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onOpenGuide}>
-          <HelpCircle className="w-4 h-4 text-emerald-500" />
-          {lang === 'ar' ? 'دليل البداية' : 'ڕێنمایی سەرەتا'}
+        <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
+        <DropdownMenuItem onClick={onOpenGuide} className={workspaceItemClass}>
+          <HelpCircle className="h-4 w-4 shrink-0 text-emerald-500" />
+          <span>{lang === 'ar' ? 'دليل البداية' : 'ڕێنمایی سەرەتا'}</span>
         </DropdownMenuItem>
 
         {hasStoredSession && (
-          <DropdownMenuItem onClick={handleResume}>
-            <RefreshCw className="w-4 h-4 text-emerald-500" />
-            {lang === 'ar' ? 'استئناف مساحة العمل' : 'گەڕانەوە بۆ شوێنی کار'}
+          <DropdownMenuItem onClick={handleResume} className={workspaceItemClass}>
+            <RefreshCw className="h-4 w-4 shrink-0 text-emerald-500" />
+            <span>{lang === 'ar' ? 'استئناف مساحة العمل' : 'گەڕانەوە بۆ شوێنی کار'}</span>
           </DropdownMenuItem>
         )}
 
-        <DropdownMenuItem onClick={handleExport}>
-          <Download className="w-4 h-4 text-blue-500" />
-          {lang === 'ar' ? 'تصدير ملخص العمل' : 'هەناردەکردنی کورتەی کار'}
+        <DropdownMenuItem onClick={handleExport} className={workspaceItemClass}>
+          <Download className="h-4 w-4 shrink-0 text-blue-500" />
+          <span>{lang === 'ar' ? 'تصدير ملخص العمل' : 'هەناردەکردنی کورتەی کار'}</span>
         </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={handleClear} className="text-rose-500">
-          <Trash2 className="w-4 h-4" />
-          {lang === 'ar' ? 'مسح مساحة العمل' : 'سڕینەوەی شوێنی کار'}
+        <DropdownMenuItem
+          onClick={handleClear}
+          className={`${workspaceItemClass} text-rose-600 focus:bg-rose-50 focus:text-rose-700 data-[highlighted]:bg-rose-50 data-[highlighted]:text-rose-700 dark:text-rose-400 dark:focus:bg-rose-950/40 dark:focus:text-rose-300 dark:data-[highlighted]:bg-rose-950/40 dark:data-[highlighted]:text-rose-300`}
+        >
+          <Trash2 className="h-4 w-4 shrink-0" />
+          <span>{lang === 'ar' ? 'مسح مساحة العمل' : 'سڕینەوەی شوێنی کار'}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
