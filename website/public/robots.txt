@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://aigateiraq.com/sitemap.xml
+Sitemap: https://ai-gate-iraq-website.aigateiraq.workers.dev/sitemap.xml

@@ -34,7 +34,7 @@ catch (error) { failures.push(`translations.json is invalid JSON: ${error.messag
 try { JSON.parse(wranglerRaw); }
 catch (error) { failures.push(`wrangler.jsonc is invalid JSON: ${error.message}`); }
 
-for (const fragment of ['https://app.aigateiraq.com','rel="canonical"','name="twitter:card"','property="og:site_name"','/legal.html#privacy','/legal.html#terms','/legal.html#ai','id="menuToggle"','id="mainNav"']) {
+for (const fragment of ['https://ai-gate-iraq.aigateiraq.workers.dev','rel="canonical"','name="twitter:card"','property="og:site_name"','/legal.html#privacy','/legal.html#terms','/legal.html#ai','id="menuToggle"','id="mainNav"']) {
   if (!index.includes(fragment)) failures.push(`index.html is missing: ${fragment}`);
 }
 
@@ -44,7 +44,7 @@ if (!app.includes('prefers-reduced-motion')) failures.push('app.js is missing re
 if (!app.includes('interfaceTranslations')) failures.push('app.js is missing interface translations.');
 if (!headers.includes('Content-Security-Policy')) failures.push('_headers is missing CSP.');
 if (!headers.includes('Strict-Transport-Security')) failures.push('_headers is missing HSTS.');
-if (!sitemap.includes('https://aigateiraq.com/legal.html')) failures.push('sitemap.xml is missing legal.html.');
+if (!sitemap.includes('https://ai-gate-iraq-website.aigateiraq.workers.dev/legal.html')) failures.push('sitemap.xml is missing legal.html.');
 
 if (translations) {
   for (const lang of ['ar', 'en']) {
