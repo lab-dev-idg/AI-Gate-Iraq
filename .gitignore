@@ -13,3 +13,8 @@ coverage/
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
