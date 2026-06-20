@@ -1,0 +1,43 @@
+@media (min-width:901px){
+  .hero-grid{max-width:1240px}
+  .hero-copy{padding-inline-start:8px}
+  .hero-copy h1{font-size:clamp(2.8rem,4.8vw,4.7rem)}
+  .hero-trust{max-width:760px;overflow:visible;row-gap:10px}
+  .hero-trust span{white-space:nowrap}
+}
+
+@media (max-width:1100px) and (min-width:901px){
+  .hero-grid{
+    grid-template-columns:minmax(390px,.95fr) minmax(430px,1.05fr);
+    gap:42px
+  }
+  .hero-copy h1{font-size:clamp(2.55rem,4.5vw,4rem)}
+  .hero-trust{font-size:.72rem;gap:8px 12px}
+}
+
+@media (max-width:900px){
+  .hero-copy{padding-inline:4px}
+  .hero-trust span{white-space:normal}
+  .platform-preview{max-height:430px}
+  .preview-body{min-height:360px}
+  .preview-content{padding-block:18px 14px}
+  .chat-bubble{margin-bottom:12px}
+  .metric-strip{margin-bottom:10px}
+}
+
+@media (max-width:560px){
+  .hero-copy h1{margin-bottom:12px}
+  .hero-lead{line-height:1.85}
+  .hero-actions{margin-top:20px}
+  .hero-trust{margin-top:18px;font-size:.72rem}
+  .platform-preview{max-height:405px}
+  .preview-body{min-height:335px}
+  .preview-heading{margin-bottom:14px}
+  .chat-bubble{
+    padding:12px 13px;
+    font-size:.76rem;
+    line-height:1.65
+  }
+  .preview-cards>div{min-height:76px}
+  .metric-strip>div{padding:18px 12px}
+}
