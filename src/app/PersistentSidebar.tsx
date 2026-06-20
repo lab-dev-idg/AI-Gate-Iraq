@@ -5,6 +5,7 @@ import { getAdminFeatureFlagEnabled } from '@/src/admin/adminStore';
 import { saveConversation, SavedConversation } from '@/src/lib/conversationStore';
 import { loadSession, saveSession } from '@/src/lib/sessionStore';
 import { SidebarProjectsPanel, SidebarSearchPanel } from '@/src/app/SidebarPanels';
+import { UserMenu } from '@/src/components/UserMenu';
 
 interface PersistentSidebarProps {
   activeService: ServiceKey;
@@ -79,10 +80,7 @@ export default function PersistentSidebar({ activeService, setActiveService, lan
         )}
 
         <div className="shrink-0 border-t border-slate-200 p-2 dark:border-slate-800 lg:p-3">
-          <button type="button" className="flex h-11 w-full items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 lg:justify-start lg:gap-3 lg:px-3">
-            <div className="h-7 w-7 shrink-0 rounded-full bg-slate-300 dark:bg-slate-700" />
-            <span className={`${expanded ? 'block' : 'hidden lg:block'} min-w-0 truncate text-sm font-bold`}>{ku ? 'هەژماری من' : 'حسابي'}</span>
-          </button>
+          <UserMenu variant="sidebar" expanded={expanded} />
         </div>
       </div>
     </aside>
