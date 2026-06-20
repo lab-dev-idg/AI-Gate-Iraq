@@ -1,4 +1,5 @@
 import { ChevronDown, MoreHorizontal, Share2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { FeedbackDialog } from '@/src/components/FeedbackDialog';
 
@@ -10,6 +11,31 @@ interface AppHeaderProps {
 }
 
 export const AppHeader = ({ lang, setLang, t, children }: AppHeaderProps) => {
+  const handleShare = async () => {
+    const url = window.location.href;
+    const shareData = {
+      title: 'AI Gate Iraq',
+      text: lang === 'ar'
+        ? 'منصة AI Gate Iraq للذكاء التجاري والخدمات اللوجستية.'
+        : 'پلاتفۆرمی AI Gate Iraq بۆ زیرەکی بازرگانی و خزمەتگوزاریی لۆجیستی.',
+      url,
+    };
+
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share(shareData);
+        toast.success(lang === 'ar' ? 'تمت المشاركة بنجاح.' : 'بە سەرکەوتوویی هاوبەش کرا.');
+        return;
+      }
+
+      await navigator.clipboard.writeText(url);
+      toast.success(lang === 'ar' ? 'تم نسخ رابط المنصة.' : 'بەستەری پلاتفۆرمەکە کۆپی کرا.');
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      toast.error(lang === 'ar' ? 'تعذرت المشاركة. حاول مرة أخرى.' : 'هاوبەشکردن سەرکەوتوو نەبوو؛ دووبارە هەوڵ بدەرەوە.');
+    }
+  };
+
   return (
     <header className="shrink-0 border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-[#081426]">
       <div className="flex h-14 items-center justify-between gap-3 px-3 sm:px-4 lg:px-5">
@@ -24,9 +50,17 @@ export const AppHeader = ({ lang, setLang, t, children }: AppHeaderProps) => {
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <LanguageSwitcher lang={lang} setLang={setLang} />
           <div className="hidden md:block">{children}</div>
-          <Button variant="ghost" size="sm" className="hidden h-9 gap-2 rounded-lg px-3 text-xs font-black text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 sm:flex">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => void handleShare()}
+            aria-label={lang === 'ar' ? 'مشاركة المنصة' : 'هاوبەشکردنی پلاتفۆرم'}
+            title={lang === 'ar' ? 'مشاركة المنصة' : 'هاوبەشکردنی پلاتفۆرم'}
+            className="flex h-9 gap-2 rounded-lg px-2 text-xs font-black text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 sm:px-3"
+          >
             <Share2 className="h-4 w-4" />
-            {lang === 'ar' ? 'مشاركة' : 'هاوبەشکردن'}
+            <span className="hidden sm:inline">{lang === 'ar' ? 'مشاركة' : 'هاوبەشکردن'}</span>
           </Button>
           <FeedbackDialog />
           <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
