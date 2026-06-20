@@ -1,0 +1,232 @@
+/* Smart hero refinement: stronger depth, clearer hierarchy, mobile-first composition */
+.hero-grid::before,
+.hero-grid::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  z-index: -1;
+}
+
+.hero-grid::before {
+  width: 520px;
+  height: 520px;
+  inset-inline-start: -70px;
+  top: 52%;
+  border: 1px solid rgba(47,120,255,.20);
+  box-shadow:
+    0 0 0 46px rgba(47,120,255,.035),
+    0 0 0 92px rgba(0,199,138,.025),
+    inset 0 0 70px rgba(47,120,255,.08);
+  transform: translateY(-50%) rotateX(68deg) rotateZ(-12deg);
+  animation: hero-orbit 16s linear infinite;
+}
+
+.hero-grid::after {
+  width: 210px;
+  height: 210px;
+  inset-inline-start: 135px;
+  top: 49%;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(47,120,255,.18), transparent 62%),
+    conic-gradient(from 40deg, transparent 0 18%, rgba(0,199,138,.22) 20% 22%, transparent 24% 50%, rgba(47,120,255,.22) 52% 54%, transparent 56%);
+  filter: blur(.2px) drop-shadow(0 0 28px rgba(47,120,255,.22));
+  transform: translateY(-50%) rotate(-14deg);
+  animation: hero-core 7s ease-in-out infinite alternate;
+}
+
+.platform-preview {
+  width: min(100%, 560px);
+  justify-self: start;
+}
+
+.platform-preview:hover {
+  transform: rotateY(-3deg) rotateX(1deg) translate3d(0,-10px,34px);
+}
+
+.platform-preview .preview-topbar,
+.platform-preview .preview-body {
+  border-radius: inherit;
+}
+
+.hero-copy::before {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 2px;
+  top: -34px;
+  inset-inline-start: 0;
+  background: linear-gradient(90deg, transparent, rgba(0,199,138,.8), rgba(47,120,255,.65), transparent);
+  box-shadow: 0 0 20px rgba(0,199,138,.32);
+}
+
+.hero-actions .button-primary {
+  box-shadow: 0 14px 36px rgba(47,120,255,.28), inset 0 1px rgba(255,255,255,.18);
+}
+
+.hero-actions .button-secondary {
+  background: rgba(10,29,51,.72);
+  backdrop-filter: blur(14px);
+}
+
+@keyframes hero-orbit {
+  to { transform: translateY(-50%) rotateX(68deg) rotateZ(348deg); }
+}
+
+@keyframes hero-core {
+  from { opacity: .52; transform: translateY(-50%) rotate(-14deg) scale(.94); }
+  to { opacity: .88; transform: translateY(-50%) rotate(8deg) scale(1.08); }
+}
+
+@media (min-width: 901px) {
+  .hero-grid {
+    grid-template-columns: minmax(420px,.92fr) minmax(520px,1.08fr);
+    gap: clamp(54px,6vw,96px);
+  }
+
+  .hero-copy {
+    order: 2;
+  }
+
+  .platform-preview {
+    order: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    padding-top: 28px;
+  }
+
+  .hero-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .hero-copy {
+    order: 1;
+    width: 100%;
+    text-align: center;
+  }
+
+  .hero-copy::before,
+  .hero-grid::before,
+  .hero-grid::after {
+    display: none;
+  }
+
+  .hero-copy h1 {
+    margin-top: 14px;
+    font-size: clamp(2.15rem,10vw,3.35rem);
+    line-height: 1.14;
+  }
+
+  .hero-lead {
+    max-width: 38rem;
+    margin-inline: auto;
+    font-size: .98rem;
+  }
+
+  .hero-actions,
+  .hero-trust {
+    justify-content: center;
+  }
+
+  .platform-preview {
+    order: 2;
+    width: 100%;
+    max-width: 620px;
+    margin-inline: auto;
+    overflow: hidden;
+    border-radius: 22px;
+  }
+
+  .metric-strip {
+    order: 3;
+    margin-top: 34px;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero {
+    padding-top: 20px;
+  }
+
+  .hero-grid {
+    gap: 22px;
+  }
+
+  .eyebrow {
+    max-width: 100%;
+    font-size: .72rem;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(2rem,11vw,2.75rem);
+  }
+
+  .hero-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .hero-actions .button {
+    width: 100%;
+  }
+
+  .hero-trust {
+    display: grid;
+    gap: 8px;
+    text-align: start;
+  }
+
+  .platform-preview {
+    max-height: 470px;
+  }
+
+  .preview-body {
+    min-height: 400px;
+  }
+
+  .preview-content {
+    padding: 20px 14px 18px;
+  }
+
+  .preview-cards {
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 7px;
+  }
+
+  .preview-cards > div {
+    min-height: 84px;
+    padding: 11px 7px;
+  }
+
+  .preview-cards b {
+    font-size: .68rem;
+    line-height: 1.45;
+  }
+
+  .metric-strip {
+    grid-template-columns: repeat(2,1fr);
+    margin-top: 28px;
+  }
+
+  .metric-strip > div:nth-child(3) {
+    border-inline-start: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .metric-strip > div:nth-child(4) {
+    border-top: 1px solid var(--line);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-grid::before,
+  .hero-grid::after {
+    animation: none !important;
+  }
+}
