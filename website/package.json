@@ -1,0 +1,13 @@
+{
+  "name": "ai-gate-iraq-official-website",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "check": "node scripts/validate.mjs",
+    "dev": "wrangler dev",
+    "deploy": "npm run check && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.103.0"
+  }
+}
