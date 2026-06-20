@@ -1,7 +1,6 @@
 import { ChevronDown, MoreHorizontal, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FeedbackDialog } from '@/src/components/FeedbackDialog';
-import { UserMenu } from '@/src/components/UserMenu';
 
 interface AppHeaderProps {
   lang: 'ku' | 'ar';
@@ -30,16 +29,14 @@ export const AppHeader = ({ lang, setLang, t, children }: AppHeaderProps) => {
             {lang === 'ar' ? 'مشاركة' : 'هاوبەشکردن'}
           </Button>
           <FeedbackDialog />
-          <div className="hidden sm:block"><UserMenu /></div>
           <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
             <MoreHorizontal className="h-5 w-5" />
           </Button>
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2 border-t border-slate-200 px-3 py-2 dark:border-slate-800 md:hidden">
-        <div className="min-w-0 flex-1">{children}</div>
-        <UserMenu />
+      <div className="border-t border-slate-200 px-3 py-2 dark:border-slate-800 md:hidden">
+        <div className="min-w-0 w-full">{children}</div>
       </div>
     </header>
   );
