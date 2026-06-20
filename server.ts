@@ -3,6 +3,7 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
+import { corsMiddleware } from './src/server/cors';
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ const model = (process.env.GEMINI_MODEL || 'gemini-2.5-flash')
   .trim();
 
 app.disable('x-powered-by');
+app.use(corsMiddleware);
 app.use(express.json({ limit: '1mb' }));
 
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
@@ -27,7 +29,9 @@ const SYSTEM_INSTRUCTION = `تۆ یاریدەدەری بازرگانی AI Gate I
 3. هیچ نرخ، دۆخی مەرز، یاسا یان داتای live بە درۆ دروست مەکە.
 4. هەر خەمڵاندنێک بە ڕوونی وەک خەمڵاندن دیاری بکە و داوای زانیاریی سەرچاوە بکە.
 5. هیچ Quote ID، پاشەکەوتی ڕێژەیی یان نرخێکی ساختە دروست مەکە.
-6. بۆ زانیاریی یاسایی، گومرگی و دارایی ئاگاداری پشتڕاستکردنەوە لە دەزگای پەیوەندیدار زیاد بکە.`;
+6. بۆ زانیاریی یاسایی، گومرگی و دارایی ئاگاداری پشتڕاستکردنەوە لە دەزگای پەیوەندیدار زیاد بکە.
+7. لە پرسیاری گومرگ، باج یان تۆمارکردنی ئۆتۆمبێلدا، بەهۆی نەبوونی نرخی live وەڵام ڕەت مەکەوە؛ سەرەتا پێکهاتەی گشتی و هەنگاوەکان ڕوون بکەرەوە، پاشان ساڵی دروستکردن، جۆر، قەبارەی بزوێنەر، نرخی کڕین، وڵاتی سەرچاوە و دەروازەی هاتن داوا بکە.
+8. جیاوازی نێوان زانیاریی پشتڕاستکراو، خەمڵاندن و ڕێنمایی گشتی بە ڕوونی نیشان بدە.`;
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'ai-gate-iraq', modelConfigured: Boolean(apiKey) });
