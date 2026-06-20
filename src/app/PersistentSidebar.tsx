@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Folder, MoreHorizontal, Plus, Search, UserRound, X } from 'lucide-react';
+import { Folder, MoreHorizontal, Plus, Search, X } from 'lucide-react';
 import { SERVICES, ServiceKey } from '@/src/lib/services';
 import { getAdminFeatureFlagEnabled } from '@/src/admin/adminStore';
 import { saveConversation, SavedConversation } from '@/src/lib/conversationStore';
 import { loadSession, saveSession } from '@/src/lib/sessionStore';
 import { SidebarProjectsPanel, SidebarSearchPanel } from '@/src/app/SidebarPanels';
-import { useAuth } from '@/src/components/AuthProvider';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserMenu } from '@/src/components/UserMenu';
 
 interface PersistentSidebarProps {
   activeService: ServiceKey;
@@ -17,7 +16,6 @@ interface PersistentSidebarProps {
 type Panel = 'main' | 'search' | 'projects';
 
 export default function PersistentSidebar({ activeService, setActiveService, lang }: PersistentSidebarProps) {
-  const { user } = useAuth();
   const isInquiryEnabled = getAdminFeatureFlagEnabled('enable_inquiry_form', true);
   const services = SERVICES.filter((service) => service.key !== 'inquiry' || isInquiryEnabled);
   const ku = lang === 'ku';
@@ -39,8 +37,6 @@ export default function PersistentSidebar({ activeService, setActiveService, lan
     });
     window.location.reload();
   };
-
-  const accountLabel = user?.displayName || user?.email || (ku ? 'هەژماری من' : 'حسابي');
 
   return (
     <aside className={`chatgpt-sidebar z-40 h-full shrink-0 border-e border-slate-200 bg-white transition-[width] dark:border-slate-800 dark:bg-[#0B1220] ${expanded ? 'w-[300px]' : 'w-[68px] md:w-[76px] lg:w-[300px]'}`} dir="rtl">
@@ -84,19 +80,7 @@ export default function PersistentSidebar({ activeService, setActiveService, lan
         )}
 
         <div className="shrink-0 border-t border-slate-200 p-2 dark:border-slate-800 lg:p-3">
-          <button type="button" title={accountLabel} className="flex h-11 w-full items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 lg:justify-start lg:gap-3 lg:px-3">
-            <Avatar className="h-8 w-8 shrink-0 border border-slate-200 dark:border-slate-700">
-              <AvatarImage
-                src={user?.photoURL || undefined}
-                alt={user?.displayName || user?.email || accountLabel}
-                referrerPolicy="no-referrer"
-              />
-              <AvatarFallback className="bg-slate-300 text-slate-600 dark:bg-slate-700 dark:text-slate-200">
-                <UserRound className="h-4 w-4" />
-              </AvatarFallback>
-            </Avatar>
-            <span className={`${expanded ? 'block' : 'hidden lg:block'} min-w-0 truncate text-sm font-bold`}>{accountLabel}</span>
-          </button>
+          <UserMenu variant="sidebar" expanded={expanded} />
         </div>
       </div>
     </aside>
