@@ -50,6 +50,14 @@ export const AppHeader = ({ lang, setLang, children }: AppHeaderProps) => {
         <div className="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-2">
           <LanguageSwitcher lang={lang} setLang={setLang} />
           <div className="hidden md:block">{children}</div>
+          <a
+            href="/admin"
+            className="flex h-9 shrink-0 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 text-[10px] font-black text-amber-700 transition-colors hover:bg-amber-500 hover:text-white dark:text-amber-300 sm:px-3 sm:text-xs"
+            aria-label={lang === 'ar' ? 'تسجيل دخول الإدارة' : 'چوونەژوورەوەی ئادمین'}
+            title={lang === 'ar' ? 'تسجيل دخول الإدارة' : 'چوونەژوورەوەی ئادمین'}
+          >
+            {lang === 'ar' ? 'الإدارة' : 'ئادمین'}
+          </a>
           <Button
             type="button"
             variant="ghost"

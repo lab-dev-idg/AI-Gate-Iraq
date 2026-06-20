@@ -102,28 +102,30 @@ export function UserMenu({ variant = 'header', expanded = false }: UserMenuProps
         )
       ) : (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            {isSidebar ? (
-              <button type="button" title={accountName} className={sidebarButtonClass}>
-                <Avatar className="h-8 w-8 shrink-0 border border-slate-200 dark:border-slate-700">
-                  <AvatarImage src={user.photoURL || undefined} alt={accountName} referrerPolicy="no-referrer" />
-                  <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
-                </Avatar>
-                <div className={`${expanded ? 'flex' : 'hidden lg:flex'} min-w-0 flex-1 flex-col items-start text-right`}>
-                  <span className="w-full truncate text-sm font-black">{accountName}</span>
-                  <span className="w-full truncate text-[10px] text-slate-500 dark:text-slate-400">{user.email}</span>
-                </div>
-                <ChevronUp className={`${expanded ? 'block' : 'hidden lg:block'} h-4 w-4 shrink-0 text-slate-400`} />
-              </button>
-            ) : (
-              <button type="button" className="relative h-10 w-10 cursor-pointer overflow-hidden rounded-full border shadow-sm outline-none transition-opacity hover:opacity-80">
-                <Avatar className="h-full w-full">
-                  <AvatarImage src={user.photoURL || undefined} alt={accountName} />
-                  <AvatarFallback><User className="h-5 w-5" /></AvatarFallback>
-                </Avatar>
-              </button>
-            )}
-          </DropdownMenuTrigger>
+          <DropdownMenuTrigger
+            render={
+              isSidebar ? (
+                <button type="button" title={accountName} className={sidebarButtonClass}>
+                  <Avatar className="h-8 w-8 shrink-0 border border-slate-200 dark:border-slate-700">
+                    <AvatarImage src={user.photoURL || undefined} alt={accountName} referrerPolicy="no-referrer" />
+                    <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+                  </Avatar>
+                  <div className={`${expanded ? 'flex' : 'hidden lg:flex'} min-w-0 flex-1 flex-col items-start text-right`}>
+                    <span className="w-full truncate text-sm font-black">{accountName}</span>
+                    <span className="w-full truncate text-[10px] text-slate-500 dark:text-slate-400">{user.email}</span>
+                  </div>
+                  <ChevronUp className={`${expanded ? 'block' : 'hidden lg:block'} h-4 w-4 shrink-0 text-slate-400`} />
+                </button>
+              ) : (
+                <button type="button" className="relative h-10 w-10 cursor-pointer overflow-hidden rounded-full border shadow-sm outline-none transition-opacity hover:opacity-80">
+                  <Avatar className="h-full w-full">
+                    <AvatarImage src={user.photoURL || undefined} alt={accountName} />
+                    <AvatarFallback><User className="h-5 w-5" /></AvatarFallback>
+                  </Avatar>
+                </button>
+              )
+            }
+          />
           <DropdownMenuContent
             className="w-72 rounded-2xl border border-slate-200 bg-white p-2 text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-[#101827] dark:text-slate-100"
             align={isSidebar ? 'start' : 'end'}
