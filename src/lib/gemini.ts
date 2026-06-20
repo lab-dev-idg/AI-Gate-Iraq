@@ -3,6 +3,9 @@ export interface ChatMessage {
   text: string;
 }
 
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
+const chatApiUrl = apiBaseUrl ? `${apiBaseUrl}/api/gemini/chat` : '/api/gemini/chat';
+
 class ChatProxy {
   private history: ChatMessage[] = [];
 
@@ -11,22 +14,22 @@ class ChatProxy {
     activeService,
     lang,
     serviceHint,
-    workflowContext
+    workflowContext,
   }: {
     message: string;
     activeService?: string;
     lang?: string;
     serviceHint?: string;
-    workflowContext?: any;
+    workflowContext?: unknown;
   }) {
-    // Add user message to history
     this.history.push({ role: 'user', text: message });
 
     try {
-      const response = await fetch("/api/gemini/chat", {
-        method: "POST",
+      const response = await fetch(chatApiUrl, {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           messages: this.history,
@@ -34,43 +37,39 @@ class ChatProxy {
           lang,
           userMessage: message,
           serviceHint,
-          workflowContext
-        })
+          workflowContext,
+        }),
       });
 
-      if (!response.ok) {
-        let errorData;
-        try {
-          errorData = await response.json();
-        } catch (e) {
-          // Ignore parse errors on raw status failures
-        }
-
-        if (response.status === 429 || errorData?.error?.code === "RESOURCE_EXHAUSTED") {
-          throw new Error("QUOTA_EXHAUSTED");
-        }
-        
-        const errMsg = errorData?.error?.message || `HTTP ${response.status}: ${response.statusText}`;
-        throw new Error(errMsg);
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('AI_ENDPOINT_MISCONFIGURED');
       }
 
       const data = await response.json();
-      
-      // Add assistant response to history
-      this.history.push({ role: 'model', text: data.text || "" });
+
+      if (!response.ok) {
+        const code = data?.error?.code;
+        if (response.status === 429) throw new Error('AI_QUOTA_EXCEEDED');
+        throw new Error(code || `AI_HTTP_${response.status}`);
+      }
+
+      const text = typeof data?.text === 'string' ? data.text.trim() : '';
+      if (!text) throw new Error('EMPTY_AI_RESPONSE');
+
+      this.history.push({ role: 'model', text });
 
       return {
-        text: data.text,
+        text,
         candidates: [
           {
             groundingMetadata: {
-              groundingChunks: data.groundingChunks
-            }
-          }
-        ]
+              groundingChunks: data.groundingChunks,
+            },
+          },
+        ],
       };
     } catch (error) {
-      // Remove last user message on failure so the user keeps a synchronized state
       this.history.pop();
       throw error;
     }
