@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Folder, MoreHorizontal, Plus, Search, X } from 'lucide-react';
+import { Folder, PanelLeftClose, PanelLeftOpen, Plus, Search } from 'lucide-react';
 import { SERVICES, ServiceKey } from '@/src/lib/services';
 import { getAdminFeatureFlagEnabled } from '@/src/admin/adminStore';
 import { saveConversation, SavedConversation } from '@/src/lib/conversationStore';
@@ -21,6 +21,9 @@ export default function PersistentSidebar({ activeService, setActiveService, lan
   const ku = lang === 'ku';
   const [panel, setPanel] = useState<Panel>('main');
   const expanded = panel !== 'main';
+  const sidebarToggleLabel = expanded
+    ? (ku ? 'داخستنی سایدبار' : 'إغلاق الشريط الجانبي')
+    : (ku ? 'کردنەوەی سایدبار' : 'فتح الشريط الجانبي');
 
   const startNewChat = () => {
     const session = loadSession(lang);
@@ -38,16 +41,30 @@ export default function PersistentSidebar({ activeService, setActiveService, lan
     window.location.reload();
   };
 
+  const toggleSidebar = () => {
+    setPanel((current) => current === 'main' ? 'projects' : 'main');
+  };
+
   return (
-    <aside className={`chatgpt-sidebar z-40 h-full shrink-0 border-e border-slate-200 bg-white transition-[width] dark:border-slate-800 dark:bg-[#0B1220] ${expanded ? 'w-[300px]' : 'w-[68px] md:w-[76px] lg:w-[300px]'}`} dir="rtl">
+    <aside className={`chatgpt-sidebar z-40 h-full shrink-0 border-e border-slate-200 bg-white transition-[width] duration-200 dark:border-slate-800 dark:bg-[#0B1220] ${expanded ? 'w-[300px]' : 'w-[68px] md:w-[76px] lg:w-[300px]'}`} dir="rtl">
       <div className="flex h-full min-h-0 flex-col">
         <div className="flex h-14 shrink-0 items-center justify-center border-b border-slate-200 px-2 dark:border-slate-800 lg:justify-between lg:px-3">
           <div className={`${expanded ? 'flex' : 'hidden lg:flex'} min-w-0 items-center gap-2`}>
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-black text-white">AI</div>
-            <span className="truncate text-sm font-black text-slate-900 dark:text-white">AI Gate Iraq</span>
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-xs font-black text-white shadow-sm shadow-blue-600/30">AI</div>
+            <span className="whitespace-nowrap text-sm font-black text-slate-900 dark:text-white">AI Gate Iraq</span>
           </div>
-          <button type="button" onClick={() => setPanel(panel === 'main' ? 'projects' : 'main')} className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
-            {panel === 'main' ? <MoreHorizontal className="h-5 w-5" /> : <X className="h-5 w-5" />}
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label={sidebarToggleLabel}
+            title={sidebarToggleLabel}
+            className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-400/30 bg-blue-600 text-white shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5 hover:bg-blue-500 hover:shadow-blue-600/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:translate-y-0 dark:ring-offset-[#0B1220]"
+          >
+            {expanded ? (
+              <PanelLeftClose className="h-5 w-5 transition-transform group-hover:scale-110" />
+            ) : (
+              <PanelLeftOpen className="h-5 w-5 transition-transform group-hover:scale-110" />
+            )}
           </button>
         </div>
 
