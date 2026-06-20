@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">AI Gate Iraq</title>
+  <desc id="desc">A digital gateway symbol for AI Gate Iraq</desc>
+  <defs>
+    <linearGradient id="g" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2f78ff"/>
+      <stop offset="1" stop-color="#00c78a"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="18" fill="#0d1d32"/>
+  <path d="M18 47V21.5C18 17.9 20.9 15 24.5 15h15C43.1 15 46 17.9 46 21.5V47" fill="none" stroke="url(#g)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M27 47V29h10v18" fill="none" stroke="#f8fafc" stroke-width="5" stroke-linejoin="round"/>
+  <circle cx="46" cy="18" r="4" fill="#00c78a"/>
+</svg>
