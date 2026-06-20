@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogOut, User, LogIn, AlertTriangle, Copy, Check, ExternalLink } from 'lucide-react';
+import { LogOut, User, LogIn, AlertTriangle, Copy, Check, ExternalLink, ChevronUp } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -21,11 +21,17 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-export function UserMenu() {
+interface UserMenuProps {
+  variant?: 'header' | 'sidebar';
+  expanded?: boolean;
+}
+
+export function UserMenu({ variant = 'header', expanded = false }: UserMenuProps) {
   const { user, loading } = useAuth();
   const { lang, t } = useLanguage();
   const [errorDetails, setErrorDetails] = useState<{ code: string; message: string; domain: string } | null>(null);
   const [copied, setCopied] = useState(false);
+  const isSidebar = variant === 'sidebar';
 
   const handleLogin = async () => {
     try {
@@ -34,7 +40,7 @@ export function UserMenu() {
       console.error('Login failed:', error);
       const errMessage = error?.message || '';
       const errCode = error?.code || '';
-      
+
       if (errCode === 'auth/unauthorized-domain' || errMessage.includes('unauthorized-domain')) {
         const currentDomain = typeof window !== 'undefined' ? window.location.hostname : '';
         setErrorDetails({
@@ -61,40 +67,85 @@ export function UserMenu() {
   };
 
   if (loading) {
-    return <div className="w-8 h-8 rounded-full bg-slate-100 animate-pulse" />;
+    return isSidebar ? (
+      <div className="flex h-12 w-full items-center justify-center gap-3 rounded-xl px-3 lg:justify-start">
+        <div className="h-8 w-8 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
+        <div className="hidden h-3 w-28 animate-pulse rounded bg-slate-200 dark:bg-slate-700 lg:block" />
+      </div>
+    ) : (
+      <div className="h-8 w-8 animate-pulse rounded-full bg-slate-100" />
+    );
   }
 
   const currentDomain = typeof window !== 'undefined' ? window.location.hostname : '';
   const firebaseStatus = getFirebaseStatus();
   const consoleUrl = `https://console.firebase.google.com/project/${firebaseStatus.projectId}/authentication/settings`;
+  const accountName = user?.displayName || user?.email || (lang === 'ku' ? 'هەژماری من' : 'حسابي');
+
+  const sidebarButtonClass = 'flex h-12 w-full items-center justify-center rounded-xl px-2 text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 lg:justify-start lg:gap-3 lg:px-3';
 
   return (
     <>
       {!user ? (
-        <Button variant="outline" size="sm" onClick={handleLogin} className="gap-2">
-          <LogIn className="w-4 h-4" />
-          {lang === 'ku' ? 'چوونەژوورەوە' : 'تسجيل الدخول'}
-        </Button>
+        isSidebar ? (
+          <button type="button" onClick={handleLogin} className={sidebarButtonClass}>
+            <LogIn className="h-5 w-5 shrink-0" />
+            <span className={`${expanded ? 'block' : 'hidden lg:block'} text-sm font-black`}>
+              {lang === 'ku' ? 'چوونەژوورەوە' : 'تسجيل الدخول'}
+            </span>
+          </button>
+        ) : (
+          <Button variant="outline" size="sm" onClick={handleLogin} className="gap-2">
+            <LogIn className="h-4 w-4" />
+            {lang === 'ku' ? 'چوونەژوورەوە' : 'تسجيل الدخول'}
+          </Button>
+        )
       ) : (
         <DropdownMenu>
-          <DropdownMenuTrigger className="relative h-10 w-10 rounded-full overflow-hidden border shadow-sm hover:opacity-80 transition-opacity cursor-pointer outline-none">
-            <Avatar className="h-full w-full">
-              <AvatarImage src={user.photoURL || undefined} alt={user.displayName || ''} />
-              <AvatarFallback><User className="w-5 h-5" /></AvatarFallback>
-            </Avatar>
+          <DropdownMenuTrigger asChild>
+            {isSidebar ? (
+              <button type="button" title={accountName} className={sidebarButtonClass}>
+                <Avatar className="h-8 w-8 shrink-0 border border-slate-200 dark:border-slate-700">
+                  <AvatarImage src={user.photoURL || undefined} alt={accountName} referrerPolicy="no-referrer" />
+                  <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+                </Avatar>
+                <div className={`${expanded ? 'flex' : 'hidden lg:flex'} min-w-0 flex-1 flex-col items-start text-right`}>
+                  <span className="w-full truncate text-sm font-black">{accountName}</span>
+                  <span className="w-full truncate text-[10px] text-slate-500 dark:text-slate-400">{user.email}</span>
+                </div>
+                <ChevronUp className={`${expanded ? 'block' : 'hidden lg:block'} h-4 w-4 shrink-0 text-slate-400`} />
+              </button>
+            ) : (
+              <button type="button" className="relative h-10 w-10 cursor-pointer overflow-hidden rounded-full border shadow-sm outline-none transition-opacity hover:opacity-80">
+                <Avatar className="h-full w-full">
+                  <AvatarImage src={user.photoURL || undefined} alt={accountName} />
+                  <AvatarFallback><User className="h-5 w-5" /></AvatarFallback>
+                </Avatar>
+              </button>
+            )}
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end">
+          <DropdownMenuContent
+            className="w-72 rounded-2xl border border-slate-200 bg-white p-2 text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-[#101827] dark:text-slate-100"
+            align={isSidebar ? 'start' : 'end'}
+            side={isSidebar ? 'top' : 'bottom'}
+            sideOffset={8}
+            dir="rtl"
+          >
             <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{user.displayName}</p>
-                <p className="text-xs leading-none text-muted-foreground">
-                  {user.email}
-                </p>
+              <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3 dark:bg-slate-950/50">
+                <Avatar className="h-11 w-11 shrink-0 border border-slate-200 dark:border-slate-700">
+                  <AvatarImage src={user.photoURL || undefined} alt={accountName} referrerPolicy="no-referrer" />
+                  <AvatarFallback><User className="h-5 w-5" /></AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1 space-y-1 text-right">
+                  <p className="truncate text-sm font-black">{accountName}</p>
+                  <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
+                </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-red-500 gap-2 cursor-pointer">
-              <LogOut className="w-4 h-4" />
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer gap-2 rounded-xl px-3 py-2.5 text-red-500">
+              <LogOut className="h-4 w-4" />
               <span>{t.profile?.logout || 'دەرچوون'}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -102,61 +153,37 @@ export function UserMenu() {
       )}
 
       <Dialog open={!!errorDetails} onOpenChange={(open) => !open && setErrorDetails(null)}>
-        <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-6" dir="rtl">
+        <DialogContent className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900 sm:max-w-md" dir="rtl">
           <DialogHeader className="text-right">
-            <DialogTitle className="text-lg font-bold flex items-center gap-2 text-rose-500 dark:text-rose-400 font-arabic justify-start flex-row-reverse">
-              <AlertTriangle className="w-5 h-5 shrink-0 animate-bounce" />
-              <span>
-                {lang === 'ku' ? 'هەڵەی ڕێگەپێدانی دۆمەین (Firebase)' : 'خطأ النطاق غير المعتمد (Firebase)'}
-              </span>
+            <DialogTitle className="flex flex-row-reverse items-center justify-start gap-2 text-lg font-bold text-rose-500 dark:text-rose-400">
+              <AlertTriangle className="h-5 w-5 shrink-0" />
+              <span>{lang === 'ku' ? 'هەڵەی ڕێگەپێدانی دۆمەین (Firebase)' : 'خطأ النطاق غير المعتمد (Firebase)'}</span>
             </DialogTitle>
-            <DialogDescription className="text-slate-600 dark:text-slate-400 mt-2 text-right leading-relaxed text-xs">
-              {lang === 'ku' ? 'ئەم دۆمەینەی ئێستا بەکاریدێنیت هێشتا ڕێگەپێدراو نەکراوە بۆ چوونەژوورەوە لە فایەربەیسی ئەم ئەپەدا.' : 'النطاق (Domain) الذي تستخدمه حالياً غير مدرج ضمن النطاقات المصرح بها لمشروع Firebase الخاص بهذا التطبيق.'}
+            <DialogDescription className="mt-2 text-right text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+              {lang === 'ku' ? 'ئەم دۆمەینەی ئێستا بەکاریدێنیت هێشتا ڕێگەپێدراو نەکراوە بۆ چوونەژوورەوە.' : 'النطاق الذي تستخدمه حالياً غير مدرج ضمن النطاقات المصرح بها.'}
             </DialogDescription>
           </DialogHeader>
 
           <div className="mt-4 space-y-4">
-            <div className="p-3.5 bg-rose-500/5 border border-rose-500/10 rounded-xl space-y-2">
-              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 text-right">
-                {lang === 'ku' ? '١. ئەم دۆمەینە کۆپی بکە:' : '١. يرجى نسخ هذا النطاق من هنا:'}
+            <div className="space-y-2 rounded-xl border border-rose-500/10 bg-rose-500/5 p-3.5">
+              <h4 className="text-right text-xs font-bold text-slate-800 dark:text-slate-200">
+                {lang === 'ku' ? 'ئەم دۆمەینە کۆپی بکە:' : 'انسخ هذا النطاق:'}
               </h4>
-              <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-950/60 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800/80">
-                <code className="text-xs font-mono text-slate-700 dark:text-slate-300 break-all flex-1 text-center font-semibold select-all">
-                  {currentDomain}
-                </code>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  onClick={() => handleCopy(currentDomain)} 
-                  className="h-8 px-2 shrink-0 hover:bg-slate-100 dark:hover:bg-slate-850"
-                >
-                  {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-slate-500" />}
+              <div className="flex items-center gap-2 rounded-xl border border-slate-200/60 bg-slate-50 p-2.5 dark:border-slate-800/80 dark:bg-slate-950/60">
+                <code className="flex-1 select-all break-all text-center font-mono text-xs font-semibold text-slate-700 dark:text-slate-300">{currentDomain}</code>
+                <Button size="sm" variant="ghost" onClick={() => handleCopy(currentDomain)} className="h-8 shrink-0 px-2">
+                  {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4 text-slate-500" />}
                 </Button>
               </div>
             </div>
-
-            <div className="p-3.5 bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 space-y-2 rounded-xl text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-              <p className="text-right">
-                {lang === 'ku' ? '٢. بچۆ کەتنیۆ پڕۆڤایدەرەکانی فایەربەیس و لە ژێر نیشانەی چوونەژوورەوەی گووگڵ تابلۆی "Authorized Domains" دۆمەینەکە زیادبکە.' : '٢. انتقل إلى موفري المصادقة في وحدة تحكم Firebase، وتحت إعدادات Google الدخول اضغط على "النطاقات المصرح بها" (Authorized Domains) وقم بإضافته.'}
-              </p>
-            </div>
           </div>
 
-          <div className="mt-5 flex flex-col sm:flex-row-reverse gap-2">
-            <a 
-              href={consoleUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs gap-1.5 shadow-md shadow-emerald-500/10 flex items-center justify-center h-10 flex-grow cursor-pointer transition-all"
-            >
-              {lang === 'ku' ? 'کردنەوەی پەیجی فایەربەیس' : 'فتح صفحة التحكم بـ Firebase'}
-              <ExternalLink className="w-3.5 h-3.5" />
+          <div className="mt-5 flex flex-col gap-2 sm:flex-row-reverse">
+            <a href={consoleUrl} target="_blank" rel="noopener noreferrer" className="flex h-10 flex-grow items-center justify-center gap-1.5 rounded-xl bg-emerald-500 text-xs font-semibold text-white hover:bg-emerald-600">
+              {lang === 'ku' ? 'کردنەوەی Firebase' : 'فتح Firebase'}
+              <ExternalLink className="h-3.5 w-3.5" />
             </a>
-            <Button 
-              variant="outline" 
-              onClick={() => setErrorDetails(null)}
-              className="border-slate-200 dark:border-slate-800 rounded-xl text-xs h-10"
-            >
+            <Button variant="outline" onClick={() => setErrorDetails(null)} className="h-10 rounded-xl text-xs">
               {lang === 'ku' ? 'داخستن' : 'إغلاق'}
             </Button>
           </div>
