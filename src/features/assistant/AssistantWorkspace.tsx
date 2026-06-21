@@ -26,8 +26,8 @@ export const AssistantWorkspace = (props: AssistantWorkspaceProps) => {
   const footerText = `AI Gate Iraq • 2026`;
 
   return (
-    <Card className="flex min-h-[calc(100dvh-210px)] w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md dark:border-slate-800 dark:bg-[#0E1728] lg:min-h-0 lg:h-full">
-      <div className="flex shrink-0 flex-col gap-3 border-b border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-[#111D31] sm:flex-row sm:items-center sm:justify-between md:px-5">
+    <Card className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md dark:border-slate-800 dark:bg-[#0E1728]">
+      <div className="flex shrink-0 flex-col gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-[#111D31] sm:flex-row sm:items-center sm:justify-between md:px-5 md:py-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
             <Bot className="h-5 w-5" />
