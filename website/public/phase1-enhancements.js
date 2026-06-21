@@ -1,0 +1,55 @@
+(() => {
+  'use strict';
+
+  const labels = {
+    ku: 'دەربارەی ئێمە',
+    ar: 'من نحن',
+    en: 'About'
+  };
+
+  const currentLanguage = () => ['ku', 'ar', 'en'].includes(document.documentElement.lang)
+    ? document.documentElement.lang
+    : 'ku';
+
+  const ensureAboutLink = () => {
+    const nav = document.getElementById('mainNav');
+    if (nav && !nav.querySelector('a[href="/about.html"]')) {
+      const link = document.createElement('a');
+      link.href = '/about.html';
+      link.dataset.phase2About = 'true';
+      link.textContent = labels[currentLanguage()];
+      nav.insertBefore(link, nav.querySelector('.mobile-app-link'));
+    }
+
+    document.querySelectorAll('[data-phase2-about]').forEach((link) => {
+      link.textContent = labels[currentLanguage()];
+    });
+  };
+
+  ensureAboutLink();
+  new MutationObserver(ensureAboutLink).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['lang']
+  });
+
+  document.querySelectorAll('.faq-list details').forEach((item) => {
+    item.addEventListener('toggle', () => {
+      if (!item.open) return;
+
+      document.querySelectorAll('.faq-list details[open]').forEach((other) => {
+        if (other !== item) {
+          other.open = false;
+        }
+      });
+    });
+  });
+
+  const form = document.getElementById('pilotApplicationForm');
+
+  form?.addEventListener('submit', (event) => {
+    if (form.checkValidity()) return;
+
+    event.preventDefault();
+    form.reportValidity();
+  });
+})();

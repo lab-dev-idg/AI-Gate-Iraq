@@ -8,12 +8,14 @@ const requiredFiles = [
   'public/legal.html',
   'public/404.html',
   'public/app.js',
+  'public/phase1-enhancements.js',
   'public/translations.json',
   'public/styles.css',
   'public/styles/responsive.css',
   'public/styles/smart-hero.css',
   'public/styles/smart-hero-v2.css',
   'public/styles/smart-hero-final.css',
+  'public/styles/phase1-intelligence.css',
   'public/_headers',
   'public/robots.txt',
   'public/sitemap.xml',
@@ -57,11 +59,13 @@ for (const fragment of [
   '/legal.html#ai',
   'id="menuToggle"',
   'id="mainNav"',
+  'id="pilot-apply"',
+  'href="#pilot-apply"',
 ]) {
   if (!index.includes(fragment)) failures.push(`index.html is missing: ${fragment}`);
 }
 
-if (/placeholder|lorem ipsum|example\.com/i.test(index)) failures.push('index.html contains placeholder content.');
+if (/lorem ipsum|example\.com|\bTODO\b|\bTBD\b/i.test(index)) failures.push('index.html contains unfinished or placeholder content.');
 if (!app.includes("'use strict'")) failures.push('app.js is missing strict mode.');
 if (!app.includes('prefers-reduced-motion')) failures.push('app.js is missing reduced-motion support.');
 if (!app.includes('interfaceTranslations')) failures.push('app.js is missing interface translations.');
