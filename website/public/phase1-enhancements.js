@@ -43,6 +43,21 @@
   };
 
   ensureAboutLink();
+
+  const conversionStyles = document.createElement('link');
+  conversionStyles.rel = 'stylesheet';
+  conversionStyles.href = '/styles/conversion-suite.css';
+  if (!document.querySelector('link[href="/styles/conversion-suite.css"]')) {
+    document.head.appendChild(conversionStyles);
+  }
+
+  const conversionScript = document.createElement('script');
+  conversionScript.src = '/conversion-suite.js';
+  conversionScript.defer = true;
+  if (!document.querySelector('script[src="/conversion-suite.js"]')) {
+    document.body.appendChild(conversionScript);
+  }
+
   loadAuditLayer();
 
   new MutationObserver(ensureAboutLink).observe(document.documentElement, {
