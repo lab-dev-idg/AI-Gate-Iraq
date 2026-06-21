@@ -4,8 +4,9 @@
   "version": "1.0.0",
   "scripts": {
     "check": "node scripts/validate.mjs",
-    "dev": "wrangler dev",
-    "deploy": "npm run check && wrangler deploy"
+    "prepare:wrangler": "node scripts/prepare-wrangler.mjs",
+    "dev": "npm run prepare:wrangler && wrangler dev --config wrangler.jsonc",
+    "deploy": "npm run check && npm run prepare:wrangler && wrangler deploy --config wrangler.jsonc"
   },
   "devDependencies": {
     "wrangler": "^4.103.0"
