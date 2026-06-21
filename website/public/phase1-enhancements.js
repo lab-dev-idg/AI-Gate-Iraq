@@ -26,7 +26,25 @@
     });
   };
 
+  const loadAuditLayer = () => {
+    if (!document.querySelector('link[href="/styles/site-audit.css"]')) {
+      const stylesheet = document.createElement('link');
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = '/styles/site-audit.css';
+      document.head.appendChild(stylesheet);
+    }
+
+    if (!document.querySelector('script[src="/site-audit.js"]')) {
+      const script = document.createElement('script');
+      script.src = '/site-audit.js';
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+  };
+
   ensureAboutLink();
+  loadAuditLayer();
+
   new MutationObserver(ensureAboutLink).observe(document.documentElement, {
     attributes: true,
     attributeFilter: ['lang']
