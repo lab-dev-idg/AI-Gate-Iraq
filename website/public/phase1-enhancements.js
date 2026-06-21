@@ -54,8 +54,21 @@
   const conversionScript = document.createElement('script');
   conversionScript.src = '/conversion-suite.js';
   conversionScript.defer = true;
+  conversionScript.addEventListener('load', () => {
+    if (!document.querySelector('script[src="/conversion-suite-fix.js"]')) {
+      const fixScript = document.createElement('script');
+      fixScript.src = '/conversion-suite-fix.js';
+      fixScript.defer = true;
+      document.body.appendChild(fixScript);
+    }
+  });
   if (!document.querySelector('script[src="/conversion-suite.js"]')) {
     document.body.appendChild(conversionScript);
+  } else if (!document.querySelector('script[src="/conversion-suite-fix.js"]')) {
+    const fixScript = document.createElement('script');
+    fixScript.src = '/conversion-suite-fix.js';
+    fixScript.defer = true;
+    document.body.appendChild(fixScript);
   }
 
   loadAuditLayer();
