@@ -15,8 +15,11 @@ interface ChatMessagesProps {
 }
 
 export const ChatMessages = ({ messages, isLoading, lang, onSelectMessage, chatScrollRef }: ChatMessagesProps) => (
-  <div ref={chatScrollRef} className="chat-message-scroll flex min-h-[300px] flex-1 overflow-y-auto overflow-x-hidden bg-slate-50/60 px-3 py-5 dark:bg-[#091222] sm:px-4 md:px-6">
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-5">
+  <div
+    ref={chatScrollRef}
+    className="chat-message-scroll min-h-0 flex-1 touch-pan-y overscroll-contain overflow-y-auto overflow-x-hidden bg-slate-50/60 px-3 py-4 [-webkit-overflow-scrolling:touch] dark:bg-[#091222] sm:px-4 sm:py-5 md:px-6"
+  >
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 pb-2">
       <AnimatePresence initial={false}>
         {messages.map((message, index) => {
           const isUser = message.role === 'user';
