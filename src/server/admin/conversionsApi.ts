@@ -11,8 +11,42 @@ conversionsAdminApi.get('/', async (_req, res) => {
   if (!db) return res.status(503).json({ error: { code: 'ADMIN_BACKEND_NOT_CONFIGURED' } });
 
   try {
-    const snapshot = await db.collection('conversionSubmissions').orderBy('createdAt', 'desc').limit(250).get();
-    return res.json({ data: snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() })) });
+    const [conversionSnapshot, intakeSnapshot] = await Promise.all([
+      db.collection('conversionSubmissions').orderBy('createdAt', 'desc').limit(250).get(),
+      db.collection('intakeItems').orderBy('createdAt', 'desc').limit(250).get(),
+    ]);
+
+    const conversionRecords = conversionSnapshot.docs.map((entry) => ({
+      id: entry.id,
+      sourceCollection: 'conversionSubmissions',
+      ...entry.data(),
+    }));
+
+    const intakeRecords = intakeSnapshot.docs.map((entry) => {
+      const data = entry.data();
+      return {
+        id: entry.id,
+        sourceCollection: 'intakeItems',
+        type: 'contact',
+        language: 'ku',
+        fullName: data.name || '',
+        email: data.contact || '',
+        phone: '',
+        organization: data.company || '',
+        service: data.serviceInterest || data.category || '',
+        message: data.message || '',
+        status: data.status === 'contacted' ? 'contacted' : data.status === 'closed' ? 'closed' : 'received',
+        adminNote: data.adminNote || '',
+        createdAt: data.createdAt || '',
+        updatedAt: data.updatedAt || '',
+      };
+    });
+
+    const merged = [...conversionRecords, ...intakeRecords]
+      .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+      .slice(0, 250);
+
+    return res.json({ data: merged });
   } catch (error) {
     console.error('Loading conversion submissions failed.', {
       message: error instanceof Error ? error.message : String(error),
@@ -41,8 +75,17 @@ conversionsAdminApi.patch('/:id', async (req, res) => {
   updates.updatedBy = req.adminUser?.uid || null;
 
   try {
-    await db.collection('conversionSubmissions').doc(req.params.id).update(updates);
-    return res.json({ data: { id: req.params.id } });
+    const targetCollection = req.body?.sourceCollection === 'intakeItems' ? 'intakeItems' : 'conversionSubmissions';
+    const targetUpdates = targetCollection === 'intakeItems'
+      ? {
+          adminNote: updates.adminNote,
+          updatedAt: updates.updatedAt,
+          status: updates.status === 'closed' ? 'closed' : updates.status === 'contacted' ? 'contacted' : 'reviewing',
+        }
+      : updates;
+
+    await db.collection(targetCollection).doc(req.params.id).update(targetUpdates);
+    return res.json({ data: { id: req.params.id, sourceCollection: targetCollection } });
   } catch (error) {
     console.error('Updating conversion submission failed.', {
       message: error instanceof Error ? error.message : String(error),
