@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "npm run check:project && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "prepare:assets": "node scripts/prepare-production-assets.mjs",
+    "build": "npm run prepare:assets && npm run check:project && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
-    "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "check:project": "node scripts/check-project-guard.mjs",
+    "qa": "npm run lint && npm run build",
     "deploy": "npm run build && wrangler deploy",
     "preview": "npm run build && wrangler dev"
   },
