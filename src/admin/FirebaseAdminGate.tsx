@@ -15,6 +15,21 @@ interface AdminAccessRecord {
   role?: 'owner' | 'admin' | 'editor' | 'viewer' | string;
 }
 
+function getLoginErrorMessage(code?: string): string {
+  switch (code) {
+    case 'auth/unauthorized-domain':
+      return 'ئەم دۆمەینە لە Firebase Authentication ڕێگەپێنەدراوە. دۆمەینی Codespaces زیاد بکە لە Authorized domains.';
+    case 'auth/popup-blocked':
+      return 'پەنجەرەی چوونەژوورەوە لەلایەن وێبگەڕەوە بلۆک کراوە. Popup بۆ ئەم ماڵپەڕە ڕێگەپێبدە.';
+    case 'auth/network-request-failed':
+      return 'پەیوەندی بە Firebase Authentication سەرکەوتوو نەبوو. پەیوەندی تۆڕ پشکنین بکە.';
+    case 'auth/operation-not-allowed':
+      return 'چوونەژوورەوەی Google لە Firebase Authentication چالاک نەکراوە.';
+    default:
+      return 'چوونەژوورەوە سەرکەوتوو نەبوو. تکایە دووبارە هەوڵ بدەوە.';
+  }
+}
+
 export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
   const { user, loading } = useAuth();
   const [checking, setChecking] = useState(false);
@@ -24,14 +39,14 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
     if (loading || !user) return;
     let cancelled = false;
 
-    const denyAccess = async () => {
+    const denyAccess = async (message?: string) => {
       try {
         await signOut(auth);
       } catch {
-        // Public responses remain generic and do not expose identity or backend details.
+        // Keep public responses generic and avoid exposing backend details.
       }
       if (!cancelled) {
-        setError('ڕێگەپێدانی چوونەژوورەوە نییە. تکایە بە هەژماری ڕێگەپێدراو هەوڵ بدەوە.');
+        setError(message || 'ڕێگەپێدانی چوونەژوورەوە نییە. تکایە بە هەژماری ڕێگەپێدراو هەوڵ بدەوە.');
       }
     };
 
@@ -48,9 +63,18 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
           return;
         }
 
-        await denyAccess();
-      } catch {
-        await denyAccess();
+        await denyAccess(
+          snapshot.exists()
+            ? 'هەژمارەکە هەیە، بەڵام active نییە یان role ـەکە owner/admin نییە.'
+            : 'هەژمارەکەت لە adminUsers تۆمار نەکراوە.',
+        );
+      } catch (err: any) {
+        const code = err?.code;
+        await denyAccess(
+          code === 'permission-denied'
+            ? 'Firestore ڕێگە بە پشکنینی adminUsers نادات. Security Rules پشکنین بکە.'
+            : 'پشکنینی ڕێگەپێدان سەرکەوتوو نەبوو.',
+        );
       } finally {
         if (!cancelled) setChecking(false);
       }
@@ -68,7 +92,8 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
       if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'auth/cancelled-popup-request') {
         return;
       }
-      setError('چوونەژوورەوە سەرکەوتوو نەبوو. تکایە دواتر دووبارە هەوڵ بدەوە.');
+      setError(getLoginErrorMessage(err?.code));
+      console.error('Firebase admin sign-in failed.', { code: err?.code });
     }
   };
 
