@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Download, RefreshCw, Search, Users, CheckCircle2, Clock3, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { auth, onAuthStateChanged } from '@/src/lib/firebase';
+import { auth } from '@/src/lib/firebase';
 
 type ConversionStatus = 'received' | 'contacted' | 'qualified' | 'converted' | 'closed';
 
@@ -30,29 +30,23 @@ const STATUS_LABELS: Record<ConversionStatus, string> = {
   closed: 'داخراو',
 };
 
-function waitForFirebaseUser(): Promise<any> {
-  if (auth?.currentUser) return Promise.resolve(auth.currentUser);
+async function getAdminToken(): Promise<string> {
+  if (auth?.currentUser) {
+    const token = await auth.currentUser.getIdToken();
+    sessionStorage.setItem('ai-gate-iraq-admin-token', token);
+    return token;
+  }
 
-  return new Promise((resolve, reject) => {
-    const timeout = window.setTimeout(() => {
-      unsubscribe();
-      reject(new Error('AUTH_REQUIRED'));
-    }, 5000);
+  const storedToken = sessionStorage.getItem('ai-gate-iraq-admin-token');
+  if (storedToken) return storedToken;
 
-    const unsubscribe = onAuthStateChanged(auth, (user: any) => {
-      if (!user) return;
-      window.clearTimeout(timeout);
-      unsubscribe();
-      resolve(user);
-    });
-  });
+  throw new Error('AUTH_REQUIRED');
 }
 
 async function getAdminHeaders() {
-  const user = await waitForFirebaseUser();
   return {
     'content-type': 'application/json',
-    authorization: `Bearer ${await user.getIdToken()}`,
+    authorization: `Bearer ${await getAdminToken()}`,
   };
 }
 
