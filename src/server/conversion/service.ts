@@ -10,10 +10,10 @@ type RequestMetadata = {
   requestId: string;
 };
 
-function fingerprintRequest(metadata: RequestMetadata): string {
-  const secret = process.env.CONVERSION_FINGERPRINT_SECRET?.trim() || 'ai-gate-iraq';
+function buildFingerprint(metadata: RequestMetadata): string {
+  const salt = process.env.CONVERSION_FINGERPRINT_SECRET?.trim() || 'ai-gate-iraq';
   return createHash('sha256')
-    .update(`${secret}|${metadata.ip || ''}|${metadata.userAgent || ''}`)
+    .update(`${salt}|${metadata.ip || ''}|${metadata.userAgent || ''}`)
     .digest('hex');
 }
 
@@ -31,23 +31,32 @@ export async function createConversionSubmission(
   const submissionId = randomUUID();
   const auditId = randomUUID();
   const receivedAt = new Date().toISOString();
-  const submissionRef = db.collection('conversionSubmissions').doc(submissionId);
-  const auditRef = db.collection('auditLogs').doc(auditId);
   const batch = db.batch();
 
-  batch.create(submissionRef, {
-    ...input,
-    website: FieldValue.delete(),
+  batch.create(db.collection('conversionSubmissions').doc(submissionId), {
+    type: input.type,
+    language: input.language,
+    fullName: input.fullName,
+    email: input.email,
+    phone: input.phone,
+    organization: input.organization || null,
+    role: input.role || null,
+    country: input.country || null,
+    city: input.city || null,
+    service: input.service || null,
+    message: input.message,
+    consent: input.consent,
+    sourceUrl: input.sourceUrl || null,
     status: 'received',
     source: 'website',
     requestId: metadata.requestId,
-    requestFingerprint: fingerprintRequest(metadata),
+    requestFingerprint: buildFingerprint(metadata),
     createdAt: receivedAt,
     updatedAt: receivedAt,
     serverCreatedAt: FieldValue.serverTimestamp(),
   });
 
-  batch.create(auditRef, {
+  batch.create(db.collection('auditLogs').doc(auditId), {
     event: 'conversion.submission.received',
     entityType: 'conversionSubmission',
     entityId: submissionId,
@@ -70,9 +79,5 @@ export async function createConversionSubmission(
     submission: input,
   });
 
-  return {
-    id: submissionId,
-    status: 'received',
-    receivedAt,
-  };
+  return { id: submissionId, status: 'received', receivedAt };
 }
