@@ -19,7 +19,11 @@ const model = (process.env.GEMINI_MODEL || 'gemini-2.5-flash')
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
-app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+}));
 app.use(corsMiddleware);
 app.use(express.json({ limit: '1mb' }));
 app.use('/api/conversion', conversionRouter);
