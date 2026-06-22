@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import AdminPanel from './AdminPanel';
+import AdminPanelV2 from './AdminPanelV2';
 import { FirebaseAdminGate } from './FirebaseAdminGate';
 
 export default function SecureAdminPanel() {
@@ -24,5 +24,5 @@ export default function SecureAdminPanel() {
     );
   }
 
-  return <AdminPanel />;
+  return <AdminPanelV2 />;
 }
