@@ -3,6 +3,24 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { getAdminFirestore } from '../firebase/admin';
 import { requireAdmin } from './auth';
 
+type ConversionListRecord = {
+  id: string;
+  sourceCollection: 'conversionSubmissions' | 'intakeItems';
+  type?: string;
+  language?: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  organization?: string;
+  service?: string;
+  message?: string;
+  status?: string;
+  adminNote?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  [key: string]: unknown;
+};
+
 export const conversionsAdminApi = Router();
 conversionsAdminApi.use(requireAdmin);
 
@@ -16,13 +34,13 @@ conversionsAdminApi.get('/', async (_req, res) => {
       db.collection('intakeItems').orderBy('createdAt', 'desc').limit(250).get(),
     ]);
 
-    const conversionRecords = conversionSnapshot.docs.map((entry) => ({
+    const conversionRecords: ConversionListRecord[] = conversionSnapshot.docs.map((entry) => ({
       id: entry.id,
       sourceCollection: 'conversionSubmissions',
       ...entry.data(),
     }));
 
-    const intakeRecords = intakeSnapshot.docs.map((entry) => {
+    const intakeRecords: ConversionListRecord[] = intakeSnapshot.docs.map((entry) => {
       const data = entry.data();
       return {
         id: entry.id,
@@ -42,7 +60,7 @@ conversionsAdminApi.get('/', async (_req, res) => {
       };
     });
 
-    const merged = [...conversionRecords, ...intakeRecords]
+    const merged: ConversionListRecord[] = [...conversionRecords, ...intakeRecords]
       .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
       .slice(0, 250);
 
