@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Download, RefreshCw, Search, Users, CheckCircle2, Clock3, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { auth } from '@/src/lib/firebase';
+import { auth, onAuthStateChanged } from '@/src/lib/firebase';
 
 type ConversionStatus = 'received' | 'contacted' | 'qualified' | 'converted' | 'closed';
 
 type ConversionRecord = {
   id: string;
+  sourceCollection?: 'conversionSubmissions' | 'intakeItems';
   type?: string;
   fullName?: string;
   email?: string;
@@ -29,9 +30,26 @@ const STATUS_LABELS: Record<ConversionStatus, string> = {
   closed: 'داخراو',
 };
 
+function waitForFirebaseUser(): Promise<any> {
+  if (auth?.currentUser) return Promise.resolve(auth.currentUser);
+
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      unsubscribe();
+      reject(new Error('AUTH_REQUIRED'));
+    }, 5000);
+
+    const unsubscribe = onAuthStateChanged(auth, (user: any) => {
+      if (!user) return;
+      window.clearTimeout(timeout);
+      unsubscribe();
+      resolve(user);
+    });
+  });
+}
+
 async function getAdminHeaders() {
-  const user = auth?.currentUser;
-  if (!user) throw new Error('AUTH_REQUIRED');
+  const user = await waitForFirebaseUser();
   return {
     'content-type': 'application/json',
     authorization: `Bearer ${await user.getIdToken()}`,
@@ -97,7 +115,7 @@ export function ConversionOperationsApi() {
       const response = await fetch(`/api/admin/conversions/${id}`, {
         method: 'PATCH',
         headers: await getAdminHeaders(),
-        body: JSON.stringify(patch),
+        body: JSON.stringify({ ...patch, sourceCollection: selected?.sourceCollection || 'conversionSubmissions' }),
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body?.error?.code || 'UPDATE_FAILED');
@@ -141,7 +159,7 @@ export function ConversionOperationsApi() {
       {error && <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-sm text-rose-300">{error}</div>}
 
       <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
-        <Card className="overflow-hidden border-slate-800 bg-[#0E1625]"><div className="overflow-x-auto"><table className="w-full text-right text-xs"><thead className="border-b border-slate-800 bg-slate-950/50 text-slate-400"><tr><th className="p-3">کەس/کۆمپانیا</th><th className="p-3">پەیوەندی</th><th className="p-3">خزمەتگوزاری</th><th className="p-3">دۆخ</th><th className="p-3">بەروار</th></tr></thead><tbody>{loading ? <tr><td colSpan={5} className="p-8 text-center text-slate-500">بارکردن...</td></tr> : filtered.length === 0 ? <tr><td colSpan={5} className="p-8 text-center text-slate-500">هیچ داواکارییەک نییە.</td></tr> : filtered.map((item) => <tr key={item.id} onClick={() => { setSelected(item); setNote(item.adminNote || ''); }} className={`cursor-pointer border-b border-slate-800/70 hover:bg-slate-800/40 ${selected?.id === item.id ? 'bg-emerald-500/10' : ''}`}><td className="p-3"><p className="font-bold text-white">{item.fullName || '—'}</p><p className="text-slate-500">{item.organization || '—'}</p></td><td className="p-3"><p className="text-slate-200">{item.email || '—'}</p><p className="text-slate-500">{item.phone || '—'}</p></td><td className="p-3 text-slate-300">{item.service || item.type || '—'}</td><td className="p-3"><span className="rounded-full bg-slate-800 px-2 py-1 text-slate-200">{STATUS_LABELS[item.status || 'received']}</span></td><td className="p-3 text-slate-500">{item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB') : '—'}</td></tr>)}</tbody></table></div></Card>
+        <Card className="overflow-hidden border-slate-800 bg-[#0E1625]"><div className="overflow-x-auto"><table className="w-full text-right text-xs"><thead className="border-b border-slate-800 bg-slate-950/50 text-slate-400"><tr><th className="p-3">کەس/کۆمپانیا</th><th className="p-3">پەیوەندی</th><th className="p-3">خزمەتگوزاری</th><th className="p-3">دۆخ</th><th className="p-3">بەروار</th></tr></thead><tbody>{loading ? <tr><td colSpan={5} className="p-8 text-center text-slate-500">بارکردن...</td></tr> : filtered.length === 0 ? <tr><td colSpan={5} className="p-8 text-center text-slate-500">هیچ داواکارییەک نییە.</td></tr> : filtered.map((item) => <tr key={`${item.sourceCollection}-${item.id}`} onClick={() => { setSelected(item); setNote(item.adminNote || ''); }} className={`cursor-pointer border-b border-slate-800/70 hover:bg-slate-800/40 ${selected?.id === item.id ? 'bg-emerald-500/10' : ''}`}><td className="p-3"><p className="font-bold text-white">{item.fullName || '—'}</p><p className="text-slate-500">{item.organization || '—'}</p></td><td className="p-3"><p className="text-slate-200">{item.email || '—'}</p><p className="text-slate-500">{item.phone || '—'}</p></td><td className="p-3 text-slate-300">{item.service || item.type || '—'}</td><td className="p-3"><span className="rounded-full bg-slate-800 px-2 py-1 text-slate-200">{STATUS_LABELS[item.status || 'received']}</span></td><td className="p-3 text-slate-500">{item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB') : '—'}</td></tr>)}</tbody></table></div></Card>
 
         <Card className="border-slate-800 bg-[#0E1625] p-4">{!selected ? <p className="py-10 text-center text-sm text-slate-500">داواکارییەک هەڵبژێرە.</p> : <div className="space-y-4"><div><h2 className="font-black text-white">{selected.fullName}</h2><p className="text-xs text-slate-400">{selected.organization || '—'}</p></div><div className="rounded-xl bg-slate-950/60 p-3 text-xs leading-6 text-slate-300 whitespace-pre-wrap">{selected.message || '—'}</div><label className="block text-xs text-slate-400">دۆخ<select value={selected.status || 'received'} disabled={saving} onChange={(event) => void updateRecord(selected.id, { status: event.target.value as ConversionStatus })} className="mt-2 h-10 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 text-white">{Object.entries(STATUS_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label><label className="block text-xs text-slate-400">بەرپرسی داواکاری<input value={selected.assignedTo || ''} onChange={(event) => setSelected({ ...selected, assignedTo: event.target.value })} onBlur={() => void updateRecord(selected.id, { assignedTo: selected.assignedTo || '' })} className="mt-2 h-10 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 text-white" /></label><label className="block text-xs text-slate-400">تێبینی ناوخۆیی<textarea value={note} onChange={(event) => setNote(event.target.value)} rows={5} className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 p-3 text-white" /></label><Button disabled={saving} onClick={() => void updateRecord(selected.id, { adminNote: note })} className="w-full bg-emerald-600 hover:bg-emerald-500">{saving ? 'پاشەکەوت دەکرێت...' : 'پاشەکەوتکردنی تێبینی'}</Button></div>}</Card>
       </div>
