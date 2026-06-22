@@ -71,6 +71,13 @@
     document.body.appendChild(fixScript);
   }
 
+  if (!document.querySelector('script[src="/hero-mouse-parallax.js"]')) {
+    const parallaxScript = document.createElement('script');
+    parallaxScript.src = '/hero-mouse-parallax.js';
+    parallaxScript.defer = true;
+    document.body.appendChild(parallaxScript);
+  }
+
   loadAuditLayer();
 
   new MutationObserver(ensureAboutLink).observe(document.documentElement, {
