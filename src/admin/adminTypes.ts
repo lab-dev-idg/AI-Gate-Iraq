@@ -3,6 +3,7 @@ export type AdminRole = 'owner' | 'admin' | 'editor' | 'viewer';
 export type AdminSectionKey =
   | 'dashboard'
   | 'intake'
+  | 'conversions'
   | 'content'
   | 'services'
   | 'prompts'
