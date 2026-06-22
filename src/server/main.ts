@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import helmet from 'helmet';
 import { corsMiddleware } from './cors';
 import { conversionRouter } from './conversion/router';
+import { conversionsAdminApi } from './admin/conversionsApi';
 
 dotenv.config();
 
@@ -22,11 +23,12 @@ app.set('trust proxy', 1);
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
-  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+  crossOriginOpenerPolicy: false,
 }));
 app.use(corsMiddleware);
 app.use(express.json({ limit: '1mb' }));
 app.use('/api/conversion', conversionRouter);
+app.use('/api/admin/conversions', conversionsAdminApi);
 
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
