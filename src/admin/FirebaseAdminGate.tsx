@@ -40,6 +40,7 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
     let cancelled = false;
 
     const denyAccess = async (message?: string) => {
+      sessionStorage.removeItem('ai-gate-iraq-admin-token');
       try {
         await signOut(auth);
       } catch {
@@ -59,6 +60,8 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
         const validRole = data?.role === 'owner' || data?.role === 'admin';
 
         if (!cancelled && data?.active === true && validRole) {
+          const token = await user.getIdToken(true);
+          sessionStorage.setItem('ai-gate-iraq-admin-token', token);
           onSuccess();
           return;
         }
@@ -89,9 +92,7 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (err: any) {
-      if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'auth/cancelled-popup-request') {
-        return;
-      }
+      if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'auth/cancelled-popup-request') return;
       setError(getLoginErrorMessage(err?.code));
       console.error('Firebase admin sign-in failed.', { code: err?.code });
     }
