@@ -71,13 +71,6 @@
     document.body.appendChild(fixScript);
   }
 
-  if (!document.querySelector('script[src="/hero-preview-motion.js"]')) {
-    const heroMotion = document.createElement('script');
-    heroMotion.src = '/hero-preview-motion.js';
-    heroMotion.defer = true;
-    document.body.appendChild(heroMotion);
-  }
-
   loadAuditLayer();
 
   new MutationObserver(ensureAboutLink).observe(document.documentElement, {
