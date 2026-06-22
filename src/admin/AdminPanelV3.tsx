@@ -20,23 +20,28 @@ import { WorkflowManager } from './screens/WorkflowManager';
 import { LocalizationManager } from './screens/LocalizationManager';
 import { FeatureFlagsManager } from './screens/FeatureFlagsManager';
 
-export default function AdminPanelV3() {
+interface AdminPanelV3Props {
+  adminToken: string;
+}
+
+export default function AdminPanelV3({ adminToken }: AdminPanelV3Props) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeSection, setActiveSection] = useState<AdminSectionKey>('dashboard');
   const [adminData, setAdminData] = useState<AdminState | null>(null);
 
   useEffect(() => {
-    setIsAuthenticated(sessionStorage.getItem('ai-gate-iraq-admin-auth') === 'true');
+    setIsAuthenticated(Boolean(adminToken));
     setAdminData(loadAdminState());
-  }, []);
+  }, [adminToken]);
 
   const logout = () => {
     sessionStorage.removeItem('ai-gate-iraq-admin-auth');
     setIsAuthenticated(false);
+    window.location.reload();
   };
 
   if (!isAuthenticated) {
-    return <AdminAccessGate onSuccess={() => { setIsAuthenticated(true); setAdminData(loadAdminState()); }} onBackToApp={() => { window.location.href = '/'; }} />;
+    return <AdminAccessGate onSuccess={() => undefined} onBackToApp={() => { window.location.href = '/'; }} />;
   }
 
   if (!adminData) {
@@ -49,7 +54,7 @@ export default function AdminPanelV3() {
     <AdminLayout activeSection={activeSection} onSectionChange={setActiveSection} onLogout={logout} onBackToApp={() => { window.location.href = '/'; }}>
       {activeSection === 'dashboard' && <AdminDashboard adminData={adminData} onSectionChange={setActiveSection} onResetData={() => setAdminData(resetAdminState())} />}
       {activeSection === 'intake' && <IntakeManager intakes={adminData.intake} onUpdateStatus={updateStatus} onUpdateNote={(id, note) => setAdminData(updateIntakeNote(id, note))} />}
-      {activeSection === 'conversions' && <ConversionOperationsApi />}
+      {activeSection === 'conversions' && <ConversionOperationsApi adminToken={adminToken} />}
       {activeSection === 'content' && <ContentManager contents={adminData.contents} onUpdateContent={(id, patch) => setAdminData(updateContentSection(id, patch))} onResetToDefault={() => setAdminData(resetAdminState())} />}
       {activeSection === 'services' && <ServiceManager services={adminData.services} onUpdateService={(key, patch) => setAdminData(updateServiceConfig(key, patch))} onReorderService={(key, direction) => setAdminData(reorderServiceConfig(key, direction))} />}
       {activeSection === 'prompts' && <PromptManager prompts={adminData.prompts} services={adminData.services} onAddPrompt={(serviceKey) => setAdminData(addPromptConfig(serviceKey))} onDeletePrompt={(id) => setAdminData(deletePromptConfig(id))} onUpdatePrompt={(id, patch) => setAdminData(updatePromptConfig(id, patch))} onReorderPrompt={(id, direction) => setAdminData(reorderPromptConfig(id, direction))} />}
