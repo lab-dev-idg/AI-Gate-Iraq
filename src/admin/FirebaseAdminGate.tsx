@@ -6,7 +6,7 @@ import { useAuth } from '@/src/components/AuthProvider';
 import { auth, googleProvider, signInWithPopup, signOut, doc, getDoc, db } from '@/src/lib/firebase';
 
 interface Props {
-  onSuccess: () => void;
+  onSuccess: (token: string) => void;
   onBackToApp: () => void;
 }
 
@@ -18,15 +18,15 @@ interface AdminAccessRecord {
 function getLoginErrorMessage(code?: string): string {
   switch (code) {
     case 'auth/unauthorized-domain':
-      return 'ئەم دۆمەینە لە Firebase Authentication ڕێگەپێنەدراوە. دۆمەینی Codespaces زیاد بکە لە Authorized domains.';
+      return 'ئەم دۆمەینە لە Firebase Authentication ڕێگەپێنەدراوە.';
     case 'auth/popup-blocked':
-      return 'پەنجەرەی چوونەژوورەوە لەلایەن وێبگەڕەوە بلۆک کراوە. Popup بۆ ئەم ماڵپەڕە ڕێگەپێبدە.';
+      return 'پەنجەرەی چوونەژوورەوە بلۆک کراوە.';
     case 'auth/network-request-failed':
-      return 'پەیوەندی بە Firebase Authentication سەرکەوتوو نەبوو. پەیوەندی تۆڕ پشکنین بکە.';
+      return 'پەیوەندی بە Firebase Authentication سەرکەوتوو نەبوو.';
     case 'auth/operation-not-allowed':
-      return 'چوونەژوورەوەی Google لە Firebase Authentication چالاک نەکراوە.';
+      return 'چوونەژوورەوەی Google چالاک نەکراوە.';
     default:
-      return 'چوونەژوورەوە سەرکەوتوو نەبوو. تکایە دووبارە هەوڵ بدەوە.';
+      return 'چوونەژوورەوە سەرکەوتوو نەبوو.';
   }
 }
 
@@ -39,18 +39,6 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
     if (loading || !user) return;
     let cancelled = false;
 
-    const denyAccess = async (message?: string) => {
-      sessionStorage.removeItem('ai-gate-iraq-admin-token');
-      try {
-        await signOut(auth);
-      } catch {
-        // Keep public responses generic and avoid exposing backend details.
-      }
-      if (!cancelled) {
-        setError(message || 'ڕێگەپێدانی چوونەژوورەوە نییە. تکایە بە هەژماری ڕێگەپێدراو هەوڵ بدەوە.');
-      }
-    };
-
     const verify = async () => {
       setChecking(true);
       setError('');
@@ -61,23 +49,19 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
 
         if (!cancelled && data?.active === true && validRole) {
           const token = await user.getIdToken(true);
-          sessionStorage.setItem('ai-gate-iraq-admin-token', token);
-          onSuccess();
+          onSuccess(token);
           return;
         }
 
-        await denyAccess(
-          snapshot.exists()
-            ? 'هەژمارەکە هەیە، بەڵام active نییە یان role ـەکە owner/admin نییە.'
-            : 'هەژمارەکەت لە adminUsers تۆمار نەکراوە.',
-        );
+        await signOut(auth);
+        if (!cancelled) setError('هەژمارەکەت ڕێگەپێدراو نییە.');
       } catch (err: any) {
-        const code = err?.code;
-        await denyAccess(
-          code === 'permission-denied'
-            ? 'Firestore ڕێگە بە پشکنینی adminUsers نادات. Security Rules پشکنین بکە.'
-            : 'پشکنینی ڕێگەپێدان سەرکەوتوو نەبوو.',
-        );
+        try { await signOut(auth); } catch {}
+        if (!cancelled) {
+          setError(err?.code === 'permission-denied'
+            ? 'Firestore ڕێگە بە پشکنینی adminUsers نادات.'
+            : 'پشکنینی ڕێگەپێدان سەرکەوتوو نەبوو.');
+        }
       } finally {
         if (!cancelled) setChecking(false);
       }
