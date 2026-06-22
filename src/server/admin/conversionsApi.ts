@@ -1,11 +1,12 @@
 import { Router } from 'express';
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, type Firestore } from 'firebase-admin/firestore';
+import { randomUUID } from 'node:crypto';
 import { getAdminFirestore } from '../firebase/admin';
 import { requireAdmin } from './auth';
 
 type ConversionListRecord = {
   id: string;
-  sourceCollection: 'conversionSubmissions' | 'intakeItems';
+  sourceCollection: 'conversionSubmissions';
   type?: string;
   language?: string;
   fullName?: string;
@@ -16,10 +17,82 @@ type ConversionListRecord = {
   message?: string;
   status?: string;
   adminNote?: string;
+  assignedTo?: string;
   createdAt?: string;
   updatedAt?: string;
+  migratedFrom?: string;
   [key: string]: unknown;
 };
+
+const MIGRATION_ID = 'intake_to_conversion_v1';
+
+async function ensureLegacyIntakeMigrated(db: Firestore): Promise<void> {
+  const markerRef = db.collection('systemMigrations').doc(MIGRATION_ID);
+  const marker = await markerRef.get();
+  if (marker.exists && marker.data()?.status === 'completed') return;
+
+  const intakeSnapshot = await db.collection('intakeItems').limit(1000).get();
+  const chunks: typeof intakeSnapshot.docs[] = [];
+
+  for (let index = 0; index < intakeSnapshot.docs.length; index += 400) {
+    chunks.push(intakeSnapshot.docs.slice(index, index + 400));
+  }
+
+  for (const chunk of chunks) {
+    const batch = db.batch();
+
+    for (const entry of chunk) {
+      const data = entry.data();
+      const createdAt = typeof data.createdAt === 'string' && data.createdAt
+        ? data.createdAt
+        : new Date().toISOString();
+      const updatedAt = typeof data.updatedAt === 'string' && data.updatedAt
+        ? data.updatedAt
+        : createdAt;
+      const status = data.status === 'contacted'
+        ? 'contacted'
+        : data.status === 'closed'
+          ? 'closed'
+          : 'received';
+
+      batch.set(db.collection('conversionSubmissions').doc(`legacy_${entry.id}`), {
+        type: 'contact',
+        language: 'ku',
+        fullName: data.name || '',
+        email: data.contact || '',
+        phone: '',
+        organization: data.company || null,
+        role: null,
+        country: null,
+        city: null,
+        service: data.serviceInterest || data.category || null,
+        message: data.message || '',
+        consent: false,
+        sourceUrl: null,
+        source: 'legacy-intake',
+        status,
+        adminNote: data.adminNote || '',
+        assignedTo: data.assignedTo || '',
+        createdAt,
+        updatedAt,
+        migratedFrom: 'intakeItems',
+        legacySourceId: entry.id,
+        migratedAt: new Date().toISOString(),
+        serverMigratedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+    }
+
+    await batch.commit();
+  }
+
+  await markerRef.set({
+    status: 'completed',
+    migrationId: MIGRATION_ID,
+    migratedCount: intakeSnapshot.size,
+    completedAt: new Date().toISOString(),
+    serverCompletedAt: FieldValue.serverTimestamp(),
+  }, { merge: true });
+}
 
 export const conversionsAdminApi = Router();
 conversionsAdminApi.use(requireAdmin);
@@ -29,42 +102,21 @@ conversionsAdminApi.get('/', async (_req, res) => {
   if (!db) return res.status(503).json({ error: { code: 'ADMIN_BACKEND_NOT_CONFIGURED' } });
 
   try {
-    const [conversionSnapshot, intakeSnapshot] = await Promise.all([
-      db.collection('conversionSubmissions').orderBy('createdAt', 'desc').limit(250).get(),
-      db.collection('intakeItems').orderBy('createdAt', 'desc').limit(250).get(),
-    ]);
+    await ensureLegacyIntakeMigrated(db);
 
-    const conversionRecords: ConversionListRecord[] = conversionSnapshot.docs.map((entry) => ({
+    const snapshot = await db
+      .collection('conversionSubmissions')
+      .orderBy('createdAt', 'desc')
+      .limit(1000)
+      .get();
+
+    const records: ConversionListRecord[] = snapshot.docs.map((entry) => ({
       id: entry.id,
       sourceCollection: 'conversionSubmissions',
       ...entry.data(),
     }));
 
-    const intakeRecords: ConversionListRecord[] = intakeSnapshot.docs.map((entry) => {
-      const data = entry.data();
-      return {
-        id: entry.id,
-        sourceCollection: 'intakeItems',
-        type: 'contact',
-        language: 'ku',
-        fullName: data.name || '',
-        email: data.contact || '',
-        phone: '',
-        organization: data.company || '',
-        service: data.serviceInterest || data.category || '',
-        message: data.message || '',
-        status: data.status === 'contacted' ? 'contacted' : data.status === 'closed' ? 'closed' : 'received',
-        adminNote: data.adminNote || '',
-        createdAt: data.createdAt || '',
-        updatedAt: data.updatedAt || '',
-      };
-    });
-
-    const merged: ConversionListRecord[] = [...conversionRecords, ...intakeRecords]
-      .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
-      .slice(0, 250);
-
-    return res.json({ data: merged });
+    return res.json({ data: records });
   } catch (error) {
     console.error('Loading conversion submissions failed.', {
       message: error instanceof Error ? error.message : String(error),
@@ -88,22 +140,34 @@ conversionsAdminApi.patch('/:id', async (req, res) => {
     return res.status(400).json({ error: { code: 'INVALID_UPDATE' } });
   }
 
-  updates.updatedAt = new Date().toISOString();
+  const updatedAt = new Date().toISOString();
+  updates.updatedAt = updatedAt;
   updates.serverUpdatedAt = FieldValue.serverTimestamp();
   updates.updatedBy = req.adminUser?.uid || null;
 
   try {
-    const targetCollection = req.body?.sourceCollection === 'intakeItems' ? 'intakeItems' : 'conversionSubmissions';
-    const targetUpdates = targetCollection === 'intakeItems'
-      ? {
-          adminNote: updates.adminNote,
-          updatedAt: updates.updatedAt,
-          status: updates.status === 'closed' ? 'closed' : updates.status === 'contacted' ? 'contacted' : 'reviewing',
-        }
-      : updates;
+    const auditId = randomUUID();
+    const batch = db.batch();
 
-    await db.collection(targetCollection).doc(req.params.id).update(targetUpdates);
-    return res.json({ data: { id: req.params.id, sourceCollection: targetCollection } });
+    batch.update(db.collection('conversionSubmissions').doc(req.params.id), updates);
+    batch.create(db.collection('auditLogs').doc(auditId), {
+      event: 'conversion.submission.updated',
+      entityType: 'conversionSubmission',
+      entityId: req.params.id,
+      actorType: 'admin',
+      actorUid: req.adminUser?.uid || null,
+      actorEmail: req.adminUser?.email || null,
+      createdAt: updatedAt,
+      serverCreatedAt: FieldValue.serverTimestamp(),
+      details: {
+        status: updates.status || null,
+        assignedTo: updates.assignedTo || null,
+        noteChanged: Object.prototype.hasOwnProperty.call(updates, 'adminNote'),
+      },
+    });
+
+    await batch.commit();
+    return res.json({ data: { id: req.params.id, updatedAt } });
   } catch (error) {
     console.error('Updating conversion submission failed.', {
       message: error instanceof Error ? error.message : String(error),
