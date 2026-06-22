@@ -1,3 +1,4 @@
+import { existsSync, statSync } from 'node:fs';
 import { applicationDefault, cert, getApps, initializeApp, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 
@@ -36,6 +37,20 @@ function parseServiceAccount(): ServiceAccountShape | null {
   }
 }
 
+function hasUsableApplicationCredentials(): boolean {
+  const credentialPath = process.env.GOOGLE_APPLICATION_CREDENTIALS?.trim();
+
+  if (credentialPath) {
+    try {
+      return existsSync(credentialPath) && statSync(credentialPath).isFile();
+    } catch {
+      return false;
+    }
+  }
+
+  return Boolean(process.env.GOOGLE_CLOUD_PROJECT?.trim());
+}
+
 export function getFirebaseAdminApp(): App | null {
   if (cachedApp !== undefined) return cachedApp;
 
@@ -61,7 +76,7 @@ export function getFirebaseAdminApp(): App | null {
       return cachedApp;
     }
 
-    if (process.env.GOOGLE_APPLICATION_CREDENTIALS || process.env.GOOGLE_CLOUD_PROJECT) {
+    if (hasUsableApplicationCredentials()) {
       cachedApp = initializeApp({ credential: applicationDefault(), projectId });
       return cachedApp;
     }
