@@ -3,18 +3,18 @@ import AdminPanelV3 from './AdminPanelV3';
 import { FirebaseAdminGate } from './FirebaseAdminGate';
 
 export default function SecureAdminPanel() {
-  const [verified, setVerified] = useState(false);
+  const [adminToken, setAdminToken] = useState<string | null>(null);
 
-  const handleSuccess = useCallback(() => {
+  const handleSuccess = useCallback((token: string) => {
     sessionStorage.setItem('ai-gate-iraq-admin-auth', 'true');
-    setVerified(true);
+    setAdminToken(token);
   }, []);
 
   const handleBackToApp = useCallback(() => {
     window.location.href = '/';
   }, []);
 
-  if (!verified) {
+  if (!adminToken) {
     sessionStorage.removeItem('ai-gate-iraq-admin-auth');
     return (
       <FirebaseAdminGate
@@ -24,5 +24,5 @@ export default function SecureAdminPanel() {
     );
   }
 
-  return <AdminPanelV3 />;
+  return <AdminPanelV3 adminToken={adminToken} />;
 }
