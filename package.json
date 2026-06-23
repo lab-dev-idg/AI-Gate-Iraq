@@ -12,7 +12,8 @@
     "check:project": "node scripts/check-project-guard.mjs",
     "qa": "npm run lint && npm run build",
     "deploy": "npm run build && wrangler deploy",
-    "preview": "npm run build && wrangler dev"
+    "preview": "npm run build && wrangler dev",
+    "prepare:firebase-platform": "node scripts/prepare-firebase-platform.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",

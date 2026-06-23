@@ -1,0 +1,37 @@
+/* Stable browser form rendering and accessibility */
+
+.conversion-suite-section input,
+.conversion-suite-section select,
+.conversion-suite-section textarea,
+.pilot-form input,
+.pilot-form select,
+.pilot-form textarea {
+  color-scheme: dark;
+  background-color: #08172a;
+  color: #edf5ff;
+  caret-color: #2ee0b5;
+}
+
+.conversion-suite-section input:-webkit-autofill,
+.conversion-suite-section input:-webkit-autofill:hover,
+.conversion-suite-section input:-webkit-autofill:focus,
+.pilot-form input:-webkit-autofill,
+.pilot-form input:-webkit-autofill:hover,
+.pilot-form input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #edf5ff !important;
+  -webkit-box-shadow: 0 0 0 1000px #08172a inset !important;
+  box-shadow: 0 0 0 1000px #08172a inset !important;
+  caret-color: #2ee0b5;
+  transition: background-color 9999s ease-out 0s;
+}
+
+.conversion-suite-section input:focus,
+.conversion-suite-section select:focus,
+.conversion-suite-section textarea:focus,
+.pilot-form input:focus,
+.pilot-form select:focus,
+.pilot-form textarea:focus {
+  outline: 2px solid rgba(46, 224, 181, 0.65);
+  outline-offset: 2px;
+  border-color: rgba(46, 224, 181, 0.75);
+}
