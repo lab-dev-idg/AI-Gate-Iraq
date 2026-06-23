@@ -6,7 +6,7 @@
   X-Frame-Options: DENY
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; font-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' mailto:; object-src 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https://ai-gate-iraq-5827.onrender.com; font-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' mailto:; object-src 'none'; upgrade-insecure-requests
 
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
