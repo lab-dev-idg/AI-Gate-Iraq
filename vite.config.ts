@@ -21,18 +21,16 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            'react-core': ['react', 'react-dom', 'scheduler'],
-            firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
-            'google-ai': ['@google/genai'],
-            markdown: ['react-markdown', 'rehype-raw'],
-            'ui-vendor': [
-              'lucide-react',
-              'motion',
-              'sonner',
-              'next-themes',
-              '@base-ui/react'
-            ],
+          manualChunks(id) {
+            if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/scheduler/')) {
+              return 'react-core';
+            }
+
+            if (id.includes('node_modules/firebase/') || id.includes('node_modules/@firebase/')) {
+              return 'firebase';
+            }
+
+            return undefined;
           },
         },
       },
