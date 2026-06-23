@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
+    "@cloudflare/vite-plugin": "^1.42.1",
     "@fontsource-variable/geist": "^5.2.8",
     "@google/genai": "^1.29.0",
     "@tailwindcss/vite": "^4.1.14",
@@ -45,7 +46,6 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.42.1",
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
