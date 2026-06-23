@@ -12,6 +12,8 @@ function isAllowedOrigin(origin?: string): boolean {
   if (configuredOrigins.has(origin)) return true;
   if (/^https:\/\/[a-z0-9-]+\.aigateiraq\.workers\.dev$/i.test(origin)) return true;
   if (/^https:\/\/([a-z0-9-]+\.)?aigateiraq\.com$/i.test(origin)) return true;
+  if (/^https:\/\/ai-gate-iraq-(website|platform)\.web\.app$/i.test(origin)) return true;
+  if (/^https:\/\/ai-gate-iraq-(website|platform)\.firebaseapp\.com$/i.test(origin)) return true;
   return /^https?:\/\/localhost(?::\d+)?$/i.test(origin);
 }
 
