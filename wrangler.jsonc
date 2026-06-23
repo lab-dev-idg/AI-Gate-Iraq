@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "ai-gate-iraq-website",
+  "name": "ai-gate-iraq-platform",
   "compatibility_date": "2026-06-20",
   "observability": {
     "enabled": true
