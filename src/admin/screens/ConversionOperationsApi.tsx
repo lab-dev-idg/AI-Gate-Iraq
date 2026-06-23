@@ -26,7 +26,20 @@ interface ConversionOperationsApiProps {
   adminToken: string;
 }
 
+
 const PAGE_SIZE = 25;
+
+const isLocalRuntime =
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1' ||
+  window.location.hostname.endsWith('.app.github.dev');
+
+const API_BASE_URL = isLocalRuntime
+  ? ''
+  : (
+      import.meta.env.VITE_API_BASE_URL ||
+      'https://ai-gate-iraq.onrender.com'
+    ).replace(/\/$/, '');
 
 const STATUS_LABELS: Record<ConversionStatus, string> = {
   received: 'وەرگیراو',
@@ -68,7 +81,7 @@ export function ConversionOperationsApi({ adminToken }: ConversionOperationsApiP
       setLoading(true);
       setError('');
       try {
-        const response = await fetch('/api/admin/conversions', { headers });
+        const response = await fetch(`${API_BASE_URL}/api/admin/conversions`, { headers });
         const body = await response.json();
         if (!response.ok) throw new Error(body?.error?.code || 'LOAD_FAILED');
         if (!cancelled) setItems(body.data || []);
@@ -115,7 +128,7 @@ export function ConversionOperationsApi({ adminToken }: ConversionOperationsApiP
     setSaving(true);
     setError('');
     try {
-      const response = await fetch(`/api/admin/conversions/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/conversions/${id}`, {
         method: 'PATCH',
         headers,
         body: JSON.stringify(patch),
