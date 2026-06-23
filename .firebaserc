@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "default": "ai-gate-iraq"
+  },
+  "targets": {
+    "ai-gate-iraq": {
+      "hosting": {
+        "website": [
+          "ai-gate-iraq-website"
+        ],
+        "platform": [
+          "ai-gate-iraq-platform"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

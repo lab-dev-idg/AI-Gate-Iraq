@@ -21,3 +21,4 @@ ui-debug.log
 .wrangler
 .dev.vars*
 !.dev.vars.example
+.firebase-hosting/
