@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Bot, MapPin } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Card } from '@/components/ui/card';
@@ -24,12 +24,32 @@ import PersistentSidebar from '@/src/app/PersistentSidebar';
 import ServiceWorkspace from '@/src/app/ServiceWorkspace';
 import WorkflowGuide from '@/src/app/WorkflowGuide';
 import AssistantWorkspace from '@/src/features/assistant/AssistantWorkspace';
-import SecureAdminPanel from '@/src/admin/SecureAdminPanel';
+const SecureAdminPanel = lazy(() => import('@/src/admin/SecureAdminPanel'));
 import { PublicInquiryForm } from '@/src/features/inquiry/PublicInquiryForm';
 
 export default function App() {
   const isAdminRoute = window.location.pathname === '/admin';
-  if (isAdminRoute) return <SecureAdminPanel />;
+  if (isAdminRoute) {
+    return (
+      <Suspense
+        fallback={
+          <div
+            className="grid min-h-screen place-items-center bg-[#090D16] text-white"
+            dir="rtl"
+          >
+            <div className="text-center">
+              <div className="mx-auto mb-4 h-9 w-9 animate-spin rounded-full border-2 border-slate-700 border-t-emerald-400" />
+              <p className="text-sm font-bold text-slate-300">
+                پەڕەی بەڕێوەبردن بار دەکرێت...
+              </p>
+            </div>
+          </div>
+        }
+      >
+        <SecureAdminPanel />
+      </Suspense>
+    );
+  }
 
   const { lang, setLang, t } = useLanguage();
   const [activeService, setActiveService] = useState<ServiceKey>(() => loadSession().activeService || 'assistant');
