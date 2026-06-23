@@ -1,0 +1,11 @@
+{
+  "name": "AI Gate Iraq",
+  "short_name": "AI Gate Iraq",
+  "description": "Smart trade and logistics intelligence for Iraq.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090D16",
+  "theme_color": "#090D16",
+  "lang": "ku",
+  "dir": "rtl"
+}

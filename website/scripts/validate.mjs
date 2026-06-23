@@ -49,8 +49,10 @@ catch (error) { failures.push(`wrangler.jsonc is invalid JSON: ${error.message}`
 try { packageJson = JSON.parse(packageRaw); }
 catch (error) { failures.push(`package.json is invalid JSON: ${error.message}`); }
 
+const platformUrl = 'https://ai-gate-iraq-platform.aigateiraq.workers.dev';
+
 for (const fragment of [
-  'https://ai-gate-iraq.aigateiraq.workers.dev',
+  platformUrl,
   'rel="canonical"',
   'name="twitter:card"',
   'property="og:site_name"',
@@ -94,7 +96,6 @@ for (const attributes of blankLinks) {
   if (!/rel="[^"]*noopener[^"]*"/.test(attributes)) failures.push('A target="_blank" link is missing rel="noopener".');
 }
 
-const platformUrl = 'https://ai-gate-iraq.aigateiraq.workers.dev';
 const platformCtas = hrefs.filter((href) => href === platformUrl);
 if (platformCtas.length < 3) failures.push('Expected at least three live platform CTAs.');
 

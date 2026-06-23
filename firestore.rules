@@ -117,6 +117,11 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /conversionSubmissions/{submissionId} {
+      allow read, update: if isAdmin();
+      allow create, delete: if false;
+    }
+
     match /auditLogs/{logId} {
       allow create, read: if isAdmin();
       allow update, delete: if false;

@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.github
+.env
+.env.*
+.secrets
+*.log
+*.local
+vite.config.ts.before-*
+ai-gate-iraq-firebase-adminsdk-*.json

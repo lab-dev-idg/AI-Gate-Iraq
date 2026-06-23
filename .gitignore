@@ -7,6 +7,9 @@ coverage/
 .env*
 !.env.example
 
+# Local secrets
+.secrets/
+
 # Firebase debug & configuration
 .firebase/
 .firebaserc

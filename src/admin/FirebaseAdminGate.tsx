@@ -6,13 +6,28 @@ import { useAuth } from '@/src/components/AuthProvider';
 import { auth, googleProvider, signInWithPopup, signOut, doc, getDoc, db } from '@/src/lib/firebase';
 
 interface Props {
-  onSuccess: () => void;
+  onSuccess: (token: string) => void;
   onBackToApp: () => void;
 }
 
 interface AdminAccessRecord {
   active?: boolean;
   role?: 'owner' | 'admin' | 'editor' | 'viewer' | string;
+}
+
+function getLoginErrorMessage(code?: string): string {
+  switch (code) {
+    case 'auth/unauthorized-domain':
+      return 'ئەم دۆمەینە لە Firebase Authentication ڕێگەپێنەدراوە.';
+    case 'auth/popup-blocked':
+      return 'پەنجەرەی چوونەژوورەوە بلۆک کراوە.';
+    case 'auth/network-request-failed':
+      return 'پەیوەندی بە Firebase Authentication سەرکەوتوو نەبوو.';
+    case 'auth/operation-not-allowed':
+      return 'چوونەژوورەوەی Google چالاک نەکراوە.';
+    default:
+      return 'چوونەژوورەوە سەرکەوتوو نەبوو.';
+  }
 }
 
 export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
@@ -24,17 +39,6 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
     if (loading || !user) return;
     let cancelled = false;
 
-    const denyAccess = async () => {
-      try {
-        await signOut(auth);
-      } catch {
-        // Public responses remain generic and do not expose identity or backend details.
-      }
-      if (!cancelled) {
-        setError('ڕێگەپێدانی چوونەژوورەوە نییە. تکایە بە هەژماری ڕێگەپێدراو هەوڵ بدەوە.');
-      }
-    };
-
     const verify = async () => {
       setChecking(true);
       setError('');
@@ -44,13 +48,20 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
         const validRole = data?.role === 'owner' || data?.role === 'admin';
 
         if (!cancelled && data?.active === true && validRole) {
-          onSuccess();
+          const token = await user.getIdToken(true);
+          onSuccess(token);
           return;
         }
 
-        await denyAccess();
-      } catch {
-        await denyAccess();
+        await signOut(auth);
+        if (!cancelled) setError('هەژمارەکەت ڕێگەپێدراو نییە.');
+      } catch (err: any) {
+        try { await signOut(auth); } catch {}
+        if (!cancelled) {
+          setError(err?.code === 'permission-denied'
+            ? 'Firestore ڕێگە بە پشکنینی adminUsers نادات.'
+            : 'پشکنینی ڕێگەپێدان سەرکەوتوو نەبوو.');
+        }
       } finally {
         if (!cancelled) setChecking(false);
       }
@@ -65,10 +76,9 @@ export function FirebaseAdminGate({ onSuccess, onBackToApp }: Props) {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (err: any) {
-      if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'auth/cancelled-popup-request') {
-        return;
-      }
-      setError('چوونەژوورەوە سەرکەوتوو نەبوو. تکایە دواتر دووبارە هەوڵ بدەوە.');
+      if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'auth/cancelled-popup-request') return;
+      setError(getLoginErrorMessage(err?.code));
+      console.error('Firebase admin sign-in failed.', { code: err?.code });
     }
   };
 
