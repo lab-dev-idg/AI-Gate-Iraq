@@ -100,7 +100,7 @@
       status.textContent = '';
 
       try {
-        const response = await fetch('/api/conversion/submissions', {
+        const response = await fetch('https://ai-gate-iraq-5827.onrender.com/api/conversion/submissions', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify(payload)
