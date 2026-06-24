@@ -1,0 +1,69 @@
+name: Production Uptime Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/30 * * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  uptime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check website
+        run: |
+          curl --fail \
+            --silent \
+            --show-error \
+            --location \
+            --retry 3 \
+            --retry-all-errors \
+            --max-time 60 \
+            https://ai-gate-iraq-website.web.app/ \
+            > /dev/null
+
+      - name: Check platform
+        run: |
+          curl --fail \
+            --silent \
+            --show-error \
+            --location \
+            --retry 3 \
+            --retry-all-errors \
+            --max-time 60 \
+            https://ai-gate-iraq-platform.web.app/ \
+            > /dev/null
+
+      - name: Check backend health
+        run: |
+          response="$(curl \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 3 \
+            --retry-all-errors \
+            --max-time 90 \
+            https://ai-gate-iraq.onrender.com/health)"
+
+          echo "$response"
+
+          echo "$response" | grep -q '"status":"ok"'
+          echo "$response" | grep -q '"service":"ai-gate-iraq"'
+
+      - name: Check protected admin endpoint
+        run: |
+          status="$(curl \
+            --silent \
+            --output /tmp/admin-response.json \
+            --write-out '%{http_code}' \
+            --max-time 60 \
+            https://ai-gate-iraq.onrender.com/api/admin/conversions)"
+
+          cat /tmp/admin-response.json
+
+          test "$status" = "401"
+          grep -q 'AUTH_TOKEN_REQUIRED' /tmp/admin-response.json
