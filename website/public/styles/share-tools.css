@@ -1,12 +1,12 @@
 .share-suite {
   position: relative;
-  z-index: 140;
+  z-index: 1000;
 }
 
 .share-fab {
   position: fixed;
   inset-inline-start: 22px;
-  bottom: 22px;
+  bottom: 88px;
   display: inline-flex;
   align-items: center;
   gap: 9px;
@@ -41,6 +41,7 @@
 .share-backdrop {
   position: fixed;
   inset: 0;
+  z-index: 1001;
   background: rgba(2, 8, 18, 0.68);
   backdrop-filter: blur(5px);
 }
@@ -48,7 +49,8 @@
 .share-panel {
   position: fixed;
   inset-inline-start: 22px;
-  bottom: 82px;
+  bottom: 150px;
+  z-index: 1002;
   width: min(420px, calc(100vw - 32px));
   padding: 22px;
   border: 1px solid rgba(126, 163, 205, 0.22);
@@ -117,7 +119,8 @@
 .share-toast {
   position: fixed;
   inset-inline-start: 22px;
-  bottom: 84px;
+  bottom: 150px;
+  z-index: 1003;
   padding: 11px 16px;
   border: 1px solid rgba(46, 224, 181, 0.34);
   border-radius: 12px;
@@ -135,13 +138,20 @@
 @media (max-width: 640px) {
   .share-fab {
     inset-inline-start: 14px;
-    bottom: 14px;
+    bottom: 78px;
   }
 
   .share-panel {
     inset-inline: 14px;
-    bottom: 74px;
+    bottom: 138px;
     width: auto;
+    max-height: calc(100vh - 170px);
+    overflow-y: auto;
+  }
+
+  .share-toast {
+    inset-inline-start: 14px;
+    bottom: 138px;
   }
 }
 
