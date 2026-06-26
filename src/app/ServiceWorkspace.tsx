@@ -7,6 +7,7 @@ import KycWorkspace from '@/src/features/kyc/KycWorkspace';
 import ProcurementWorkspace from '@/src/features/procurement/ProcurementWorkspace';
 import TrackingWorkspace from '@/src/features/tracking/TrackingWorkspace';
 import MapWorkspace from '@/src/features/map/MapWorkspace';
+import AuditWorkspace from '@/src/features/audit/AuditWorkspace';
 
 interface ServiceWorkspaceProps {
   activeService: ServiceKey;
@@ -29,6 +30,7 @@ export const ServiceWorkspace = ({
       {activeService === 'procurement' && <ProcurementWorkspace />}
       {activeService === 'tracking' && <TrackingWorkspace />}
       {activeService === 'map' && <MapWorkspace />}
+      {activeService === 'audit' && <AuditWorkspace lang={lang} />}
     </>
   );
 };

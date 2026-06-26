@@ -23,6 +23,7 @@ import AppHeader from '@/src/app/AppHeader';
 import PersistentSidebar from '@/src/app/PersistentSidebar';
 import ServiceWorkspace from '@/src/app/ServiceWorkspace';
 import WorkflowGuide from '@/src/app/WorkflowGuide';
+import ServiceReadinessPanel from '@/src/components/ServiceReadinessPanel';
 import AssistantWorkspace from '@/src/features/assistant/AssistantWorkspace';
 const SecureAdminPanel = lazy(() => import('@/src/admin/SecureAdminPanel'));
 import { PublicInquiryForm } from '@/src/features/inquiry/PublicInquiryForm';
@@ -173,6 +174,10 @@ export default function App() {
                     isLoading={isLoading}
                     onSend={handleSend}
                     onSelectMessage={setSelectedMessage}
+                    onOpenService={(service) => {
+                      setActiveService(service);
+                      setChatScope(service);
+                    }}
                     chatScrollRef={chatScrollRef}
                     promptChips={promptChips}
                   />
@@ -202,6 +207,15 @@ export default function App() {
                       ) : (
                         <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
                           <div className="min-w-0 space-y-5 xl:col-span-8">
+                            <ServiceReadinessPanel
+                              service={activeService}
+                              lang={lang}
+                              onAskAssistant={(questionPrompt) => {
+                                setChatScope(activeService);
+                                setActiveService('assistant');
+                                window.setTimeout(() => void handleSend(questionPrompt), 150);
+                              }}
+                            />
                             <ServiceWorkspace activeService={activeService} lang={lang} t={t} />
                           </div>
                           <div className="min-w-0 space-y-5 xl:col-span-4">
@@ -297,6 +311,7 @@ function getServiceDescription(service: ServiceKey, lang: 'ku' | 'ar'): string {
     market: 'ملخصات السوق والتنبيهات التنظيمية.',
     borders: 'معلومات المعابر والمنافذ.',
     map: 'عرض المراكز والممرات اللوجستية.',
+    audit: 'مقارنة المنصة مع التجارب العالمية وخطة تحسين UI/UX.',
     inquiry: 'إرسال طلب أو استفسار للإدارة.',
   };
   const ku: Partial<Record<ServiceKey, string>> = {
@@ -308,6 +323,7 @@ function getServiceDescription(service: ServiceKey, lang: 'ku' | 'ar'): string {
     market: 'کورتەی بازاڕ و ئاگادارکردنەوە ڕێکخراوەییەکان.',
     borders: 'زانیاریی دەروازە و سنوورەکان.',
     map: 'پیشاندانی مەڵبەند و ڕێڕەوی لۆجیستی.',
+    audit: 'بەراوردی پلاتفۆڕم لەگەڵ ئەزموونی جیهانی و پلانی چاکسازی UI/UX.',
     inquiry: 'ناردنی داواکاری یان پرسیار بۆ بەڕێوەبەرایەتی.',
   };
   return (lang === 'ar' ? ar[service] : ku[service]) || '';
