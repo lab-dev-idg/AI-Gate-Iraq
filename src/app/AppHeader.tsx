@@ -44,7 +44,7 @@ export const AppHeader = ({ lang, setLang, children }: AppHeaderProps) => {
             AI
           </div>
           <span className="whitespace-nowrap text-xs font-black tracking-tight sm:text-sm lg:text-base">AI Gate Iraq</span>
-          <span className="hidden rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black text-emerald-600 dark:text-emerald-400 md:inline">PRO</span>
+          <span className="hidden rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black text-emerald-600 dark:text-emerald-400 md:inline">UI/UX 2026</span>
         </div>
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-2">

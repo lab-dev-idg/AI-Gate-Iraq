@@ -1,4 +1,4 @@
-import { Bot, Sparkles, MapPin, DollarSign, Package, UserCheck, Building2, FileText, Globe, LucideIcon } from 'lucide-react';
+import { Bot, Sparkles, MapPin, DollarSign, Package, UserCheck, Building2, FileText, Globe, BarChart3, LucideIcon } from 'lucide-react';
 import { getAdminServiceConfig, getAdminPromptChips } from '@/src/admin/adminStore';
 
 export type ServiceKey =
@@ -11,7 +11,8 @@ export type ServiceKey =
   | 'procurement'
   | 'tracking'
   | 'map'
-  | 'inquiry';
+  | 'inquiry'
+  | 'audit';
 
 export interface ServiceItem {
   key: ServiceKey;
@@ -86,6 +87,13 @@ export const SERVICES: ServiceItem[] = [
     color: 'text-emerald-500',
   },
   {
+    key: 'audit',
+    label_ku: 'وردبینی و چاکسازی',
+    label_ar: 'تدقيق وتحسين',
+    icon: BarChart3,
+    color: 'text-fuchsia-500',
+  },
+  {
     key: 'inquiry',
     label_ku: 'داوای دیمۆ / پەیوەندی',
     label_ar: 'طلب ديمو / اتصال',
@@ -119,6 +127,8 @@ export const getServiceName = (service: ServiceKey, lang: 'ku' | 'ar'): string =
       return lang === 'ar' ? 'تتبع الشحنات' : 'بەدواداچوونی بار';
     case 'map':
       return lang === 'ar' ? 'الخارطة اللوجستية' : 'نەخشەی دەروازەکان';
+    case 'audit':
+      return lang === 'ar' ? 'تدقيق المنصة وتحسين UI/UX' : 'وردبینی پلاتفۆڕم و چاکسازی UI/UX';
     case 'inquiry':
       return lang === 'ar' ? 'داوای دیمۆ / پەیوەندی' : 'داوای دیمۆ / پەیوەندی';
   }
