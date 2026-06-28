@@ -12,6 +12,8 @@ export const DEFAULT_SESSION = (lang: 'ku' | 'ar' = 'ku'): BusinessSession => ({
   chatScope: 'assistant',
   language: lang,
   chatMessages: [],
+  chatBranches: [],
+  activeBranchId: 'main',
   recentPrompts: [],
   recentServiceActions: [],
   drafts: {},
@@ -33,6 +35,8 @@ export function loadSession(currentLang: 'ku' | 'ar' = 'ku'): BusinessSession {
     return {
       ...DEFAULT_SESSION(currentLang),
       ...session,
+      chatBranches: session.chatBranches || [],
+      activeBranchId: session.activeBranchId || 'main',
       drafts: { ...session.drafts }
     };
   } catch (error) {
@@ -49,10 +53,18 @@ export function saveSession(changes: Partial<BusinessSession>): void {
       messages = [messages[0], ...messages.slice(-79)];
     }
 
+    let branches = changes.chatBranches !== undefined ? changes.chatBranches : current.chatBranches;
+    branches = (branches || []).map((branch) => ({
+      ...branch,
+      messages: branch.messages.length > 80 ? [branch.messages[0], ...branch.messages.slice(-79)] : branch.messages
+    })).slice(0, 12);
+
     const updated: BusinessSession = {
       ...current,
       ...changes,
       chatMessages: messages,
+      chatBranches: branches,
+      activeBranchId: changes.activeBranchId ?? current.activeBranchId,
       drafts: {
         ...current.drafts,
         ...(changes.drafts || {})

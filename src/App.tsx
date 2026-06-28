@@ -14,6 +14,7 @@ import {
 import { useLanguage } from '@/src/lib/LanguageContext';
 import { chat } from '@/src/lib/gemini';
 import { Message } from '@/src/types/chat';
+import { ChatBranch } from '@/src/types/session';
 import { BUSINESS_WORKFLOWS } from '@/src/lib/businessWorkflows';
 import { SERVICES, ServiceKey, getPromptChips, getServiceName } from '@/src/lib/services';
 import { loadSession, saveSession } from '@/src/lib/sessionStore';
@@ -59,6 +60,8 @@ export default function App() {
     const cached = loadSession().chatMessages;
     return cached?.length ? cached : [{ role: 'model', text: t.chat.welcome }];
   });
+  const [chatBranches, setChatBranches] = useState<ChatBranch[]>(() => loadSession().chatBranches || []);
+  const [activeBranchId, setActiveBranchId] = useState(() => loadSession().activeBranchId || 'main');
   const [input, setInput] = useState('');
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -72,8 +75,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    saveSession({ activeService, chatScope, chatMessages: messages, language: lang });
-  }, [activeService, chatScope, messages, lang]);
+    saveSession({ activeService, chatScope, chatMessages: messages, chatBranches, activeBranchId, language: lang });
+  }, [activeService, chatScope, messages, chatBranches, activeBranchId, lang]);
 
   useEffect(() => {
     if (messages.length === 1 && messages[0].role === 'model') {
@@ -92,6 +95,84 @@ export default function App() {
     saveSession({ hasCompletedOnboarding: true });
     setIsOnboardingOpen(false);
     if (initialPrompt) window.setTimeout(() => void handleSend(initialPrompt), 300);
+  };
+
+  useEffect(() => {
+    if (activeBranchId === 'main') return;
+    setChatBranches((current) =>
+      current.map((branch) =>
+        branch.id === activeBranchId
+          ? { ...branch, messages, serviceKey: chatScope, updatedAt: Date.now() }
+          : branch
+      )
+    );
+  }, [messages, activeBranchId, chatScope]);
+
+  const getBranchLabel = (text: string) => {
+    const prefix = lang === 'ar' ? 'فرع' : 'لق';
+    const clean = text.replace(/\s+/g, ' ').trim();
+    return `${prefix}: ${clean.slice(0, 42)}${clean.length > 42 ? '…' : ''}`;
+  };
+
+  const handleCreateBranchFromMessage = (message: Message, index: number) => {
+    if (message.role !== 'user') return;
+
+    const now = Date.now();
+    const preservedId = activeBranchId === 'main' ? `main_${now}` : activeBranchId;
+    const preservedLabel =
+      activeBranchId === 'main'
+        ? (lang === 'ar' ? 'المحادثة الأصلية' : 'گفتوگۆی سەرەکی')
+        : (chatBranches.find((branch) => branch.id === activeBranchId)?.label || (lang === 'ar' ? 'المحادثة السابقة' : 'گفتوگۆی پێشوو'));
+
+    const preservedBranch: ChatBranch = {
+      id: preservedId,
+      label: preservedLabel,
+      serviceKey: chatScope,
+      messages,
+      forkedFromIndex: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const branchMessages = messages.slice(0, index);
+    const newBranch: ChatBranch = {
+      id: `branch_${now}`,
+      label: getBranchLabel(message.text),
+      serviceKey: chatScope,
+      messages: branchMessages.length ? branchMessages : [{ role: 'model', text: t.chat.welcome }],
+      forkedFromIndex: index,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    setChatBranches((current) => [
+      newBranch,
+      preservedBranch,
+      ...current.filter((branch) => branch.id !== newBranch.id && branch.id !== preservedBranch.id),
+    ].slice(0, 12));
+
+    setActiveBranchId(newBranch.id);
+    setMessages(newBranch.messages);
+    setInput(message.text);
+    setIsLoading(false);
+  };
+
+  const handleSwitchBranch = (branchId: string) => {
+    const target = chatBranches.find((branch) => branch.id === branchId);
+    if (!target) return;
+
+    setChatBranches((current) =>
+      current.map((branch) =>
+        branch.id === activeBranchId
+          ? { ...branch, messages, serviceKey: chatScope, updatedAt: Date.now() }
+          : branch
+      )
+    );
+    setActiveBranchId(target.id);
+    setChatScope(target.serviceKey);
+    setMessages(target.messages.length ? target.messages : [{ role: 'model', text: t.chat.welcome }]);
+    setInput('');
+    setIsLoading(false);
   };
 
   const handleSend = async (overridePrompt?: string) => {

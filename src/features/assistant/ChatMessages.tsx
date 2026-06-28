@@ -1,4 +1,4 @@
-import { Bot, Loader2, User } from 'lucide-react';
+import { Bot, GitBranch, Loader2, User } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
@@ -11,10 +11,11 @@ interface ChatMessagesProps {
   lang: 'ku' | 'ar';
   t: any;
   onSelectMessage: (msg: Message) => void;
+  onBranchFromMessage?: (msg: Message, index: number) => void;
   chatScrollRef: React.RefObject<HTMLDivElement | null>;
 }
 
-export const ChatMessages = ({ messages, isLoading, lang, onSelectMessage, chatScrollRef }: ChatMessagesProps) => (
+export const ChatMessages = ({ messages, isLoading, lang, onSelectMessage, onBranchFromMessage, chatScrollRef }: ChatMessagesProps) => (
   <div
     ref={chatScrollRef}
     className="chat-message-scroll min-h-0 flex-1 touch-pan-y overscroll-contain overflow-y-auto overflow-x-hidden bg-slate-50/60 px-3 py-4 [-webkit-overflow-scrolling:touch] dark:bg-[#091222] sm:px-4 sm:py-5 md:px-6"
@@ -33,7 +34,22 @@ export const ChatMessages = ({ messages, isLoading, lang, onSelectMessage, chatS
                   <div className={`prose prose-sm max-w-none break-words leading-7 ${isUser ? 'text-slate-900 dark:prose-invert dark:text-slate-100' : 'prose-invert text-white'}`}>
                     <ReactMarkdown rehypePlugins={[rehypeRaw]}>{message.text}</ReactMarkdown>
                   </div>
-                  <span className={`mt-2 block text-[10px] font-medium ${isUser ? 'text-slate-500 dark:text-slate-400' : 'text-white/65'}`}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className={`block text-[10px] font-medium ${isUser ? 'text-slate-500 dark:text-slate-400' : 'text-white/65'}`}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    {isUser && onBranchFromMessage && index > 0 && (
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onBranchFromMessage(message, index);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-black text-emerald-700 transition hover:bg-emerald-500/20 dark:text-emerald-300"
+                      >
+                        <GitBranch className="h-3 w-3" />
+                        {lang === 'ar' ? 'فرع المحادثة' : 'لقی گفتوگۆ'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </motion.div>

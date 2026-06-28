@@ -15,6 +15,16 @@ export interface RecentServiceAction {
   timestamp: number;
 }
 
+export interface ChatBranch {
+  id: string;
+  label: string;
+  serviceKey: ServiceKey;
+  messages: Message[];
+  forkedFromIndex?: number | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
 export interface SessionDrafts {
   currencyAmount?: string;
   currencyFrom?: string;
@@ -40,6 +50,8 @@ export interface BusinessSession {
   chatScope: ServiceKey;
   language: 'ku' | 'ar';
   chatMessages: Message[];
+  chatBranches: ChatBranch[];
+  activeBranchId?: string;
   recentPrompts: RecentPrompt[];
   recentServiceActions: RecentServiceAction[];
   drafts: SessionDrafts;
