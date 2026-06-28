@@ -11,6 +11,7 @@ interface ChatMessagesProps {
   lang: 'ku' | 'ar';
   t: any;
   onSelectMessage: (msg: Message) => void;
+  onEditMessage?: (msg: Message, index: number) => void;
   onBranchFromMessage?: (msg: Message, index: number) => void;
   chatScrollRef: React.RefObject<HTMLDivElement | null>;
 }

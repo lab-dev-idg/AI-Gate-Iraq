@@ -19,6 +19,7 @@ interface AssistantWorkspaceProps {
   isLoading: boolean;
   onSend: (overridePrompt?: string) => void;
   onSelectMessage: (msg: Message) => void;
+  onEditMessage?: (msg: Message, index: number) => void;
   onBranchFromMessage?: (msg: Message, index: number) => void;
   branches?: ChatBranch[];
   activeBranchId?: string;

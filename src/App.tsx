@@ -63,6 +63,7 @@ export default function App() {
   const [chatBranches, setChatBranches] = useState<ChatBranch[]>(() => loadSession().chatBranches || []);
   const [activeBranchId, setActiveBranchId] = useState(() => loadSession().activeBranchId || 'main');
   const [input, setInput] = useState('');
+  const [editingMessageIndex, setEditingMessageIndex] = useState<number | null>(null);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
@@ -180,7 +181,17 @@ export default function App() {
     if (!userMessage || isLoading) return;
 
     setInput('');
-    setMessages((current) => [...current, { role: 'user', text: userMessage }]);
+    setMessages((current) => {
+      if (editingMessageIndex !== null) {
+        return [
+          ...current.slice(0, editingMessageIndex),
+          { role: 'user', text: userMessage }
+        ];
+      }
+
+      return [...current, { role: 'user', text: userMessage }];
+    });
+    setEditingMessageIndex(null);
     setIsLoading(true);
 
     try {
@@ -206,6 +217,17 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEditMessage = (message: Message, index: number) => {
+    if (message.role !== 'user' || isLoading) return;
+
+    setInput(message.text);
+    setEditingMessageIndex(index);
+    setMessages((current) => current.slice(0, index + 1));
+    window.setTimeout(() => {
+      document.querySelector<HTMLTextAreaElement>('textarea')?.focus();
+    }, 50);
   };
 
   return (
