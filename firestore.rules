@@ -12,13 +12,70 @@ service cloud.firestore {
 
     function isAdmin() {
       return signedIn()
-        && exists(/databases/$(database)/documents/adminUsers/$(request.auth.uid));
+        && exists(/databases/$(database)/documents/adminUsers/$(request.auth.uid))
+        && get(/databases/$(database)/documents/adminUsers/$(request.auth.uid)).data.active == true
+        && get(/databases/$(database)/documents/adminUsers/$(request.auth.uid)).data.role in ['owner', 'admin'];
     }
 
     function isStringField(fieldName, maxLen) {
       return request.resource.data[fieldName] is string
         && request.resource.data[fieldName].size() > 0
         && request.resource.data[fieldName].size() <= maxLen;
+    }
+
+    function isOptionalStringField(fieldName, maxLen) {
+      return !request.resource.data.keys().hasAny([fieldName])
+        || (
+          request.resource.data[fieldName] is string
+          && request.resource.data[fieldName].size() <= maxLen
+        );
+    }
+
+    function validPublicConversionCreate() {
+      return request.resource.data.keys().hasOnly([
+        'type', 'language', 'fullName', 'email', 'phone',
+        'organization', 'role', 'country', 'city', 'service',
+        'message', 'consent', 'sourceUrl', 'website', 'status',
+        'createdAt', 'updatedAt'
+      ])
+      && request.resource.data.keys().hasAll([
+        'type', 'language', 'fullName', 'email', 'phone',
+        'organization', 'country', 'service', 'message',
+        'consent', 'sourceUrl', 'website', 'status',
+        'createdAt', 'updatedAt'
+      ])
+      && request.resource.data.type in ['demo', 'pilot', 'contact']
+      && request.resource.data.language in ['ku', 'ar', 'en']
+      && request.resource.data.status == 'received'
+      && request.resource.data.consent == true
+      && request.resource.data.website == ''
+      && request.resource.data.country == 'Iraq'
+      && isStringField('fullName', 100)
+      && isStringField('email', 160)
+      && isStringField('phone', 32)
+      && isStringField('organization', 120)
+      && isStringField('service', 100)
+      && isStringField('message', 1800)
+      && isStringField('sourceUrl', 500)
+      && isOptionalStringField('role', 100)
+      && isOptionalStringField('city', 100)
+      && request.resource.data.createdAt is timestamp
+      && request.resource.data.updatedAt is timestamp;
+    }
+
+    function validAdminConversionUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'status', 'adminNote', 'assignedTo', 'updatedAt'
+      ])
+      && (
+        !request.resource.data.keys().hasAny(['status'])
+        || request.resource.data.status in [
+          'received', 'contacted', 'qualified', 'converted', 'closed'
+        ]
+      )
+      && isOptionalStringField('adminNote', 4000)
+      && isOptionalStringField('assignedTo', 160)
+      && request.resource.data.updatedAt is timestamp;
     }
 
     function validPublicIntakeCreate() {
@@ -118,8 +175,10 @@ service cloud.firestore {
     }
 
     match /conversionSubmissions/{submissionId} {
-      allow read, update: if isAdmin();
-      allow create, delete: if false;
+      allow create: if validPublicConversionCreate();
+      allow read: if isAdmin();
+      allow update: if isAdmin() && validAdminConversionUpdate();
+      allow delete: if false;
     }
 
     match /auditLogs/{logId} {

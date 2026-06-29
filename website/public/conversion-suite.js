@@ -100,16 +100,47 @@
       status.textContent = '';
 
       try {
-        const response = await fetch('https://ai-gate-iraq.onrender.com/api/conversion/submissions', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+        const now = new Date().toISOString();
+        const firestoreDocument = {
+          fields: {
+            type: { stringValue: payload.type },
+            language: { stringValue: payload.language },
+            fullName: { stringValue: payload.fullName },
+            email: { stringValue: payload.email },
+            phone: { stringValue: payload.phone },
+            organization: { stringValue: payload.organization },
+            role: { stringValue: payload.role },
+            country: { stringValue: payload.country },
+            city: { stringValue: payload.city },
+            service: { stringValue: payload.service },
+            message: { stringValue: payload.message },
+            consent: { booleanValue: payload.consent },
+            sourceUrl: { stringValue: payload.sourceUrl },
+            website: { stringValue: payload.website },
+            status: { stringValue: 'received' },
+            createdAt: { timestampValue: now },
+            updatedAt: { timestampValue: now }
+          }
+        };
+
+        const response = await fetch(
+          'https://firestore.googleapis.com/v1/projects/ai-gate-iraq/databases/(default)/documents/conversionSubmissions',
+          {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(firestoreDocument)
+          }
+        );
+
         const result = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(result?.error?.message || 'SUBMISSION_FAILED');
+        if (!response.ok) {
+          throw new Error(result?.error?.message || 'FIRESTORE_SUBMISSION_FAILED');
+        }
+
+        const submissionId = result?.name?.split('/').pop() || null;
 
         status.textContent = t('success');
-        track('conversion_submit', { intent: data.intent, sector: data.sector, submissionId: result?.data?.id || null });
+        track('conversion_submit', { intent: data.intent, sector: data.sector, submissionId });
         try { localStorage.removeItem(STORAGE.draft); } catch {}
         form.reset();
         index = 0;
