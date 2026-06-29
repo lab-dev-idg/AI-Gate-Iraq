@@ -17,7 +17,11 @@ type Panel = 'main' | 'search' | 'projects';
 
 export default function PersistentSidebar({ activeService, setActiveService, lang }: PersistentSidebarProps) {
   const isInquiryEnabled = getAdminFeatureFlagEnabled('enable_inquiry_form', true);
-  const services = SERVICES.filter((service) => service.key !== 'inquiry' || isInquiryEnabled);
+  const services = SERVICES.filter(
+    (service) =>
+      service.key !== 'audit' &&
+      (service.key !== 'inquiry' || isInquiryEnabled)
+  );
   const ku = lang === 'ku';
   const [panel, setPanel] = useState<Panel>('main');
   const [isExpanded, setIsExpanded] = useState(false);

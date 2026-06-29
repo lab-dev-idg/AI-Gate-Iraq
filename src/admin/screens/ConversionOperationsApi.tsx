@@ -3,7 +3,7 @@ import { CheckCircle2, ChevronLeft, ChevronRight, Clock3, Download, RefreshCw, S
 import { getDocs } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { collection, db, doc, limit, orderBy, query, serverTimestamp, updateDoc } from '@/src/lib/firebase';
+import { auth, collection, db, doc, serverTimestamp, updateDoc } from '@/src/lib/firebase';
 
 type ConversionStatus = 'received' | 'contacted' | 'qualified' | 'converted' | 'closed';
 
@@ -99,17 +99,33 @@ export function ConversionOperationsApi({ adminToken: _adminToken }: ConversionO
       try {
         if (!db) throw new Error('FIREBASE_NOT_CONFIGURED');
 
+        const currentUser = auth?.currentUser;
+        if (!currentUser) throw new Error('ADMIN_AUTH_REQUIRED');
+
+        await currentUser.getIdToken(true);
+
         const snapshot = await getDocs(
-          query(
-            collection(db, 'conversionSubmissions'),
-            orderBy('createdAt', 'desc'),
-            limit(250),
-          ),
+          collection(db, 'conversionSubmissions'),
         );
 
-        const records = snapshot.docs.map((snapshotDoc) =>
-          normalizeRecord(snapshotDoc.id, snapshotDoc.data() as Record<string, unknown>),
-        );
+        const records = snapshot.docs
+          .map((snapshotDoc) =>
+            normalizeRecord(
+              snapshotDoc.id,
+              snapshotDoc.data() as Record<string, unknown>,
+            )
+          )
+          .sort((left, right) => {
+            const leftTime = left.createdAt
+              ? Date.parse(left.createdAt)
+              : 0;
+            const rightTime = right.createdAt
+              ? Date.parse(right.createdAt)
+              : 0;
+
+            return rightTime - leftTime;
+          })
+          .slice(0, 250);
 
         if (!cancelled) setItems(records);
       } catch (loadError) {
@@ -156,6 +172,11 @@ export function ConversionOperationsApi({ adminToken: _adminToken }: ConversionO
     setError('');
     try {
       if (!db) throw new Error('FIREBASE_NOT_CONFIGURED');
+
+      const currentUser = auth?.currentUser;
+      if (!currentUser) throw new Error('ADMIN_AUTH_REQUIRED');
+
+      await currentUser.getIdToken(true);
 
       const firestorePatch: Record<string, unknown> = {
         updatedAt: serverTimestamp(),
