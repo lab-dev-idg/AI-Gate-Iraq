@@ -44,7 +44,6 @@ export const AppHeader = ({ lang, setLang, children }: AppHeaderProps) => {
             AI
           </div>
           <span className="whitespace-nowrap text-xs font-black tracking-tight sm:text-sm lg:text-base">AI Gate Iraq</span>
-          <span className="hidden rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black text-emerald-600 dark:text-emerald-400 md:inline">UI/UX 2026</span>
         </div>
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-2">
@@ -65,7 +64,7 @@ export const AppHeader = ({ lang, setLang, children }: AppHeaderProps) => {
             onClick={() => void handleShare()}
             aria-label={lang === 'ar' ? 'مشاركة المنصة' : 'هاوبەشکردنی پلاتفۆرم'}
             title={lang === 'ar' ? 'مشاركة المنصة' : 'هاوبەشکردنی پلاتفۆرم'}
-            className="flex h-9 shrink-0 gap-2 rounded-lg px-2 text-xs font-black text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 sm:px-3"
+            className="flex h-9 shrink-0 gap-2 rounded-lg px-2 text-xs font-black text-slate-800 hover:bg-slate-200 dark:text-white dark:hover:bg-slate-700 sm:px-3"
           >
             <Share2 className="h-4 w-4" />
             <span className="hidden lg:inline">{lang === 'ar' ? 'مشاركة' : 'هاوبەشکردن'}</span>
