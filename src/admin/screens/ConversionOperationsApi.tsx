@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, ChevronLeft, ChevronRight, Clock3, Download, RefreshCw, Search, Users, XCircle } from 'lucide-react';
+import { getDocs } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { collection, db, doc, limit, orderBy, query, serverTimestamp, updateDoc } from '@/src/lib/firebase';
 
 type ConversionStatus = 'received' | 'contacted' | 'qualified' | 'converted' | 'closed';
 
@@ -26,19 +28,7 @@ interface ConversionOperationsApiProps {
   adminToken: string;
 }
 
-
 const PAGE_SIZE = 25;
-
-const isLocalRuntime =
-  window.location.hostname === 'localhost' ||
-  window.location.hostname === '127.0.0.1' ||
-  window.location.hostname.endsWith('.app.github.dev');
-
-const API_BASE_URL = isLocalRuntime
-  ? ''
-  : (
-      ''
-    ).replace(/\/$/, '');
 
 const STATUS_LABELS: Record<ConversionStatus, string> = {
   received: 'وەرگیراو',
@@ -56,7 +46,39 @@ const STATUS_STYLES: Record<ConversionStatus, string> = {
   closed: 'border-slate-600 bg-slate-800 text-slate-300',
 };
 
-export function ConversionOperationsApi({ adminToken }: ConversionOperationsApiProps) {
+const toIsoDate = (value: unknown): string | undefined => {
+  if (!value) return undefined;
+  if (typeof value === 'string') return value;
+  if (value instanceof Date) return value.toISOString();
+  if (
+    typeof value === 'object'
+    && value !== null
+    && 'toDate' in value
+    && typeof (value as { toDate?: unknown }).toDate === 'function'
+  ) {
+    return (value as { toDate: () => Date }).toDate().toISOString();
+  }
+  return undefined;
+};
+
+const normalizeRecord = (id: string, data: Record<string, unknown>): ConversionRecord => ({
+  id,
+  type: typeof data.type === 'string' ? data.type : undefined,
+  fullName: typeof data.fullName === 'string' ? data.fullName : undefined,
+  email: typeof data.email === 'string' ? data.email : undefined,
+  phone: typeof data.phone === 'string' ? data.phone : undefined,
+  organization: typeof data.organization === 'string' ? data.organization : null,
+  service: typeof data.service === 'string' ? data.service : undefined,
+  message: typeof data.message === 'string' ? data.message : undefined,
+  status: typeof data.status === 'string' ? data.status as ConversionStatus : 'received',
+  adminNote: typeof data.adminNote === 'string' ? data.adminNote : undefined,
+  assignedTo: typeof data.assignedTo === 'string' ? data.assignedTo : undefined,
+  createdAt: toIsoDate(data.createdAt),
+  updatedAt: toIsoDate(data.updatedAt),
+  migratedFrom: typeof data.migratedFrom === 'string' ? data.migratedFrom : undefined,
+});
+
+export function ConversionOperationsApi({ adminToken: _adminToken }: ConversionOperationsApiProps) {
   const [items, setItems] = useState<ConversionRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -68,11 +90,6 @@ export function ConversionOperationsApi({ adminToken }: ConversionOperationsApiP
   const [reloadKey, setReloadKey] = useState(0);
   const [page, setPage] = useState(1);
 
-  const headers = useMemo(() => ({
-    'content-type': 'application/json',
-    authorization: `Bearer ${adminToken}`,
-  }), [adminToken]);
-
   useEffect(() => {
     let cancelled = false;
 
@@ -80,10 +97,21 @@ export function ConversionOperationsApi({ adminToken }: ConversionOperationsApiP
       setLoading(true);
       setError('');
       try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/conversions`, { headers });
-        const body = await response.json();
-        if (!response.ok) throw new Error(body?.error?.code || 'LOAD_FAILED');
-        if (!cancelled) setItems(body.data || []);
+        if (!db) throw new Error('FIREBASE_NOT_CONFIGURED');
+
+        const snapshot = await getDocs(
+          query(
+            collection(db, 'conversionSubmissions'),
+            orderBy('createdAt', 'desc'),
+            limit(250),
+          ),
+        );
+
+        const records = snapshot.docs.map((snapshotDoc) =>
+          normalizeRecord(snapshotDoc.id, snapshotDoc.data() as Record<string, unknown>),
+        );
+
+        if (!cancelled) setItems(records);
       } catch (loadError) {
         console.error('Loading conversion operations failed.', loadError);
         if (!cancelled) setError('بارکردنی داواکارییەکان سەرکەوتوو نەبوو.');
@@ -94,7 +122,7 @@ export function ConversionOperationsApi({ adminToken }: ConversionOperationsApiP
 
     void load();
     return () => { cancelled = true; };
-  }, [headers, reloadKey]);
+  }, [reloadKey]);
 
   useEffect(() => {
     setPage(1);
@@ -127,15 +155,19 @@ export function ConversionOperationsApi({ adminToken }: ConversionOperationsApiP
     setSaving(true);
     setError('');
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/conversions/${id}`, {
-        method: 'PATCH',
-        headers,
-        body: JSON.stringify(patch),
-      });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body?.error?.code || 'UPDATE_FAILED');
+      if (!db) throw new Error('FIREBASE_NOT_CONFIGURED');
 
-      const updatedAt = body?.data?.updatedAt || new Date().toISOString();
+      const firestorePatch: Record<string, unknown> = {
+        updatedAt: serverTimestamp(),
+      };
+
+      if (patch.status !== undefined) firestorePatch.status = patch.status;
+      if (patch.adminNote !== undefined) firestorePatch.adminNote = patch.adminNote;
+      if (patch.assignedTo !== undefined) firestorePatch.assignedTo = patch.assignedTo;
+
+      await updateDoc(doc(db, 'conversionSubmissions', id), firestorePatch);
+
+      const updatedAt = new Date().toISOString();
       setItems((current) => current.map((item) => item.id === id ? { ...item, ...patch, updatedAt } : item));
       if (selected?.id === id) setSelected({ ...selected, ...patch, updatedAt });
     } catch (updateError) {
