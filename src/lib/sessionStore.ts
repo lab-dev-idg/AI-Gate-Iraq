@@ -26,6 +26,10 @@ function notifyWorkspaceChanged(): void {
   }
 }
 
+function normalizeService(service?: ServiceKey): ServiceKey {
+  return service === 'audit' ? 'assistant' : (service || 'assistant');
+}
+
 export function loadSession(currentLang: 'ku' | 'ar' = 'ku'): BusinessSession {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
@@ -35,6 +39,8 @@ export function loadSession(currentLang: 'ku' | 'ar' = 'ku'): BusinessSession {
     return {
       ...DEFAULT_SESSION(currentLang),
       ...session,
+      activeService: normalizeService(session.activeService),
+      chatScope: normalizeService(session.chatScope),
       chatBranches: session.chatBranches || [],
       activeBranchId: session.activeBranchId || 'main',
       drafts: { ...session.drafts }
@@ -56,12 +62,15 @@ export function saveSession(changes: Partial<BusinessSession>): void {
     let branches = changes.chatBranches !== undefined ? changes.chatBranches : current.chatBranches;
     branches = (branches || []).map((branch) => ({
       ...branch,
+      serviceKey: normalizeService(branch.serviceKey),
       messages: branch.messages.length > 80 ? [branch.messages[0], ...branch.messages.slice(-79)] : branch.messages
     })).slice(0, 12);
 
     const updated: BusinessSession = {
       ...current,
       ...changes,
+      activeService: normalizeService(changes.activeService ?? current.activeService),
+      chatScope: normalizeService(changes.chatScope ?? current.chatScope),
       chatMessages: messages,
       chatBranches: branches,
       activeBranchId: changes.activeBranchId ?? current.activeBranchId,
@@ -97,7 +106,7 @@ export function addRecentPrompt(text: string, serviceKey: ServiceKey): void {
     const newPrompt: RecentPrompt = {
       id: `prompt_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
       text: cleanText,
-      serviceKey,
+      serviceKey: normalizeService(serviceKey),
       timestamp: Date.now()
     };
     saveSession({ recentPrompts: [newPrompt, ...filtered].slice(0, 6) });
@@ -112,7 +121,7 @@ export function addServiceAction(actionName: string, serviceKey: ServiceKey): vo
     const newAction: RecentServiceAction = {
       id: `action_${Date.now()}`,
       actionName,
-      serviceKey,
+      serviceKey: normalizeService(serviceKey),
       timestamp: Date.now()
     };
     saveSession({ recentServiceActions: [newAction, ...current.recentServiceActions].slice(0, 10) });
