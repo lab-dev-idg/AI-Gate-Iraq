@@ -37,8 +37,7 @@ const isLocalRuntime =
 const API_BASE_URL = isLocalRuntime
   ? ''
   : (
-      import.meta.env.VITE_API_BASE_URL ||
-      'https://ai-gate-iraq.onrender.com'
+      ''
     ).replace(/\/$/, '');
 
 const STATUS_LABELS: Record<ConversionStatus, string> = {
