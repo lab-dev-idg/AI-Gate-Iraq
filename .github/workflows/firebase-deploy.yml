@@ -99,35 +99,65 @@ jobs:
       - name: Prepare Firebase platform package
         run: npm run prepare:firebase-platform
 
-      - name: Select Firebase deploy targets
-        id: targets
-        shell: bash
-        run: |
-          case "${{ inputs.deploy_scope }}" in
-            all)
-              echo "only=firestore:rules,hosting:website,hosting:platform" >> "$GITHUB_OUTPUT"
-              ;;
-            platform)
-              echo "only=hosting:platform" >> "$GITHUB_OUTPUT"
-              ;;
-            website)
-              echo "only=hosting:website" >> "$GITHUB_OUTPUT"
-              ;;
-            firestore)
-              echo "only=firestore:rules" >> "$GITHUB_OUTPUT"
-              ;;
-            *)
-              echo "Unsupported deploy scope"
-              exit 1
-              ;;
-          esac
-
-      - name: Deploy to Firebase
+      - name: Deploy Firestore rules
+        if: ${{ inputs.deploy_scope == 'all' || inputs.deploy_scope == 'firestore' }}
         run: >-
           npx firebase-tools@latest deploy
-          --only "${{ steps.targets.outputs.only }}"
+          --only firestore:rules
           --project ai-gate-iraq
           --non-interactive
+
+      - name: Deploy website hosting
+        if: ${{ inputs.deploy_scope == 'all' || inputs.deploy_scope == 'website' }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          log_file="$(mktemp)"
+
+          set +e
+          npx firebase-tools@latest deploy \
+            --only hosting:website \
+            --project ai-gate-iraq \
+            --non-interactive 2>&1 | tee "$log_file"
+          status=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+
+          if grep -Fq 'is the current active version' "$log_file"; then
+            echo 'Website version is already active; treating the idempotent Firebase response as success.'
+            exit 0
+          fi
+
+          exit "$status"
+
+      - name: Deploy platform hosting
+        if: ${{ inputs.deploy_scope == 'all' || inputs.deploy_scope == 'platform' }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          log_file="$(mktemp)"
+
+          set +e
+          npx firebase-tools@latest deploy \
+            --only hosting:platform \
+            --project ai-gate-iraq \
+            --non-interactive 2>&1 | tee "$log_file"
+          status=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+
+          if grep -Fq 'is the current active version' "$log_file"; then
+            echo 'Platform version is already active; treating the idempotent Firebase response as success.'
+            exit 0
+          fi
+
+          exit "$status"
 
       - name: Verify production endpoints
         if: ${{ inputs.deploy_scope == 'all' || inputs.deploy_scope == 'platform' || inputs.deploy_scope == 'website' }}
