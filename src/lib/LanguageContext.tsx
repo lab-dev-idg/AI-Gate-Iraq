@@ -1,27 +1,30 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Language, translations } from './translations';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { translations } from './translations';
+import { englishTranslations } from './englishTranslations';
+
+export type RuntimeLanguage = 'ku' | 'ar' | 'en';
 
 interface LanguageContextType {
-  lang: Language;
-  setLang: (lang: Language) => void;
+  lang: RuntimeLanguage;
+  setLang: (lang: RuntimeLanguage) => void;
   t: any;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Language>(() => {
+  const [lang, setLang] = useState<RuntimeLanguage>(() => {
     const saved = localStorage.getItem('app-lang');
-    return (saved as Language) || 'ku';
+    return saved === 'ku' || saved === 'ar' || saved === 'en' ? saved : 'ku';
   });
 
   useEffect(() => {
     localStorage.setItem('app-lang', lang);
-    document.documentElement.dir = 'rtl';
-    document.documentElement.lang = lang === 'ku' ? 'ckb' : 'ar';
+    document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';
+    document.documentElement.lang = lang === 'ku' ? 'ckb' : lang;
   }, [lang]);
 
-  const t = translations[lang];
+  const t = lang === 'en' ? englishTranslations : translations[lang];
 
   return (
     <LanguageContext.Provider value={{ lang, setLang, t }}>
