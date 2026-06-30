@@ -1,4 +1,4 @@
-import { Share2 } from 'lucide-react';
+import { Crown, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { FeedbackDialog } from '@/src/components/FeedbackDialog';
@@ -44,6 +44,14 @@ export const AppHeader = ({ lang, setLang, children }: AppHeaderProps) => {
             AI
           </div>
           <span className="whitespace-nowrap text-xs font-black tracking-tight sm:text-sm lg:text-base">AI Gate Iraq</span>
+          <span
+            className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full border border-amber-400/50 bg-gradient-to-r from-amber-400/20 via-amber-300/10 to-yellow-200/20 px-2 text-[9px] font-black text-amber-700 shadow-sm shadow-amber-500/10 dark:border-amber-300/35 dark:from-amber-300/15 dark:via-amber-200/10 dark:to-yellow-200/10 dark:text-amber-200 sm:h-7 sm:px-2.5 sm:text-[10px]"
+            aria-label={lang === 'ar' ? 'إصدار احترافي' : 'وەشانی پڕۆفشناڵ'}
+            title={lang === 'ar' ? 'AI Gate Iraq Pro' : 'AI Gate Iraq Pro'}
+          >
+            <Crown className="h-3 w-3" aria-hidden="true" />
+            <span>PRO</span>
+          </span>
         </div>
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-2">
