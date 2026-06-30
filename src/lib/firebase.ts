@@ -1,5 +1,9 @@
 import { initializeApp } from 'firebase/app';
 import {
+  initializeAppCheck,
+  ReCaptchaEnterpriseProvider,
+} from 'firebase/app-check';
+import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup as realSignInWithPopup,
@@ -31,8 +35,10 @@ const storageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
 const messagingSenderId = import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID;
 const appId = import.meta.env.VITE_FIREBASE_APP_ID;
 const measurementId = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID;
+const recaptchaEnterpriseSiteKey = import.meta.env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY?.trim();
 
 export const isFirebaseConfigured = Boolean(apiKey && authDomain && projectId && appId);
+export const isAppCheckConfigured = Boolean(recaptchaEnterpriseSiteKey);
 
 const firebaseConfig = {
   apiKey,
@@ -45,6 +51,7 @@ const firebaseConfig = {
 };
 
 export let firebaseApp: any = null;
+export let firebaseAppCheck: any = null;
 export let firebaseAuth: any = null;
 export let firebaseDb: any = null;
 export let firebaseStorage: any = null;
@@ -55,6 +62,16 @@ export let googleProvider: any = null;
 if (isFirebaseConfigured) {
   try {
     firebaseApp = initializeApp(firebaseConfig);
+
+    if (recaptchaEnterpriseSiteKey) {
+      firebaseAppCheck = initializeAppCheck(firebaseApp, {
+        provider: new ReCaptchaEnterpriseProvider(recaptchaEnterpriseSiteKey),
+        isTokenAutoRefreshEnabled: true,
+      });
+    } else {
+      console.warn('Firebase App Check site key is not configured. Enforcement must remain disabled.');
+    }
+
     firebaseAuth = getAuth(firebaseApp);
     firebaseDb = initializeFirestore(firebaseApp, {
       localCache: memoryLocalCache(),
@@ -167,6 +184,7 @@ export const serverTimestamp = () => {
 export interface FirebaseRuntimeStatus {
   configured: boolean;
   isConfigured: boolean;
+  appCheckConfigured: boolean;
   projectId?: string;
   authDomain?: string;
   storageBucket?: string;
@@ -180,6 +198,7 @@ export const getFirebaseStatus = (): FirebaseRuntimeStatus => {
   return {
     configured,
     isConfigured: configured,
+    appCheckConfigured: Boolean(firebaseAppCheck),
     projectId: projectId || undefined,
     authDomain: authDomain || undefined,
     storageBucket: storageBucket || undefined,
