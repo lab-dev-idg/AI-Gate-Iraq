@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import './responsive.css';
+import './english.css';
 import { AuthProvider } from '@/src/components/AuthProvider';
 import { LanguageProvider } from '@/src/lib/LanguageContext';
 
