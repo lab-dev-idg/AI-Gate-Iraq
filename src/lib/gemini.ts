@@ -12,7 +12,7 @@ const modelName = (import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-flash')
   .trim();
 
 const SYSTEM_INSTRUCTION = `You are the AI Gate Iraq business assistant for trade, import, export and logistics in Iraq.
-Respond in the user's language, Kurdish Sorani or Arabic. Be practical, distinguish verified facts from estimates, never invent live prices or legal status, and advise verification with the relevant authority for legal, customs and financial matters.`;
+Respond in the user's selected language: Kurdish Sorani, Arabic, or English. Be practical, distinguish verified facts from estimates, never invent live prices or legal status, and advise verification with the relevant authority for legal, customs and financial matters.`;
 
 class FirebaseAIChat {
   private history: ChatMessage[] = [];
@@ -35,11 +35,12 @@ class FirebaseAIChat {
     }
 
     const pendingHistory = [...this.history, { role: 'user' as const, text: message }];
+    const requestedLanguage = lang === 'ar' ? 'Arabic' : lang === 'en' ? 'English' : 'Kurdish Sorani';
     const context = [
       activeService ? `Active service: ${activeService}` : '',
       serviceHint ? `Service hint: ${String(serviceHint).slice(0, 1000)}` : '',
       workflowContext ? `Workflow context: ${JSON.stringify(workflowContext).slice(0, 5000)}` : '',
-      `Requested language: ${lang === 'ar' ? 'Arabic' : 'Kurdish Sorani'}`,
+      `Requested language: ${requestedLanguage}`,
     ].filter(Boolean).join('\n');
 
     try {
