@@ -1,0 +1,74 @@
+name: Quality Gates
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Project guard
+        run: npm run check:project
+
+      - name: TypeScript validation
+        run: npm run lint
+
+      - name: Production build
+        run: npm run build
+
+      - name: Dependency security audit
+        run: npm audit --audit-level=high
+
+      - name: Scan tracked files for privileged secret patterns
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -nE '(BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|AIza[0-9A-Za-z_-]{35}|"private_key"[[:space:]]*:)' -- . ':!package-lock.json'; then
+            echo 'Potential privileged credential found in tracked source.'
+            exit 1
+          fi
+
+  production-performance-smoke:
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build-and-security
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run controlled read-only smoke test
+        env:
+          PERF_REQUESTS: '10'
+          PERF_CONCURRENCY: '5'
+          PERF_TIMEOUT_MS: '10000'
+          PERF_P95_BUDGET_MS: '1500'
+          PERF_MAX_FAILURE_RATE: '0.01'
+        run: node scripts/performance-smoke.mjs
