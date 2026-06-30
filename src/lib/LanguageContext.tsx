@@ -5,8 +5,8 @@ import { englishTranslations } from './englishTranslations';
 export type RuntimeLanguage = 'ku' | 'ar' | 'en';
 
 interface LanguageContextType {
-  lang: RuntimeLanguage;
-  setLang: (lang: RuntimeLanguage) => void;
+  lang: any;
+  setLang: (lang: any) => void;
   t: any;
 }
 
