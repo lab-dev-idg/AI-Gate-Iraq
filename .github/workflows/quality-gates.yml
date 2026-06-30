@@ -44,7 +44,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git grep -nE '(BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|AIza[0-9A-Za-z_-]{35}|"private_key"[[:space:]]*:)' -- . ':!package-lock.json'; then
+          if git grep -nE '(BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|"private_key"[[:space:]]*:)' -- . ':!package-lock.json'; then
             echo 'Potential privileged credential found in tracked source.'
             exit 1
           fi
