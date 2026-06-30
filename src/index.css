@@ -232,7 +232,6 @@ body,
   display: inline-block;
 }
 
-/* High-contrast Markdown in chat bubbles and the expanded message dialog. */
 .dark .chat-message-scroll .prose,
 .dark [role="dialog"] .prose {
   color: #f1f5f9 !important;
@@ -259,22 +258,54 @@ body,
   color: inherit !important;
 }
 
-.dark [role="dialog"] {
-  color: #f1f5f9;
+/* Expanded chat message: force a readable surface even when the theme class is attached outside the portal. */
+[role="dialog"][data-state="open"] {
+  max-height: min(86dvh, 760px) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  color: #f8fafc !important;
   border: 1px solid #475569 !important;
   background: #0f1b2d !important;
+  scrollbar-width: thin;
+  scrollbar-color: #64748b transparent;
 }
 
-.dark [role="dialog"] [data-slot="dialog-description"] {
+[role="dialog"][data-state="open"]::-webkit-scrollbar {
+  display: block !important;
+  width: 7px !important;
+}
+
+[role="dialog"][data-state="open"]::-webkit-scrollbar-thumb {
+  background: #64748b !important;
+  border-radius: 999px;
+}
+
+[role="dialog"][data-state="open"]::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+[role="dialog"][data-state="open"] .prose,
+[role="dialog"][data-state="open"] .prose * {
+  color: #f8fafc !important;
+}
+
+[role="dialog"][data-state="open"] .prose a {
+  color: #7dd3fc !important;
+  text-decoration-color: #38bdf8 !important;
+}
+
+[role="dialog"][data-state="open"] .prose code {
+  color: #f8fafc !important;
+  background: #020617 !important;
+}
+
+[role="dialog"][data-state="open"] [data-slot="dialog-description"] {
   color: #cbd5e1 !important;
 }
 
-.dark [role="dialog"] a {
-  color: #7dd3fc;
-}
-
-.dark [role="dialog"] button {
-  color: #e2e8f0;
+[role="dialog"][data-state="open"] button {
+  color: #f1f5f9 !important;
 }
 
 .dark .quote-report {
