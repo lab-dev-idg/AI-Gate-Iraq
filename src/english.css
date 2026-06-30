@@ -1,0 +1,24 @@
+html[lang="en"] body,
+html[lang="en"] #root,
+html[lang="en"] [dir="rtl"] {
+  direction: ltr !important;
+  text-align: left;
+}
+
+html[lang="en"] [dir="rtl"] input,
+html[lang="en"] [dir="rtl"] textarea,
+html[lang="en"] [dir="rtl"] select,
+html[lang="en"] [dir="rtl"] button {
+  text-align: left;
+}
+
+html[lang="en"] .chatgpt-sidebar {
+  border-inline-start: 0;
+  border-inline-end-width: 1px;
+}
+
+html[lang="en"] .prose,
+html[lang="en"] .prose p,
+html[lang="en"] .prose li {
+  text-align: left;
+}
