@@ -38,13 +38,13 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 217.2 91.2% 16.5%; /* Beautiful Midnight Deep Navy */
+    --primary: 217.2 91.2% 16.5%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 142.1 76.2% 36.3%; /* Professional Emerald Green Accent */
+    --accent: 142.1 76.2% 36.3%;
     --accent-foreground: 142.1 76.2% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -55,25 +55,25 @@
   }
 
   .dark {
-    --background: 222.2 84% 6%; /* Deep Charcoal Navy */
+    --background: 222.2 84% 6%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 10%; /* Subtle card Navy background */
+    --card: 222.2 84% 10%;
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 6%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 70%; /* Soft elegant indigo for high Contrast readable text */
+    --primary: 217.2 91.2% 70%;
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 217.2 32.6% 14%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 14%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 142.1 70% 41%; /* Premium Emerald Green for highlights */
+    --muted-foreground: 215 20.2% 72%;
+    --accent: 142.1 70% 41%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 222.2 84% 14%;
-    --input: 222.2 84% 14%;
-    --ring: 224.3 76.3% 48%;
+    --border: 217 32% 24%;
+    --input: 217 32% 20%;
+    --ring: 213 94% 68%;
   }
 }
 
@@ -117,7 +117,6 @@ body,
   background: transparent;
 }
 
-/* Custom Chat Message Scroll rules to prevent bright white tracks */
 .chat-message-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgba(71, 85, 105, 0.45) transparent;
@@ -136,13 +135,11 @@ body,
   border-radius: 999px;
 }
 
-/* 3. ڕێکخستنی نووسینی کوردی و عەرەبی */
 [dir="rtl"] {
   text-align: right;
   font-family: "Noto Sans Arabic", sans-serif;
 }
 
-/* 4. ستایلی سکڕۆڵ بار (Professional) */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -161,7 +158,6 @@ body,
   background: rgba(148, 163, 184, 0.5);
 }
 
-/* Dark mode scrollbars */
 .dark ::-webkit-scrollbar-thumb {
   background: rgba(71, 85, 105, 0.4);
 }
@@ -180,16 +176,14 @@ body,
   background: rgba(100, 116, 139, 0.6);
 }
 
-/* Hide scrollbars for .no-scrollbar */
 .no-scrollbar::-webkit-scrollbar {
   display: none !important;
 }
 .no-scrollbar {
-  -ms-overflow-style: none !important;  /* IE and Edge */
-  scrollbar-width: none !important;  /* Firefox */
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
-/* Clear any white scrollbar tracks and hide scrollbars completely on mobile/tablets for internal elements */
 *::-webkit-scrollbar-track {
   background: transparent !important;
 }
@@ -212,7 +206,6 @@ body,
   }
 }
 
-/* 5. ستایلی پسوڵەی حەواڵە و لۆجیستیک */
 .quote-report {
   background: #ffffff;
   border-right: 5px solid #1e40af;
@@ -237,4 +230,64 @@ body,
   font-size: 0.85em;
   margin-top: 5px;
   display: inline-block;
+}
+
+/* High-contrast Markdown in chat bubbles and the expanded message dialog. */
+.dark .chat-message-scroll .prose,
+.dark [role="dialog"] .prose {
+  color: #f1f5f9 !important;
+  --tw-prose-body: #f1f5f9;
+  --tw-prose-headings: #ffffff;
+  --tw-prose-lead: #e2e8f0;
+  --tw-prose-links: #7dd3fc;
+  --tw-prose-bold: #ffffff;
+  --tw-prose-counters: #cbd5e1;
+  --tw-prose-bullets: #94a3b8;
+  --tw-prose-hr: #475569;
+  --tw-prose-quotes: #e2e8f0;
+  --tw-prose-quote-borders: #64748b;
+  --tw-prose-captions: #cbd5e1;
+  --tw-prose-code: #f8fafc;
+  --tw-prose-pre-code: #e2e8f0;
+  --tw-prose-pre-bg: #020617;
+  --tw-prose-th-borders: #64748b;
+  --tw-prose-td-borders: #334155;
+}
+
+.dark .chat-message-scroll .prose :where(p, li, ol, ul, strong, em, h1, h2, h3, h4, h5, h6, blockquote, code):not(:where([class~="not-prose"] *)),
+.dark [role="dialog"] .prose :where(p, li, ol, ul, strong, em, h1, h2, h3, h4, h5, h6, blockquote, code):not(:where([class~="not-prose"] *)) {
+  color: inherit !important;
+}
+
+.dark [role="dialog"] {
+  color: #f1f5f9;
+  border: 1px solid #475569 !important;
+  background: #0f1b2d !important;
+}
+
+.dark [role="dialog"] [data-slot="dialog-description"] {
+  color: #cbd5e1 !important;
+}
+
+.dark [role="dialog"] a {
+  color: #7dd3fc;
+}
+
+.dark [role="dialog"] button {
+  color: #e2e8f0;
+}
+
+.dark .quote-report {
+  background: #111d31;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+.dark .quote-id {
+  color: #93c5fd;
+}
+
+.dark .savings-tag {
+  background: rgba(16, 185, 129, 0.16);
+  color: #a7f3d0;
 }
