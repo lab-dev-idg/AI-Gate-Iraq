@@ -4,7 +4,6 @@
 @theme {
   --font-sans: "Inter", "Noto Sans Arabic", "Noto Kufi Arabic", ui-sans-serif, system-ui, sans-serif;
   --font-arabic: "Noto Kufi Arabic", "Noto Sans Arabic", sans-serif;
-  
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -24,7 +23,6 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
-  
   --radius-lg: 1rem;
   --radius-md: 0.75rem;
   --radius-sm: 0.5rem;
@@ -232,8 +230,7 @@ body,
   display: inline-block;
 }
 
-.dark .chat-message-scroll .prose,
-.dark [role="dialog"] .prose {
+.dark .chat-message-scroll .prose {
   color: #f1f5f9 !important;
   --tw-prose-body: #f1f5f9;
   --tw-prose-headings: #ffffff;
@@ -253,13 +250,12 @@ body,
   --tw-prose-td-borders: #334155;
 }
 
-.dark .chat-message-scroll .prose :where(p, li, ol, ul, strong, em, h1, h2, h3, h4, h5, h6, blockquote, code):not(:where([class~="not-prose"] *)),
-.dark [role="dialog"] .prose :where(p, li, ol, ul, strong, em, h1, h2, h3, h4, h5, h6, blockquote, code):not(:where([class~="not-prose"] *)) {
+.dark .chat-message-scroll .prose :where(p, li, ol, ul, strong, em, h1, h2, h3, h4, h5, h6, blockquote, code):not(:where([class~="not-prose"] *)) {
   color: inherit !important;
 }
 
-/* Expanded chat message: force a readable surface even when the theme class is attached outside the portal. */
-[role="dialog"][data-state="open"] {
+/* Base UI portals render outside the .dark app tree. Target the actual popup slot directly. */
+[data-slot="dialog-content"] {
   max-height: min(86dvh, 760px) !important;
   overflow-y: auto !important;
   overscroll-behavior: contain;
@@ -267,44 +263,61 @@ body,
   color: #f8fafc !important;
   border: 1px solid #475569 !important;
   background: #0f1b2d !important;
-  scrollbar-width: thin;
-  scrollbar-color: #64748b transparent;
+  scrollbar-width: thin !important;
+  scrollbar-color: #64748b transparent !important;
 }
 
-[role="dialog"][data-state="open"]::-webkit-scrollbar {
+[data-slot="dialog-content"]::-webkit-scrollbar {
   display: block !important;
-  width: 7px !important;
+  width: 8px !important;
 }
 
-[role="dialog"][data-state="open"]::-webkit-scrollbar-thumb {
+[data-slot="dialog-content"]::-webkit-scrollbar-thumb {
   background: #64748b !important;
-  border-radius: 999px;
+  border-radius: 999px !important;
 }
 
-[role="dialog"][data-state="open"]::-webkit-scrollbar-track {
+[data-slot="dialog-content"]::-webkit-scrollbar-track {
   background: transparent !important;
 }
 
-[role="dialog"][data-state="open"] .prose,
-[role="dialog"][data-state="open"] .prose * {
+[data-slot="dialog-content"] [data-slot="dialog-header"],
+[data-slot="dialog-content"] [data-slot="dialog-title"],
+[data-slot="dialog-content"] [data-slot="dialog-description"],
+[data-slot="dialog-content"] .prose,
+[data-slot="dialog-content"] .prose p,
+[data-slot="dialog-content"] .prose li,
+[data-slot="dialog-content"] .prose ol,
+[data-slot="dialog-content"] .prose ul,
+[data-slot="dialog-content"] .prose strong,
+[data-slot="dialog-content"] .prose em,
+[data-slot="dialog-content"] .prose h1,
+[data-slot="dialog-content"] .prose h2,
+[data-slot="dialog-content"] .prose h3,
+[data-slot="dialog-content"] .prose h4,
+[data-slot="dialog-content"] .prose h5,
+[data-slot="dialog-content"] .prose h6,
+[data-slot="dialog-content"] .prose blockquote {
   color: #f8fafc !important;
 }
 
-[role="dialog"][data-state="open"] .prose a {
+[data-slot="dialog-content"] [data-slot="dialog-description"] {
+  color: #cbd5e1 !important;
+}
+
+[data-slot="dialog-content"] .prose a,
+[data-slot="dialog-content"] a {
   color: #7dd3fc !important;
   text-decoration-color: #38bdf8 !important;
 }
 
-[role="dialog"][data-state="open"] .prose code {
+[data-slot="dialog-content"] .prose code {
   color: #f8fafc !important;
   background: #020617 !important;
 }
 
-[role="dialog"][data-state="open"] [data-slot="dialog-description"] {
-  color: #cbd5e1 !important;
-}
-
-[role="dialog"][data-state="open"] button {
+[data-slot="dialog-content"] button,
+[data-slot="dialog-content"] [data-slot="dialog-close"] {
   color: #f1f5f9 !important;
 }
 
