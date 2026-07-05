@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import App from './App.tsx';
+import LandingAwareApp from './LandingAwareApp';
 import './index.css';
 import './responsive.css';
 import './english.css';
@@ -38,7 +38,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
       <LanguageProvider>
-        <App />
+        <LandingAwareApp />
       </LanguageProvider>
     </AuthProvider>
   </StrictMode>,
