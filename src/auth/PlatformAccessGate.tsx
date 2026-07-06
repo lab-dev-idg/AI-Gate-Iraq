@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Loader2, LockKeyhole, ShieldCheck } from 'lucide-react';
-import { useAuth } from '@/src/components/AuthProvider';
 import { useLanguage } from '@/src/lib/LanguageContext';
 import { auth, googleProvider, signInWithPopup } from '@/src/lib/firebase';
 
-export default function PlatformAccessGate({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+interface PlatformAccessGateProps {
+  loading: boolean;
+}
+
+export default function PlatformAccessGate({ loading }: PlatformAccessGateProps) {
   const { lang } = useLanguage();
   const [signingIn, setSigningIn] = useState(false);
   const [error, setError] = useState('');
@@ -21,15 +23,15 @@ export default function PlatformAccessGate({ children }: { children: React.React
     );
   }
 
-  if (user) return <>{children}</>;
-
   const login = async () => {
     setError('');
     setSigningIn(true);
+
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (err: any) {
       const code = String(err?.code || '');
+
       if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
         setError(lang === 'ar' ? 'تم إلغاء تسجيل الدخول.' : lang === 'en' ? 'Sign-in was cancelled.' : 'چوونەژوورەوە هەڵوەشایەوە.');
       } else if (code === 'auth/unauthorized-domain') {
@@ -57,12 +59,19 @@ export default function PlatformAccessGate({ children }: { children: React.React
         <div className="mb-7 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 text-xs font-black shadow-lg shadow-blue-500/25">AI</span>
-            <div><p className="font-black">AI Gate Iraq</p><p className="text-[10px] font-bold tracking-[0.16em] text-slate-400">SECURE ACCESS</p></div>
+            <div>
+              <p className="font-black">AI Gate Iraq</p>
+              <p className="text-[10px] font-bold tracking-[0.16em] text-slate-400">SECURE ACCESS</p>
+            </div>
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-black text-emerald-300"><ShieldCheck className="h-3.5 w-3.5" />PROTECTED</span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-black text-emerald-300">
+            <ShieldCheck className="h-3.5 w-3.5" />PROTECTED
+          </span>
         </div>
 
-        <div className="grid h-14 w-14 place-items-center rounded-2xl border border-blue-400/20 bg-blue-500/10 text-blue-300"><LockKeyhole className="h-7 w-7" /></div>
+        <div className="grid h-14 w-14 place-items-center rounded-2xl border border-blue-400/20 bg-blue-500/10 text-blue-300">
+          <LockKeyhole className="h-7 w-7" />
+        </div>
         <h1 className="mt-6 text-2xl font-black leading-tight sm:text-3xl">{title}</h1>
         <p className="mt-4 text-sm font-medium leading-7 text-slate-300">{description}</p>
 
@@ -72,10 +81,6 @@ export default function PlatformAccessGate({ children }: { children: React.React
         </button>
 
         {error && <p className="mt-4 rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-xs font-bold leading-6 text-rose-200">{error}</p>}
-
-        <p className="mt-6 text-center text-[11px] leading-5 text-slate-500">
-          {lang === 'ar' ? 'بالمتابعة، أنت توافق على استخدام حسابك للوصول الآمن إلى مساحة العمل.' : lang === 'en' ? 'By continuing, you agree to use your account for secure workspace access.' : 'بە بەردەوامبوون، ڕازی دەبیت هەژمارەکەت بۆ دەستگەیشتنی پارێزراو بەکاربهێنرێت.'}
-        </p>
       </div>
     </div>
   );
