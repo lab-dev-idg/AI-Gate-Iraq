@@ -32,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               createdAt: serverTimestamp(),
             });
           }
+
           setUser(firebaseUser);
         } else {
           setUser(null);
@@ -52,8 +53,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={{ user, loading }}>
-      {requiresAccount && !user ? (
-        <PlatformAccessGate>{null}</PlatformAccessGate>
+      {requiresAccount && (loading || !user) ? (
+        <PlatformAccessGate loading={loading} />
       ) : (
         <>
           {children}
