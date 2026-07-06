@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, onAuthStateChanged, User, doc, getDoc, setDoc, db, serverTimestamp } from '@/src/lib/firebase';
+import PlatformAccessGate from '@/src/auth/PlatformAccessGate';
+import TrialLimitDialog from '@/src/components/TrialLimitDialog';
 
 interface AuthContextType {
   user: User | null;
@@ -16,33 +18,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Sync with Firestore
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        if (!userDoc.exists()) {
-          await setDoc(userDocRef, {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName,
-            photoURL: firebaseUser.photoURL,
-            createdAt: serverTimestamp()
-          });
+      try {
+        if (firebaseUser) {
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          if (!userDoc.exists()) {
+            await setDoc(userDocRef, {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName,
+              photoURL: firebaseUser.photoURL,
+              createdAt: serverTimestamp(),
+            });
+          }
+          setUser(firebaseUser);
+        } else {
+          setUser(null);
         }
-        setUser(firebaseUser);
-      } else {
-        setUser(null);
+      } catch (error) {
+        console.error('Unable to synchronize the signed-in user profile.', error);
+        setUser(firebaseUser || null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  const requiresAccount = path !== '/' && path !== '/admin';
+
   return (
     <AuthContext.Provider value={{ user, loading }}>
-      {children}
+      {requiresAccount && !user ? (
+        <PlatformAccessGate>{null}</PlatformAccessGate>
+      ) : (
+        <>
+          {children}
+          {requiresAccount && user ? <TrialLimitDialog /> : null}
+        </>
+      )}
     </AuthContext.Provider>
   );
 };
