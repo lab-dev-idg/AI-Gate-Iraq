@@ -1,6 +1,13 @@
 (() => {
   'use strict';
 
+  if (!document.querySelector('script[src="/platform-route-guard.js"]')) {
+    const routeGuard = document.createElement('script');
+    routeGuard.src = '/platform-route-guard.js';
+    routeGuard.defer = true;
+    document.head.appendChild(routeGuard);
+  }
+
   const labels = {
     ku: 'دەربارەی ئێمە',
     ar: 'من نحن',
