@@ -1,6 +1,13 @@
 (() => {
   'use strict';
 
+  const PLATFORM_LANDING_URL = 'https://app.aigateiraq.com/';
+  const LEGACY_PLATFORM_HOSTS = new Set([
+    'ai-gate-iraq-platform.aigateiraq.workers.dev',
+    'ai-gate-iraq-platform.web.app',
+    'ai-gate-iraq-platform.firebaseapp.com',
+  ]);
+
   const root = document.documentElement;
   const body = document.body;
   const year = document.getElementById('year');
@@ -13,6 +20,30 @@
   let translations = { ku: kurdish, ar: {}, en: {} };
   let activeLanguage = 'ku';
   let lastFocusedElement = null;
+
+  const routePlatformLinksToLanding = () => {
+    document.querySelectorAll('a[href]').forEach((link) => {
+      try {
+        const url = new URL(link.getAttribute('href'), window.location.origin);
+        const isPlatformLink =
+          LEGACY_PLATFORM_HOSTS.has(url.hostname) ||
+          url.hostname === 'app.aigateiraq.com' ||
+          link.dataset.i18n === 'nav.openApp' ||
+          link.dataset.i18n === 'hero.primaryCta' ||
+          link.dataset.i18n === 'cta.primary';
+
+        if (!isPlatformLink) return;
+
+        link.href = PLATFORM_LANDING_URL;
+        link.removeAttribute('target');
+        link.removeAttribute('rel');
+      } catch {
+        // Ignore malformed or non-HTTP links.
+      }
+    });
+  };
+
+  routePlatformLinksToLanding();
 
   const metaByLanguage = {
     ku: { dir: 'rtl', locale: 'ku_IQ', title: 'AI Gate Iraq — یەک دەروازە بۆ بازرگانی و لۆجیستیک', description: 'AI Gate Iraq — یەک دەروازە بۆ خزمەتگوزارییە بازرگانی و لۆجیستییەکان لە عێراق.', open: 'کردنەوەی لیست', close: 'داخستنی لیست' },
@@ -145,6 +176,7 @@
       button.classList.toggle('active', active);
       button.setAttribute('aria-pressed', String(active));
     });
+    routePlatformLinksToLanding();
     updateMenuLabel(Boolean(mainNav?.classList.contains('open')));
     try { localStorage.setItem('aigateiraq-language', safeLanguage); } catch {}
   };
