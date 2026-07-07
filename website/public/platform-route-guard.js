@@ -1,6 +1,13 @@
 (() => {
   'use strict';
 
+  if (!document.querySelector('script[src="/sorani-cleanup.js"]')) {
+    const soraniCleanup = document.createElement('script');
+    soraniCleanup.src = '/sorani-cleanup.js';
+    soraniCleanup.defer = true;
+    document.head.appendChild(soraniCleanup);
+  }
+
   const PLATFORM_LANDING_URL = 'https://app.aigateiraq.com/';
   const PLATFORM_HOSTS = new Set([
     'app.aigateiraq.com',
