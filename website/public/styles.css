@@ -9,3 +9,18 @@
 @import url('/styles/form-fixes.css');
 
 @import url('/styles/mobile-tap-performance.css');
+
+/* In-app browser safety fallback */
+html, body {
+  min-height: 100%;
+  background: #07111f;
+}
+
+.reveal {
+  opacity: 1;
+  transform: none;
+}
+
+body {
+  color: #f8fbff;
+}
