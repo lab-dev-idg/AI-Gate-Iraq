@@ -399,7 +399,7 @@ function getServiceHint(service: ServiceKey): string {
 
 function getFriendlyAiError(code: string, lang: 'ku' | 'ar'): string {
   const arabic = lang === 'ar';
-  if (code === 'AI_CREDENTIAL_REJECTED') return arabic ? 'خدمة الذكاء الاصطناعي غير متاحة مؤقتاً بسبب إعداد أمني.' : 'خزمەتگوزاریی AI کاتیی بەهۆی ڕێکخستنی ئاسایشییەوە بەردەست نییە.';
+  if (code === 'AI_CREDENTIAL_REJECTED') return arabic ? 'خدمة الذكاء الاصطناعي غير متاحة مؤقتاً بسبب إعداد أمني.' : 'خزمەتگوزاریی AI کاتیی بەهۆی ڕێکخستنی پاراستنەوە بەردەست نییە.';
   if (code === 'AI_QUOTA_EXCEEDED') return arabic ? 'تم بلوغ حد الاستخدام. حاول لاحقاً.' : 'سنووری بەکارهێنان پڕ بووە؛ دواتر هەوڵ بدەوە.';
   return arabic ? 'تعذر إكمال الطلب حالياً. حاول مرة أخرى.' : 'ئێستا نەتوانرا داواکارییەکە تەواو بکرێت؛ دووبارە هەوڵ بدەوە.';
 }
