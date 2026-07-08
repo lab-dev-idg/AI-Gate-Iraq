@@ -17,8 +17,8 @@ export default function TrialLimitDialog() {
   if (!open) return null;
 
   const title = lang === 'ar' ? 'انتهت تجربتك المجانية' : lang === 'en' ? 'Your free trial is complete' : 'تاقیکردنەوەی خۆڕاییت تەواو بوو';
-  const text = lang === 'ar' ? 'استخدمت الأسئلة الثلاثة المتاحة. تواصل مع فريق الدعم للمتابعة.' : lang === 'en' ? 'You used the three available questions. Contact support to continue.' : 'سێ پرسیاری بەردەستت بەکارهێنا. بۆ بەردەوامبوون پەیوەندی بە تیمی پشتیوانی بکە.';
-  const action = lang === 'ar' ? 'التواصل مع الدعم' : lang === 'en' ? 'Contact support' : 'پەیوەندی بە پشتیوانی';
+  const text = lang === 'ar' ? 'استخدمت الأسئلة الثلاثة المتاحة. تواصل مع فريق الدعم للمتابعة.' : lang === 'en' ? 'You used the three available questions. Contact support to continue.' : 'سێ پرسیاری بەردەستت بەکارهێنا. بۆ بەردەوامبوون پەیوەندی بە گرووپی یارمەتی بکە.';
+  const action = lang === 'ar' ? 'التواصل مع الدعم' : lang === 'en' ? 'Contact support' : 'پەیوەندی بە یارمەتی';
   const close = lang === 'ar' ? 'إغلاق' : lang === 'en' ? 'Close' : 'داخستن';
 
   return (

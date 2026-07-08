@@ -19,7 +19,7 @@ export const WorkflowGuide = ({ activeService, lang, onQuestionClick }: Workflow
   const wTrans = translations[lang === 'ar' ? 'ar' : 'ku'].workflow || {
     checklistTitle: lang === 'ar' ? 'قائمة تدقيق ودليل خطوات العمل' : 'بۆردی ڕێنمایی و بەرنامەی کار',
     requiredInputs: lang === 'ar' ? 'المعلومات المطلوبة' : 'زانیارییە پێویستەکان',
-    documentsLabel: lang === 'ar' ? 'الوثائق والمستندات المطلوبة' : 'دۆکیومێنت و بەڵگەنامەکان',
+    documentsLabel: lang === 'ar' ? 'الوثائق والمستندات المطلوبة' : 'بەڵگەنامە و بەڵگەنامەکان',
     risksLabel: lang === 'ar' ? 'المخاطر والتحديات المحتملة' : 'مەترسی و بەربەستە باوەکان',
     nextActionsLabel: lang === 'ar' ? 'الإجراءات والخطوات التالية' : 'هەنگاوە پێشنیارکراوەکان',
   };

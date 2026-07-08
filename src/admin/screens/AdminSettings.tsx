@@ -129,7 +129,7 @@ export const AdminSettings = ({
             {/* Multimodal feature toggler */}
             <div className="flex items-center justify-between gap-4 p-3 bg-slate-950/40 rounded-xl border border-slate-900">
               <div className="space-y-1 text-right">
-                <p className="text-xs font-bold text-slate-200">پشتیوانیکردنی دەستکاریکردنی فایل</p>
+                <p className="text-xs font-bold text-slate-200">یارمەتیدانی دەستکاریکردنی فایل</p>
                 <p className="text-[10px] text-slate-500">بینینی دوگمەی هاوپێچ لە بواری یاوەرە ژیرییەکە بە یەکجاری.</p>
               </div>
               <button

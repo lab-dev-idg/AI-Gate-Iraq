@@ -26,7 +26,7 @@ export function LogisticsMap() {
       <CardHeader className="border-b border-slate-700/80 pb-4">
         <CardTitle className="flex items-center gap-2 text-xl font-black text-white">
           <MapPin className="h-5 w-5 text-emerald-400" />
-          {lang === 'ar' ? 'خريطة المراكز اللوجستية' : 'نەخشەی مەڵبەندە لۆجیستییەکان'}
+          {lang === 'ar' ? 'خريطة المراكز اللوجستية' : 'نەخشەی مەڵبەندە گواستنەوەییەکان'}
         </CardTitle>
       </CardHeader>
 
@@ -76,7 +76,7 @@ export function LogisticsMap() {
         <p className="text-xs font-medium leading-6 text-slate-300">
           {lang === 'ar'
             ? 'المواقع المعروضة مرجعية لتسهيل التخطيط اللوجستي. تحقّق من حالة المنفذ ومواعيد العمل من الجهة المشغّلة قبل اتخاذ القرار.'
-            : 'شوێنە پیشاندراوەکان بۆ ڕێنمایی پلاندانانی لۆجیستیکن؛ پێش بڕیاردان دۆخی دەروازە و کاتی کارکردن لە دەزگای بەڕێوەبەر پشتڕاست بکەرەوە.'}
+            : 'شوێنە پیشاندراوەکان بۆ ڕێنمایی پلاندانانی گواستنەوەن؛ پێش بڕیاردان دۆخی دەروازە و کاتی کارکردن لە دەزگای بەڕێوەبەر پشتڕاست بکەرەوە.'}
         </p>
       </CardContent>
     </Card>

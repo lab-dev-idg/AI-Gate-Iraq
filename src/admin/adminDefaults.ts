@@ -119,7 +119,7 @@ export const DEFAULT_ADMIN_STATE: AdminState = {
     {
       id: '9',
       key: 'map',
-      titleKu: 'نەخشەی لۆجیستی عێراق',
+      titleKu: 'نەخشەی گواستنەوە عێراق',
       titleAr: 'الخارطة اللوجستية للعراق',
       titleEn: 'Logistics Map',
       descriptionKu: 'نەخشەی کارلێکەر بۆ کێشانی هێڵ و دەروازە بازرگانییەکان.',
@@ -184,7 +184,7 @@ export const DEFAULT_ADMIN_STATE: AdminState = {
     },
     {
       key: 'enable_multimodal',
-      labelKu: 'پشتیوانیکردنی دەستکاریکردنی فایل',
+      labelKu: 'یارمەتیدانی دەستکاریکردنی فایل',
       descriptionKu: 'چالاککردنی وەرگرتن و سەرنجدانی فایل لە بواری یاریدەدەری زیرەکدا.',
       enabled: false
     },
@@ -214,7 +214,7 @@ export const DEFAULT_ADMIN_STATE: AdminState = {
       key: 'welcome_notice',
       titleKu: 'بەخێربێن بۆ سەکۆی نیشتمانی بۆ بازرگانی و کار',
       titleAr: 'مرحباً بكم في البوابة الوطنية للتجارة والأعمال',
-      bodyKu: 'ڕاوێژکارێکی زیرەک بۆ هاوردە و لۆجیستیکی پێشکەوتوو لە عێراق.',
+      bodyKu: 'ڕاوێژکارێکی زیرەک بۆ هاوردە و گواستنەوەی پێشکەوتوو لە عێراق.',
       bodyAr: 'بوابتك الذكية لتسهيل أعمال الاستيراد واللوائح الجمركية في العراق.',
       visible: true,
       updatedAt: '2026-06-16T05:00:00Z'

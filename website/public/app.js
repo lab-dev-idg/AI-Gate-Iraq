@@ -46,7 +46,7 @@
   routePlatformLinksToLanding();
 
   const metaByLanguage = {
-    ku: { dir: 'rtl', locale: 'ku_IQ', title: 'AI Gate Iraq — یەک دەروازە بۆ بازرگانی و لۆجیستیک', description: 'AI Gate Iraq — یەک دەروازە بۆ خزمەتگوزارییە بازرگانی و لۆجیستییەکان لە عێراق.', open: 'کردنەوەی لیست', close: 'داخستنی لیست' },
+    ku: { dir: 'rtl', locale: 'ku_IQ', title: 'AI Gate Iraq — یەک دەروازە بۆ بازرگانی و گواستنەوە', description: 'AI Gate Iraq — یەک دەروازە بۆ خزمەتگوزارییە بازرگانی و گواستنەوەییەکان لە عێراق.', open: 'کردنەوەی لیست', close: 'داخستنی لیست' },
     ar: { dir: 'rtl', locale: 'ar_IQ', title: 'AI Gate Iraq — بوابة واحدة للتجارة والخدمات اللوجستية', description: 'منصة ذكية ومنظمة لخدمات التجارة والاستيراد والنقل والتوريد في العراق.', open: 'فتح القائمة', close: 'إغلاق القائمة' },
     en: { dir: 'ltr', locale: 'en_US', title: 'AI Gate Iraq — One Gateway for Trade and Logistics', description: 'An intelligent workspace for trade, import, transport, sourcing and logistics in Iraq.', open: 'Open menu', close: 'Close menu' },
   };
