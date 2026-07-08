@@ -1,0 +1,70 @@
+/* Mobile tap + performance fixes */
+@media (max-width: 900px) {
+  button,
+  .button,
+  .button-small,
+  .menu-toggle,
+  .language-switcher button,
+  .main-nav a,
+  .mobile-app-link {
+    min-width: 44px;
+    min-height: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(25, 199, 255, 0.18);
+  }
+
+  .button-small {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+
+  .language-switcher {
+    gap: 8px;
+  }
+
+  .language-switcher button {
+    padding: 8px 12px;
+  }
+
+  .menu-toggle {
+    position: relative;
+    z-index: 1201;
+    cursor: pointer;
+  }
+
+  .main-nav {
+    z-index: 1200;
+  }
+
+  .main-nav a {
+    cursor: pointer;
+  }
+}
+
+@media (max-width: 430px) {
+  .language-switcher button {
+    font-size: 0.78rem;
+    padding-inline: 10px;
+  }
+
+  .nav-actions {
+    gap: 8px;
+  }
+}
+
+/* reduce mobile paint cost */
+@media (max-width: 768px) {
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .platform-preview,
+  .comparison-card,
+  .service-card,
+  .pilot-card,
+  .final-cta-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}

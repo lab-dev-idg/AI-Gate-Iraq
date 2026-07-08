@@ -80,21 +80,26 @@
 
   if (year) year.textContent = String(new Date().getFullYear());
 
-  if (!document.querySelector('link[data-share-suite-style]')) {
-    const shareStyle = document.createElement('link');
-    shareStyle.rel = 'stylesheet';
-    shareStyle.href = '/styles/share-tools.css';
-    shareStyle.dataset.shareSuiteStyle = '';
-    document.head.append(shareStyle);
-  }
+  const loadShareSuite = () => {
+    if (!document.querySelector('link[data-share-suite-style]')) {
+      const shareStyle = document.createElement('link');
+      shareStyle.rel = 'stylesheet';
+      shareStyle.href = '/styles/share-tools.css';
+      shareStyle.dataset.shareSuiteStyle = '';
+      document.head.append(shareStyle);
+    }
 
-  if (!document.querySelector('script[data-share-suite-loader]')) {
-    const shareScript = document.createElement('script');
-    shareScript.src = '/share-tools.js';
-    shareScript.defer = true;
-    shareScript.dataset.shareSuiteLoader = '';
-    document.head.append(shareScript);
-  }
+    if (!document.querySelector('script[data-share-suite-loader]')) {
+      const shareScript = document.createElement('script');
+      shareScript.src = '/share-tools.js';
+      shareScript.defer = true;
+      shareScript.dataset.shareSuiteLoader = '';
+      document.head.append(shareScript);
+    }
+  };
+
+  window.addEventListener('pointerdown', loadShareSuite, { once: true, passive: true });
+  window.addEventListener('keydown', loadShareSuite, { once: true });
 
   const setMeta = (selector, value) => document.querySelector(selector)?.setAttribute('content', value);
   const focusableMenuItems = () => mainNav ? [...mainNav.querySelectorAll('a[href],button:not([disabled])')] : [];
