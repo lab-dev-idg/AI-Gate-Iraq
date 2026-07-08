@@ -24,3 +24,15 @@ html, body {
 body {
   color: #f8fbff;
 }
+
+/* Production SVG icons for platform preview */
+.preview-item svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
