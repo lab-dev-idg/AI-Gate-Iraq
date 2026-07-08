@@ -1,5 +1,5 @@
 (() => {
-  const URL = 'https://ai-gate-iraq-website.web.app/';
+  const URL = 'https://www.aigateiraq.com/';
   const lang = () => ['ku','ar','en'].includes(document.documentElement.lang) ? document.documentElement.lang : 'ku';
   const copy = {
     ku:{open:'هاوبەشکردن',title:'AI Gate Iraq هاوبەش بکە',copy:'کۆپیکردنی لینک',copied:'لینکەکە کۆپی کرا',print:'چاپکردن',email:'ئیمەیڵ',close:'داخستن'},

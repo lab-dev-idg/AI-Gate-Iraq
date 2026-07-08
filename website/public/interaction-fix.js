@@ -11,8 +11,8 @@
       const url = new URL(link.href, location.origin);
       return [
         'app.aigateiraq.com',
-        'ai-gate-iraq-platform.web.app',
-        'ai-gate-iraq-platform.firebaseapp.com',
+        
+        
         
       ].includes(url.hostname);
     } catch {
