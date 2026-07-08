@@ -13,7 +13,7 @@
         'app.aigateiraq.com',
         'ai-gate-iraq-platform.web.app',
         'ai-gate-iraq-platform.firebaseapp.com',
-        'ai-gate-iraq-platform.aigateiraq.workers.dev',
+        
       ].includes(url.hostname);
     } catch {
       return false;

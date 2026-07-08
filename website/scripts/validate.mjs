@@ -49,7 +49,7 @@ catch (error) { failures.push(`wrangler.jsonc is invalid JSON: ${error.message}`
 try { packageJson = JSON.parse(packageRaw); }
 catch (error) { failures.push(`package.json is invalid JSON: ${error.message}`); }
 
-const platformUrl = 'https://ai-gate-iraq-platform.aigateiraq.workers.dev';
+const platformUrl = 'https://app.aigateiraq.com';
 
 for (const fragment of [
   platformUrl,
@@ -73,7 +73,7 @@ if (!app.includes('prefers-reduced-motion')) failures.push('app.js is missing re
 if (!app.includes('interfaceTranslations')) failures.push('app.js is missing interface translations.');
 if (!headers.includes('Content-Security-Policy')) failures.push('_headers is missing CSP.');
 if (!headers.includes('Strict-Transport-Security')) failures.push('_headers is missing HSTS.');
-if (!sitemap.includes('https://ai-gate-iraq-website.aigateiraq.workers.dev/legal.html')) failures.push('sitemap.xml is missing legal.html.');
+if (!sitemap.includes('https://www.aigateiraq.com/legal.html')) failures.push('sitemap.xml is missing legal.html.');
 
 const ids = new Set([...index.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]));
 const hrefs = [...index.matchAll(/<a\b[^>]*\shref="([^"]+)"[^>]*>/g)].map((match) => match[1]);

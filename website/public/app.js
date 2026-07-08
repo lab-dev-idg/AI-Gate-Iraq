@@ -3,7 +3,7 @@
 
   const PLATFORM_LANDING_URL = 'https://app.aigateiraq.com/';
   const LEGACY_PLATFORM_HOSTS = new Set([
-    'ai-gate-iraq-platform.aigateiraq.workers.dev',
+    
     'ai-gate-iraq-platform.web.app',
     'ai-gate-iraq-platform.firebaseapp.com',
   ]);
