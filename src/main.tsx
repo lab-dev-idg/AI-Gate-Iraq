@@ -4,6 +4,7 @@ import LandingAwareApp from './LandingAwareApp';
 import './index.css';
 import './responsive.css';
 import './english.css';
+import './soraniPlatformCleanup';
 import { AuthProvider } from '@/src/components/AuthProvider';
 import { LanguageProvider } from '@/src/lib/LanguageContext';
 
