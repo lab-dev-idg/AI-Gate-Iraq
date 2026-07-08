@@ -57,20 +57,6 @@
     document.body.classList.toggle('menu-open', open);
   };
 
-  const applyLanguageFallback = (language) => {
-    document.querySelectorAll('[data-lang]').forEach((button) => {
-      const active = button.dataset.lang === language;
-      button.classList.toggle('active', active);
-      button.setAttribute('aria-pressed', String(active));
-    });
-
-    try {
-      localStorage.setItem('aigateiraq-language', language);
-    } catch {}
-
-    if (window.location.hash) return;
-  };
-
   document.addEventListener('DOMContentLoaded', normalizePlatformLinks);
   window.addEventListener('pageshow', normalizePlatformLinks);
 
@@ -78,16 +64,9 @@
     const target = event.target instanceof Element ? event.target : null;
     if (!target) return;
 
-    const menuButton = target.closest('#menuToggle');
-    if (menuButton) {
+    if (target.closest('#menuToggle')) {
       event.preventDefault();
       toggleMenu();
-      return;
-    }
-
-    const languageButton = target.closest('[data-lang]');
-    if (languageButton instanceof HTMLElement) {
-      applyLanguageFallback(languageButton.dataset.lang || 'ku');
       return;
     }
 
