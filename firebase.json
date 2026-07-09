@@ -45,11 +45,41 @@
           ]
         },
         {
+          "source": "/",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-store, max-age=0"
+            },
+            {
+              "key": "Clear-Site-Data",
+              "value": "\"cache\""
+            }
+          ]
+        },
+        {
+          "source": "/index.html",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-store, max-age=0"
+            },
+            {
+              "key": "Clear-Site-Data",
+              "value": "\"cache\""
+            }
+          ]
+        },
+        {
           "source": "**/*.html",
           "headers": [
             {
               "key": "Cache-Control",
-              "value": "public, max-age=0, must-revalidate"
+              "value": "no-store, max-age=0"
+            },
+            {
+              "key": "Clear-Site-Data",
+              "value": "\"cache\""
             }
           ]
         },
