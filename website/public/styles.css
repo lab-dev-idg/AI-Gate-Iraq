@@ -96,3 +96,155 @@ body {
     contain-intrinsic-size: 1px 700px;
   }
 }
+
+/* Landing Lite: mobile-first conversion experience */
+@media (max-width: 760px) {
+  .hero {
+    padding-top: 18px !important;
+    padding-bottom: 28px !important;
+  }
+
+  .hero-copy h1 {
+    max-width: 11ch;
+    margin-inline: auto;
+    font-size: clamp(2rem, 10vw, 2.75rem) !important;
+    line-height: 1.16 !important;
+  }
+
+  .hero-lead {
+    max-width: 34rem;
+    margin-inline: auto;
+    font-size: .95rem !important;
+    line-height: 1.85 !important;
+  }
+
+  .hero-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-top: 20px !important;
+  }
+
+  .hero-actions .button {
+    width: 100% !important;
+    min-height: 50px !important;
+  }
+
+  .hero-trust {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    margin-top: 16px !important;
+    text-align: start !important;
+  }
+
+  .metric-strip,
+  .process-section,
+  .security-section,
+  .faq-section,
+  .main-nav a[href="#security"],
+  .main-nav a[href="#faq"] {
+    display: none !important;
+  }
+
+  .audience-section,
+  .services-section,
+  .pilot-section,
+  .final-cta,
+  .site-footer {
+    content-visibility: visible;
+    contain-intrinsic-size: auto;
+  }
+
+  .section {
+    padding-block: 42px !important;
+  }
+
+  .section-heading {
+    margin-bottom: 22px !important;
+  }
+
+  .section-heading h2,
+  .pilot-copy h2,
+  .final-cta h2 {
+    font-size: clamp(1.55rem, 8vw, 2.2rem) !important;
+    line-height: 1.25 !important;
+  }
+
+  .comparison-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .problem-card {
+    display: none !important;
+  }
+
+  .comparison-card {
+    padding: 20px !important;
+    border-radius: 18px !important;
+  }
+
+  .service-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .service-card {
+    min-height: auto !important;
+    padding: 18px !important;
+    border-radius: 16px !important;
+  }
+
+  .service-card:nth-child(n+4) {
+    display: none !important;
+  }
+
+  .service-card h3,
+  .process-card h3 {
+    margin: 14px 0 8px !important;
+  }
+
+  .pilot-grid,
+  .security-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+  }
+
+  .pilot-card {
+    padding: 20px !important;
+    border-radius: 18px !important;
+  }
+
+  .pilot-stat strong {
+    font-size: 3.5rem !important;
+  }
+
+  .pilot-actions,
+  .cta-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .final-cta-card {
+    display: grid !important;
+    gap: 18px !important;
+    padding: 24px !important;
+  }
+
+  .site-footer {
+    margin-top: 28px !important;
+    padding: 34px 0 18px !important;
+  }
+
+  .footer-grid,
+  .footer-bottom {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+}
