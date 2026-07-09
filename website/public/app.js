@@ -80,26 +80,7 @@
 
   if (year) year.textContent = String(new Date().getFullYear());
 
-  const loadShareSuite = () => {
-    if (!document.querySelector('link[data-share-suite-style]')) {
-      const shareStyle = document.createElement('link');
-      shareStyle.rel = 'stylesheet';
-      shareStyle.href = '/styles/share-tools.css';
-      shareStyle.dataset.shareSuiteStyle = '';
-      document.head.append(shareStyle);
-    }
-
-    if (!document.querySelector('script[data-share-suite-loader]')) {
-      const shareScript = document.createElement('script');
-      shareScript.src = '/share-tools.js';
-      shareScript.defer = true;
-      shareScript.dataset.shareSuiteLoader = '';
-      document.head.append(shareScript);
-    }
-  };
-
-  window.addEventListener('pointerdown', loadShareSuite, { once: true, passive: true });
-  window.addEventListener('keydown', loadShareSuite, { once: true });
+  // Share suite disabled in mobile production safe mode to avoid first-touch runtime lag.
 
   const setMeta = (selector, value) => document.querySelector(selector)?.setAttribute('content', value);
   const focusableMenuItems = () => mainNav ? [...mainNav.querySelectorAll('a[href],button:not([disabled])')] : [];

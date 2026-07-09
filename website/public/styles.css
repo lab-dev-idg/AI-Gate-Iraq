@@ -36,3 +36,63 @@ body {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* Production mobile performance safe mode */
+@media (max-width: 1100px) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  .site-header {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(7, 17, 31, .96) !important;
+  }
+
+  .hero {
+    min-height: auto !important;
+    padding-top: 28px !important;
+    padding-bottom: 42px !important;
+    justify-content: flex-start !important;
+  }
+
+  .hero-grid {
+    display: block !important;
+  }
+
+  .hero-copy {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  .hero-glow,
+  .hero-grid::before,
+  .hero-grid::after,
+  .platform-preview {
+    display: none !important;
+  }
+
+  .metric-strip {
+    margin-top: 34px !important;
+  }
+
+  .button,
+  .service-card,
+  .menu-toggle span,
+  .main-nav a,
+  .footer-links a {
+    transition: none !important;
+  }
+
+  .audience-section,
+  .services-section,
+  .process-section,
+  .pilot-section,
+  .security-section,
+  .faq-section,
+  .final-cta,
+  .site-footer {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 700px;
+  }
+}
