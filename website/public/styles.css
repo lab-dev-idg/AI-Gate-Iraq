@@ -97,8 +97,8 @@ body {
   }
 }
 
-/* Landing Lite: mobile-first conversion experience */
-@media (max-width: 760px) {
+/* Landing Lite: mobile/tablet-first conversion experience */
+@media (max-width: 1100px) {
   .hero {
     padding-top: 18px !important;
     padding-bottom: 28px !important;
