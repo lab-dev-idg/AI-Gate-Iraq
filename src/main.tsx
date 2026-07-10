@@ -1,12 +1,24 @@
-import { StrictMode } from 'react';
+import { lazy, StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import LandingAwareApp from './LandingAwareApp';
 import './index.css';
 import './responsive.css';
 import './english.css';
 import './soraniPlatformCleanup';
-import { AuthProvider } from '@/src/components/AuthProvider';
 import { LanguageProvider } from '@/src/lib/LanguageContext';
+
+const AuthProvider = lazy(() =>
+  import('@/src/components/AuthProvider').then((module) => ({ default: module.AuthProvider }))
+);
+
+const AppBootFallback = () => (
+  <div className="grid min-h-screen place-items-center bg-[#07111f] text-white" dir="rtl">
+    <div className="text-center">
+      <div className="mx-auto mb-4 h-9 w-9 animate-spin rounded-full border-2 border-slate-700 border-t-emerald-400" />
+      <p className="text-sm font-bold text-slate-300">پلاتفۆرم بار دەکرێت...</p>
+    </div>
+  </div>
+);
 
 declare global {
   interface Window {
@@ -35,12 +47,25 @@ if (googleMapsKey && googleMapsKey !== 'YOUR_API_KEY' && googleMapsKey.trim() !=
   }
 }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <LanguageProvider>
+const ProtectedRuntime = () => {
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  const requiresAccount = path !== '/' && path !== '/admin';
+
+  if (!requiresAccount) return <LandingAwareApp />;
+
+  return (
+    <Suspense fallback={<AppBootFallback />}>
       <AuthProvider>
         <LandingAwareApp />
       </AuthProvider>
+    </Suspense>
+  );
+};
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <LanguageProvider>
+      <ProtectedRuntime />
     </LanguageProvider>
   </StrictMode>,
 );
