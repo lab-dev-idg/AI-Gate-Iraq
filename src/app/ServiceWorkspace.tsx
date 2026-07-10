@@ -1,13 +1,16 @@
+import { lazy, Suspense } from 'react';
 import { ServiceKey } from '@/src/lib/services';
-import MarketWorkspace from '@/src/features/market/MarketWorkspace';
-import BordersWorkspace from '@/src/features/borders/BordersWorkspace';
-import CurrencyWorkspace from '@/src/features/currency/CurrencyWorkspace';
-import CostWorkspace from '@/src/features/cost/CostWorkspace';
-import KycWorkspace from '@/src/features/kyc/KycWorkspace';
-import ProcurementWorkspace from '@/src/features/procurement/ProcurementWorkspace';
-import TrackingWorkspace from '@/src/features/tracking/TrackingWorkspace';
-import MapWorkspace from '@/src/features/map/MapWorkspace';
-import AuditWorkspace from '@/src/features/audit/AuditWorkspace';
+import { WorkspaceLoader } from '@/src/components/WorkspaceLoader';
+
+const MarketWorkspace = lazy(() => import('@/src/features/market/MarketWorkspace'));
+const BordersWorkspace = lazy(() => import('@/src/features/borders/BordersWorkspace'));
+const CurrencyWorkspace = lazy(() => import('@/src/features/currency/CurrencyWorkspace'));
+const CostWorkspace = lazy(() => import('@/src/features/cost/CostWorkspace'));
+const KycWorkspace = lazy(() => import('@/src/features/kyc/KycWorkspace'));
+const ProcurementWorkspace = lazy(() => import('@/src/features/procurement/ProcurementWorkspace'));
+const TrackingWorkspace = lazy(() => import('@/src/features/tracking/TrackingWorkspace'));
+const MapWorkspace = lazy(() => import('@/src/features/map/MapWorkspace'));
+const AuditWorkspace = lazy(() => import('@/src/features/audit/AuditWorkspace'));
 
 interface ServiceWorkspaceProps {
   activeService: ServiceKey;
@@ -21,7 +24,7 @@ export const ServiceWorkspace = ({
   t,
 }: ServiceWorkspaceProps) => {
   return (
-    <>
+    <Suspense fallback={<WorkspaceLoader />}>
       {activeService === 'market' && <MarketWorkspace lang={lang} t={t} />}
       {activeService === 'borders' && <BordersWorkspace lang={lang} t={t} />}
       {activeService === 'currency' && <CurrencyWorkspace />}
@@ -31,7 +34,7 @@ export const ServiceWorkspace = ({
       {activeService === 'tracking' && <TrackingWorkspace />}
       {activeService === 'map' && <MapWorkspace />}
       {activeService === 'audit' && <AuditWorkspace lang={lang} />}
-    </>
+    </Suspense>
   );
 };
 
