@@ -1,5 +1,4 @@
 import { Bot, Sparkles, MapPin, DollarSign, Package, UserCheck, Building2, FileText, Globe, BarChart3, LucideIcon } from 'lucide-react';
-import { getAdminServiceConfig, getAdminPromptChips } from '@/src/admin/adminStore';
 
 export type ServiceKey =
   | 'assistant'
@@ -40,10 +39,6 @@ export const SERVICES: ServiceItem[] = [
 const pick = (lang: string, ku: string, ar: string, en: string) => lang === 'ar' ? ar : lang === 'en' ? en : ku;
 
 export const getServiceName = (service: ServiceKey, lang: 'ku' | 'ar' | 'en'): string => {
-  const adminLang = lang === 'en' ? 'ku' : lang;
-  const adminConfig = getAdminServiceConfig(service, adminLang);
-  if (lang !== 'en' && adminConfig?.title) return adminConfig.title;
-
   switch (service) {
     case 'assistant': return pick(lang, 'ڕاوێژی گشتی', 'الاستشارات العامة', 'General Advisory');
     case 'market': return pick(lang, 'کارتێکردن و کورتەی بازاڕ', 'ملخص السوق والتجارة', 'Market & Trade Intelligence');
@@ -109,9 +104,6 @@ const ENGLISH_PROMPTS: Record<ServiceKey, { label: string; prompt: string }[]> =
 
 export const getPromptChips = (service: ServiceKey, lang: 'ku' | 'ar' | 'en') => {
   if (lang === 'en') return ENGLISH_PROMPTS[service] || ENGLISH_PROMPTS.assistant;
-
-  const adminPrompts = getAdminPromptChips(service, lang);
-  if (adminPrompts?.length) return adminPrompts;
 
   switch (service) {
     case 'currency':
