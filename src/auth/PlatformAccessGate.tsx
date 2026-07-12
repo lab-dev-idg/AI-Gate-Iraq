@@ -1,15 +1,26 @@
-import { useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import {
   ArrowLeft,
   CheckCircle2,
+  Eye,
+  EyeOff,
   Globe2,
   Loader2,
   LockKeyhole,
+  Mail,
   ShieldCheck,
   Sparkles,
 } from 'lucide-react';
 import { useLanguage } from '@/src/lib/LanguageContext';
-import { auth, googleProvider, signInWithPopup } from '@/src/lib/firebase';
+import {
+  auth,
+  getRedirectResult,
+  googleProvider,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signInWithRedirect,
+} from '@/src/lib/firebase';
 
 interface PlatformAccessGateProps {
   loading: boolean;
@@ -20,17 +31,27 @@ const copy = {
     loading: 'خەریکی پشکنینی سێشنەکەتە...',
     badge: 'دەستگەیشتنی پارێزراو',
     title: 'بەخێربێیتەوە بۆ AI Gate Iraq',
-    description: 'بۆ چوونە ناو شوێنی کاری بازرگانی و لۆجیستی، بە هەژماری Google ـەکەت بچۆ ژوورەوە.',
-    button: 'بە Google بەردەوام بە',
+    description: 'بە ئیمەیل و وشەی نهێنی یان بە هەژماری Google بچۆ ژوورەوە.',
+    email: 'ئیمەیل',
+    password: 'وشەی نهێنی',
+    login: 'چوونەژوورەوە',
+    google: 'بە Google بەردەوام بە',
+    or: 'یان',
+    forgot: 'وشەی نهێنیت لەبیرکردووە؟',
+    resetSent: 'لینکی گۆڕینی وشەی نهێنی بۆ ئیمەیلەکەت نێردرا.',
+    enterEmail: 'تکایە سەرەتا ئیمەیلەکەت بنووسە.',
+    invalidCredentials: 'ئیمەیل یان وشەی نهێنی هەڵەیە.',
+    invalidEmail: 'فۆرماتی ئیمەیل دروست نییە.',
+    tooMany: 'هەوڵی زۆر دراوە؛ دوای ماوەیەک هەوڵ بدەوە.',
     secure: 'پاراستنی ناسنامە بە Firebase Authentication',
     private: 'سێشن و زانیارییەکانی هەژمارەکەت پارێزراون',
-    fast: 'چوونەژوورەوەی خێرا و بێ پاسۆردی زیادە',
+    fast: 'دوو ڕێگای پارێزراو بۆ چوونەژوورەوە',
     language: 'زمان',
     back: 'گەڕانەوە بۆ لاندینگ پەیج',
     footer: 'بە بەردەوامبوون، ڕازی دەبیت هەژمارەکەت بۆ دەستگەیشتنی پارێزراو بەکاربهێنرێت.',
     cancelled: 'چوونەژوورەوە هەڵوەشایەوە.',
     unauthorized: 'ئەم دۆمەینە لە Firebase Authentication ڕێگەپێدراو نییە.',
-    failed: 'چوونەژوورەوە بە Google سەرکەوتوو نەبوو.',
+    failed: 'چوونەژوورەوە سەرکەوتوو نەبوو.',
     panelEyebrow: 'SMART TRADE WORKSPACE',
     panelTitle: 'هەموو ئامرازە بازرگانی و لۆجیستییەکانت لە یەک شوێندا',
     panelText: 'ڕاوێژکاری زیرەک، خەمڵاندنی تێچوو، دابینکردن، KYC و بەدواداچوونی بار لە شوێنی کارێکی یەکگرتوودا.',
@@ -39,17 +60,27 @@ const copy = {
     loading: 'جارٍ التحقق من الجلسة...',
     badge: 'وصول آمن',
     title: 'مرحباً بعودتك إلى AI Gate Iraq',
-    description: 'سجّل الدخول بحساب Google للوصول إلى مساحة العمل التجارية واللوجستية.',
-    button: 'المتابعة باستخدام Google',
+    description: 'سجّل الدخول بالبريد الإلكتروني وكلمة المرور أو باستخدام Google.',
+    email: 'البريد الإلكتروني',
+    password: 'كلمة المرور',
+    login: 'تسجيل الدخول',
+    google: 'المتابعة باستخدام Google',
+    or: 'أو',
+    forgot: 'هل نسيت كلمة المرور؟',
+    resetSent: 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.',
+    enterEmail: 'أدخل بريدك الإلكتروني أولاً.',
+    invalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
+    invalidEmail: 'صيغة البريد الإلكتروني غير صحيحة.',
+    tooMany: 'تم إجراء محاولات كثيرة. حاول لاحقاً.',
     secure: 'حماية الهوية عبر Firebase Authentication',
     private: 'جلسة حسابك ومعلوماتك محمية',
-    fast: 'دخول سريع بدون كلمة مرور إضافية',
+    fast: 'طريقتان آمنتان لتسجيل الدخول',
     language: 'اللغة',
     back: 'العودة إلى الصفحة الرئيسية',
     footer: 'بالمتابعة، أنت توافق على استخدام حسابك للوصول الآمن إلى مساحة العمل.',
     cancelled: 'تم إلغاء تسجيل الدخول.',
     unauthorized: 'هذا النطاق غير مصرح به في Firebase Authentication.',
-    failed: 'تعذر تسجيل الدخول بواسطة Google.',
+    failed: 'تعذر تسجيل الدخول.',
     panelEyebrow: 'SMART TRADE WORKSPACE',
     panelTitle: 'كل أدوات التجارة والخدمات اللوجستية في مكان واحد',
     panelText: 'استشارات ذكية وتقدير تكاليف وتوريد وKYC وتتبع شحنات داخل مساحة عمل موحدة.',
@@ -58,17 +89,27 @@ const copy = {
     loading: 'Checking your session...',
     badge: 'Secure access',
     title: 'Welcome back to AI Gate Iraq',
-    description: 'Sign in with your Google account to access your trade and logistics workspace.',
-    button: 'Continue with Google',
+    description: 'Sign in with email and password or continue with Google.',
+    email: 'Email address',
+    password: 'Password',
+    login: 'Sign in',
+    google: 'Continue with Google',
+    or: 'or',
+    forgot: 'Forgot password?',
+    resetSent: 'A password reset link has been sent to your email.',
+    enterEmail: 'Enter your email address first.',
+    invalidCredentials: 'The email or password is incorrect.',
+    invalidEmail: 'The email address is invalid.',
+    tooMany: 'Too many attempts. Please try again later.',
     secure: 'Identity protected by Firebase Authentication',
     private: 'Your account session and information are protected',
-    fast: 'Fast access without an additional password',
+    fast: 'Two secure sign-in options',
     language: 'Language',
     back: 'Back to landing page',
     footer: 'By continuing, you agree to use your account for secure workspace access.',
     cancelled: 'Sign-in was cancelled.',
     unauthorized: 'This domain is not authorized in Firebase Authentication.',
-    failed: 'Unable to sign in with Google.',
+    failed: 'Unable to sign in.',
     panelEyebrow: 'SMART TRADE WORKSPACE',
     panelTitle: 'All your trade and logistics tools in one place',
     panelText: 'Smart advisory, cost estimation, sourcing, KYC, and shipment tracking in one unified workspace.',
@@ -88,10 +129,22 @@ function GoogleMark() {
 
 export default function PlatformAccessGate({ loading }: PlatformAccessGateProps) {
   const { lang, setLang } = useLanguage();
-  const [signingIn, setSigningIn] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState<'email' | 'google' | 'reset' | null>(null);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const t = copy[lang as keyof typeof copy] ?? copy.ku;
   const isLtr = lang === 'en';
+
+  useEffect(() => {
+    void getRedirectResult(auth).catch((err: any) => {
+      const code = String(err?.code || '');
+      if (code === 'auth/unauthorized-domain') setError(t.unauthorized);
+      else if (code && code !== 'auth/no-auth-event') setError(t.failed);
+    });
+  }, [t.failed, t.unauthorized]);
 
   if (loading) {
     return (
@@ -104,31 +157,76 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
     );
   }
 
-  const login = async () => {
-    setError('');
-    setSigningIn(true);
+  const friendlyError = (err: any) => {
+    const code = String(err?.code || err?.message || '');
+    if (code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found')) return t.invalidCredentials;
+    if (code.includes('invalid-email')) return t.invalidEmail;
+    if (code.includes('too-many-requests')) return t.tooMany;
+    if (code.includes('unauthorized-domain')) return t.unauthorized;
+    if (code.includes('popup-closed-by-user') || code.includes('cancelled-popup-request')) return t.cancelled;
+    return t.failed;
+  };
 
+  const loginWithEmail = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError('');
+    setMessage('');
+    setSubmitting('email');
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+    } catch (err) {
+      setError(friendlyError(err));
+    } finally {
+      setSubmitting(null);
+    }
+  };
+
+  const loginWithGoogle = async () => {
+    setError('');
+    setMessage('');
+    setSubmitting('google');
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (err: any) {
       const code = String(err?.code || '');
-      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
-        setError(t.cancelled);
-      } else if (code === 'auth/unauthorized-domain') {
-        setError(t.unauthorized);
-      } else {
-        setError(t.failed);
+      const shouldRedirect = [
+        'auth/popup-blocked',
+        'auth/web-storage-unsupported',
+        'auth/operation-not-supported-in-this-environment',
+        'auth/internal-error',
+      ].includes(code);
+
+      if (shouldRedirect) {
+        await signInWithRedirect(auth, googleProvider);
+        return;
       }
+      setError(friendlyError(err));
     } finally {
-      setSigningIn(false);
+      setSubmitting(null);
+    }
+  };
+
+  const resetPassword = async () => {
+    setError('');
+    setMessage('');
+    if (!email.trim()) {
+      setError(t.enterEmail);
+      return;
+    }
+
+    setSubmitting('reset');
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      setMessage(t.resetSent);
+    } catch (err) {
+      setError(friendlyError(err));
+    } finally {
+      setSubmitting(null);
     }
   };
 
   return (
-    <main
-      className="relative min-h-screen overflow-hidden bg-[#06101d] text-white"
-      dir={isLtr ? 'ltr' : 'rtl'}
-    >
+    <main className="relative min-h-screen overflow-hidden bg-[#06101d] text-white" dir={isLtr ? 'ltr' : 'rtl'}>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_16%,rgba(37,99,235,0.26),transparent_30%),radial-gradient(circle_at_82%_12%,rgba(16,185,129,0.14),transparent_27%),linear-gradient(180deg,#06101d_0%,#091827_100%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:linear-gradient(rgba(255,255,255,.3)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.3)_1px,transparent_1px)] [background-size:44px_44px]" />
 
@@ -194,21 +292,71 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
               <h2 className="mt-7 text-2xl font-black leading-tight sm:text-3xl">{t.title}</h2>
               <p className="mt-4 text-sm font-medium leading-7 text-slate-300">{t.description}</p>
 
-              <button
-                type="button"
-                onClick={() => void login()}
-                disabled={signingIn}
-                className="mt-8 flex h-13 w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 text-sm font-black text-slate-950 shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1b2d] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {signingIn ? <Loader2 className="h-5 w-5 animate-spin" /> : <GoogleMark />}
-                {t.button}
+              <form onSubmit={loginWithEmail} className="mt-7 space-y-4">
+                <label className="block">
+                  <span className="mb-2 block text-xs font-black text-slate-300">{t.email}</span>
+                  <div className="relative">
+                    <Mail className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                    <input
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.05] px-11 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/20"
+                      placeholder="name@example.com"
+                    />
+                  </div>
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-xs font-black text-slate-300">{t.password}</span>
+                  <div className="relative">
+                    <LockKeyhole className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      required
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.05] px-11 pe-12 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/20"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((value) => !value)}
+                      className="absolute end-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 transition hover:bg-white/5 hover:text-white"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </label>
+
+                <div className="flex justify-end">
+                  <button type="button" onClick={() => void resetPassword()} disabled={submitting !== null} className="text-xs font-bold text-blue-300 transition hover:text-blue-200 disabled:opacity-50">
+                    {submitting === 'reset' ? <Loader2 className="inline h-4 w-4 animate-spin" /> : t.forgot}
+                  </button>
+                </div>
+
+                <button type="submit" disabled={submitting !== null} className="flex h-12 w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-5 text-sm font-black text-white shadow-lg shadow-blue-950/40 transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-60">
+                  {submitting === 'email' ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+                  {t.login}
+                </button>
+              </form>
+
+              <div className="my-6 flex items-center gap-3 text-[10px] font-bold text-slate-600">
+                <span className="h-px flex-1 bg-white/10" />
+                {t.or}
+                <span className="h-px flex-1 bg-white/10" />
+              </div>
+
+              <button type="button" onClick={() => void loginWithGoogle()} disabled={submitting !== null} className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 text-sm font-black text-slate-950 shadow-lg shadow-black/20 transition hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-60">
+                {submitting === 'google' ? <Loader2 className="h-5 w-5 animate-spin" /> : <GoogleMark />}
+                {t.google}
               </button>
 
-              {error && (
-                <p className="mt-4 rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-xs font-bold leading-6 text-rose-200">
-                  {error}
-                </p>
-              )}
+              {error ? <p className="mt-4 rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-xs font-bold leading-6 text-rose-200">{error}</p> : null}
+              {message ? <p className="mt-4 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-xs font-bold leading-6 text-emerald-200">{message}</p> : null}
 
               <div className="mt-7 grid gap-3 border-t border-white/10 pt-6">
                 {[t.secure, t.private, t.fast].map((item) => (
@@ -225,12 +373,7 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
                   <span className="hidden sm:inline">{t.language}</span>
                   <div className="flex rounded-lg border border-white/10 bg-white/[0.04] p-1">
                     {(['ku', 'ar', 'en'] as const).map((item) => (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => setLang(item)}
-                        className={`h-7 min-w-8 rounded-md px-2 text-[9px] font-black transition ${lang === item ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-white'}`}
-                      >
+                      <button key={item} type="button" onClick={() => setLang(item)} className={`h-7 min-w-8 rounded-md px-2 text-[9px] font-black transition ${lang === item ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-white'}`}>
                         {item.toUpperCase()}
                       </button>
                     ))}
