@@ -7,6 +7,10 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup as realSignInWithPopup,
+  signInWithRedirect as realSignInWithRedirect,
+  getRedirectResult as realGetRedirectResult,
+  signInWithEmailAndPassword as realSignInWithEmailAndPassword,
+  sendPasswordResetEmail as realSendPasswordResetEmail,
   signOut as realSignOut,
   onAuthStateChanged as realOnAuthStateChanged,
   User,
@@ -95,11 +99,37 @@ function requireFirebase(service: string): void {
   }
 }
 
-export const signInWithPopup = async (authObj: any, providerObj: any) => {
-  if (!isFirebaseConfigured || !authObj || !providerObj) {
+function requireAuth(authObj: any): void {
+  if (!isFirebaseConfigured || !authObj) {
     throw new Error('FIREBASE_AUTH_NOT_CONFIGURED');
   }
+}
+
+export const signInWithPopup = async (authObj: any, providerObj: any) => {
+  requireAuth(authObj);
+  if (!providerObj) throw new Error('FIREBASE_AUTH_PROVIDER_NOT_CONFIGURED');
   return realSignInWithPopup(authObj, providerObj);
+};
+
+export const signInWithRedirect = async (authObj: any, providerObj: any) => {
+  requireAuth(authObj);
+  if (!providerObj) throw new Error('FIREBASE_AUTH_PROVIDER_NOT_CONFIGURED');
+  return realSignInWithRedirect(authObj, providerObj);
+};
+
+export const getRedirectResult = async (authObj: any) => {
+  requireAuth(authObj);
+  return realGetRedirectResult(authObj);
+};
+
+export const signInWithEmailAndPassword = async (authObj: any, email: string, password: string) => {
+  requireAuth(authObj);
+  return realSignInWithEmailAndPassword(authObj, email, password);
+};
+
+export const sendPasswordResetEmail = async (authObj: any, email: string) => {
+  requireAuth(authObj);
+  return realSendPasswordResetEmail(authObj, email);
 };
 
 export const signOut = async (authObj: any) => {
