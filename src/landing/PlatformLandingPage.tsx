@@ -38,7 +38,37 @@ const content = {
     featuresEyebrow: 'قدرات المنصة', featuresTitle: 'الأدوات الأساسية في مكان واحد', featuresLead: 'من السؤال الأولي إلى قرار الاستيراد، تساعدك المنصة خطوة بخطوة.',
     f1: 'مستشار ذكي', f1d: 'إجابات عملية ومنظمة للتجارة والجمارك والخدمات اللوجستية.', f2: 'تقدير التكاليف', f2d: 'تقدير أولي للشحن والرسوم والتوزيع الداخلي.', f3: 'التوريد وKYC', f3d: 'إعداد طلبات RFQ وفحص الموردين وإرشادات KYC.', f4: 'السوق والمنافذ', f4d: 'ملخصات السوق وحالة المنافذ والمسارات اللوجستية.',
     useEyebrow: 'لمن صُممت؟', useTitle: 'لفرق الاستيراد والتجارة واللوجستيات', u1: 'تقليل الوقت الضائع في البحث عن المعلومات', u2: 'تنظيم القرارات والمستندات في مساحة واحدة', u3: 'تقديرات أسرع قبل التواصل مع الموردين', u4: 'الاحتفاظ بسجل المحادثات والعمل',
-    secEyebrow: 'الثقة والحماية', secTitle: 'مصممة على أساس الأمان والبساطة', secText: 'تستخدم المنصة Firebase Authentication وFirestore Rules وApp Check …822 tokens truncated…       <div className="flex items-center gap-3"><BrandLogo size={40} className="h-10 w-10 rounded-xl" eager /><div><div className="flex items-center gap-2 text-sm font-black sm:text-base">AI Gate Iraq <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-[9px] text-amber-200">PRO</span></div><div className="text-[9px] font-semibold tracking-[0.18em] text-slate-400">SMART TRADE PLATFORM</div></div></div>
+    secEyebrow: 'الثقة والحماية', secTitle: 'مصممة على أساس الأمان والبساطة', secText: 'تستخدم المنصة Firebase Authentication وFirestore Rules وApp Check لتقليل الطلبات غير الموثوقة وحماية الوصول.',
+    ctaTitle: 'هل أنت مستعد لاتخاذ قرارات أذكى؟', ctaText: 'افتح مساحة العمل وأرسل أول سؤال تجاري لك.', cta: 'ابدأ مع AI Gate Iraq',
+  },
+  en: {
+    features: 'Features', useCases: 'Use cases', security: 'Security', open: 'Open platform',
+    eyebrow: 'Trade and logistics intelligence for Iraq', titleA: 'Make business decisions', titleB: 'faster and clearer',
+    lead: 'AI Gate Iraq brings guidance, cost estimation, sourcing, customs, and shipment workflows into one intelligent workspace.',
+    explore: 'Explore features', trustA: 'Built for the Iraqi market', trustB: 'Kurdish, Arabic, English', trustC: 'Firebase + App Check',
+    previewTitle: 'Trade & Logistics Advisor', question: 'How can I estimate the cost of importing a shipment to Erbil?', answer: 'Share the product type, weight, dimensions, origin, and route so I can prepare a structured estimate.',
+    core: 'Core services', langs: 'Supported languages', workspace: 'Unified workspace',
+    featuresEyebrow: 'Platform capabilities', featuresTitle: 'Essential tools in one place', featuresLead: 'From the first question to an import decision, the platform supports your workflow step by step.',
+    f1: 'Smart advisory', f1d: 'Practical, structured guidance for trade, customs, and logistics.', f2: 'Cost estimation', f2d: 'Early estimates for freight, duties, and inland distribution.', f3: 'Sourcing & KYC', f3d: 'RFQ preparation, supplier checks, and KYC guidance.', f4: 'Market & borders', f4d: 'Market summaries, border status, and logistics routes.',
+    useEyebrow: 'Who is it for?', useTitle: 'Import, trade, and logistics teams', u1: 'Reduce time spent searching across scattered sources', u2: 'Organize decisions and documents in one workspace', u3: 'Estimate faster before engaging suppliers', u4: 'Keep a clear history of conversations and work',
+    secEyebrow: 'Trust and protection', secTitle: 'Designed around security and simplicity', secText: 'Firebase Authentication, Firestore Rules, and App Check help reduce untrusted requests and protect access.',
+    ctaTitle: 'Ready to make smarter decisions?', ctaText: 'Open the workspace and send your first business question.', cta: 'Start with AI Gate Iraq',
+  },
+} as const;
+
+const icons = [Bot, BarChart3, PackageSearch, Route];
+
+export default function PlatformLandingPage({ lang, setLang, onEnter }: PlatformLandingPageProps) {
+  const t = content[lang];
+  const ltr = lang === 'en';
+  const cards = [[t.f1, t.f1d], [t.f2, t.f2d], [t.f3, t.f3d], [t.f4, t.f4d]];
+
+  return (
+    <div className="min-h-screen overflow-x-hidden bg-[#07111f] text-white" dir={ltr ? 'ltr' : 'rtl'}>
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(37,99,235,0.20),transparent_30%),radial-gradient(circle_at_85%_10%,rgba(16,185,129,0.12),transparent_28%),linear-gradient(180deg,#07111f_0%,#091827_48%,#07111f_100%)]" />
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#07111f]/85 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3"><BrandLogo size={40} className="h-10 w-10 rounded-xl" eager /><div><div className="flex items-center gap-2 text-sm font-black sm:text-base">AI Gate Iraq <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-[9px] text-amber-200">PRO</span></div><div className="text-[9px] font-semibold tracking-[0.18em] text-slate-400">SMART TRADE PLATFORM</div></div></div>
           <nav className="hidden items-center gap-6 text-sm font-bold text-slate-300 lg:flex"><a href="#features" className="hover:text-white">{t.features}</a><a href="#use-cases" className="hover:text-white">{t.useCases}</a><a href="#security" className="hover:text-white">{t.security}</a></nav>
           <div className="flex items-center gap-2"><div className="flex rounded-xl border border-white/10 bg-white/5 p-1">{(['ku', 'ar', 'en'] as RuntimeLanguage[]).map((item) => <button key={item} onClick={() => setLang(item)} className={`h-8 min-w-9 rounded-lg px-2 text-[10px] font-black ${lang === item ? 'bg-blue-600 text-white' : 'text-slate-400'}`}>{item.toUpperCase()}</button>)}</div><button onClick={onEnter} className="hidden h-10 items-center gap-2 rounded-xl bg-white px-4 text-xs font-black text-slate-950 sm:inline-flex">{t.open}<ArrowRight className={`h-4 w-4 ${ltr ? '' : 'rotate-180'}`} /></button></div>
         </div>
