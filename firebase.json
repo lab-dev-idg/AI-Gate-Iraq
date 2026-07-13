@@ -71,6 +71,33 @@
           ]
         },
         {
+          "source": "/styles.css",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-store, max-age=0"
+            }
+          ]
+        },
+        {
+          "source": "/styles/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-store, max-age=0"
+            }
+          ]
+        },
+        {
+          "source": "/app.js",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-store, max-age=0"
+            }
+          ]
+        },
+        {
           "source": "**/*.html",
           "headers": [
             {
