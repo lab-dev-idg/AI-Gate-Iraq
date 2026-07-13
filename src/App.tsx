@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { Bot, MapPin } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Card } from '@/components/ui/card';
@@ -55,6 +55,7 @@ export default function App() {
 
   const { lang, setLang, t } = useLanguage();
   const [activeService, setActiveService] = useState<ServiceKey>(() => loadSession().activeService || 'assistant');
+  const renderedService = useDeferredValue(activeService);
   const [chatScope, setChatScope] = useState<ServiceKey>(() => loadSession().chatScope || 'assistant');
   const [messages, setMessages] = useState<Message[]>(() => {
     const cached = loadSession().chatMessages;
@@ -278,7 +279,7 @@ export default function App() {
           <main className="min-h-0 flex-1 overflow-hidden">
             <section className="h-full min-w-0 overflow-hidden p-2 sm:p-3 md:p-4 lg:p-5">
               <div className="mx-auto h-full min-h-0 w-full max-w-[1200px] overflow-hidden">
-                {activeService === 'assistant' ? (
+                {renderedService === 'assistant' ? (
                   <AssistantWorkspace
                     lang={lang}
                     t={t}
@@ -306,46 +307,46 @@ export default function App() {
                     <div className="mb-4 flex shrink-0 items-center gap-3 border-b border-slate-200 pb-4 dark:border-slate-800">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-900">
                         {(() => {
-                          const service = SERVICES.find((item) => item.key === activeService);
+                          const service = SERVICES.find((item) => item.key === renderedService);
                           const Icon = service?.icon || Bot;
                           return <Icon className={`h-5 w-5 ${service?.color || ''}`} />;
                         })()}
                       </div>
                       <div className="min-w-0">
                         <h2 className="truncate text-base font-black text-slate-900 dark:text-white md:text-lg">
-                          {getServiceName(activeService, lang)}
+                          {getServiceName(renderedService, lang)}
                         </h2>
                         <p className="mt-1 text-xs font-medium leading-5 text-slate-600 dark:text-slate-300">
-                          {getServiceDescription(activeService, lang)}
+                          {getServiceDescription(renderedService, lang)}
                         </p>
                       </div>
                     </div>
 
                     <div className="cs-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-3">
-                      {activeService === 'inquiry' ? (
+                      {renderedService === 'inquiry' ? (
                         <PublicInquiryForm />
                       ) : (
                         <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
                           <div className="min-w-0 space-y-5 xl:col-span-8">
                             <ServiceReadinessPanel
-                              service={activeService}
+                              service={renderedService}
                               lang={lang}
                               onAskAssistant={(questionPrompt) => {
-                                setChatScope(activeService);
+                                setChatScope(renderedService);
                                 setActiveService('assistant');
-                                window.setTimeout(() => void handleSend(questionPrompt, activeService), 150);
+                                window.setTimeout(() => void handleSend(questionPrompt, renderedService), 150);
                               }}
                             />
-                            <ServiceWorkspace activeService={activeService} lang={lang} t={t} />
+                            <ServiceWorkspace activeService={renderedService} lang={lang} t={t} />
                           </div>
                           <div className="min-w-0 space-y-5 xl:col-span-4">
                             <WorkflowGuide
-                              activeService={activeService}
+                              activeService={renderedService}
                               lang={lang}
                               onQuestionClick={(questionPrompt) => {
-                                setChatScope(activeService);
+                                setChatScope(renderedService);
                                 setActiveService('assistant');
-                                window.setTimeout(() => void handleSend(questionPrompt, activeService), 150);
+                                window.setTimeout(() => void handleSend(questionPrompt, renderedService), 150);
                               }}
                             />
                           </div>
