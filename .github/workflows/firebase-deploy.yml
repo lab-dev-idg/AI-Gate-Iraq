@@ -99,11 +99,11 @@ jobs:
       - name: Prepare Firebase platform package
         run: npm run prepare:firebase-platform
 
-      - name: Deploy Firestore rules
+      - name: Deploy Firestore and Storage rules
         if: ${{ inputs.deploy_scope == 'all' || inputs.deploy_scope == 'firestore' }}
         run: >-
           npx firebase-tools@latest deploy
-          --only firestore:rules
+          --only firestore:rules,storage
           --project ai-gate-iraq
           --non-interactive
 
