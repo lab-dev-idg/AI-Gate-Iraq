@@ -16,6 +16,9 @@ interface Params {
   setMessages: Dispatch<SetStateAction<Message[]>>;
 }
 
+const SYNC_DELAY_MS = 900;
+const WORKSPACE_EVENT_DELAY_MS = 700;
+
 export function useWorkspaceSync(params: Params) {
   const { user, loading } = useAuth();
   const [state, setState] = useState<WorkspaceSyncState>('guest');
@@ -24,6 +27,17 @@ export function useWorkspaceSync(params: Params) {
   const latestCloud = useRef(0);
   const applyingCloud = useRef(false);
   const previousUid = useRef<string | null>(null);
+  const syncTimer = useRef<number | null>(null);
+  const syncInFlight = useRef(false);
+  const syncQueued = useRef(false);
+  const mounted = useRef(true);
+
+  const clearSyncTimer = () => {
+    if (syncTimer.current !== null) {
+      window.clearTimeout(syncTimer.current);
+      syncTimer.current = null;
+    }
+  };
 
   const apply = (session: ReturnType<typeof loadSession>) => {
     applyingCloud.current = true;
@@ -34,21 +48,54 @@ export function useWorkspaceSync(params: Params) {
     queueMicrotask(() => { applyingCloud.current = false; });
   };
 
+  const schedulePush = (uid: string, delay = SYNC_DELAY_MS) => {
+    clearSyncTimer();
+    syncTimer.current = window.setTimeout(() => {
+      syncTimer.current = null;
+      void pushCurrentSession(uid);
+    }, delay);
+  };
+
   const pushCurrentSession = async (uid: string) => {
-    if (!navigator.onLine) {
-      setState('offline');
+    if (hydratedUid.current !== uid) return;
+    if (syncInFlight.current) {
+      syncQueued.current = true;
       return;
     }
-    setState('syncing');
+    if (!navigator.onLine) {
+      if (mounted.current) setState('offline');
+      return;
+    }
+
+    syncInFlight.current = true;
+    syncQueued.current = false;
+    if (mounted.current) setState('syncing');
+
     try {
       const at = await writeCloudWorkspace(uid, loadSession(params.lang));
-      latestCloud.current = at;
-      setLastSyncedAt(at);
-      setState('synced');
+      latestCloud.current = Math.max(latestCloud.current, at);
+      if (mounted.current) {
+        setLastSyncedAt(at);
+        setState('synced');
+      }
     } catch {
-      setState(navigator.onLine ? 'error' : 'offline');
+      if (mounted.current) setState(navigator.onLine ? 'error' : 'offline');
+    } finally {
+      syncInFlight.current = false;
+      if (syncQueued.current && hydratedUid.current === uid) {
+        syncQueued.current = false;
+        schedulePush(uid, 150);
+      }
     }
   };
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      clearSyncTimer();
+    };
+  }, []);
 
   useEffect(() => {
     if (loading) return;
@@ -56,6 +103,8 @@ export function useWorkspaceSync(params: Params) {
     previousUid.current = user?.uid ?? null;
 
     if (oldUid && !user) {
+      clearSyncTimer();
+      syncQueued.current = false;
       clearSession();
       const clean = DEFAULT_SESSION(params.lang);
       params.setMessages([{ role: 'model', text: params.welcome }]);
@@ -68,7 +117,11 @@ export function useWorkspaceSync(params: Params) {
       return;
     }
 
-    if (!user) return setState('guest');
+    if (!user) {
+      clearSyncTimer();
+      return setState('guest');
+    }
+
     let cancelled = false;
     setState('syncing');
 
@@ -77,19 +130,22 @@ export function useWorkspaceSync(params: Params) {
         const local = loadSession(params.lang);
         const cloud = await readCloudWorkspace(user.uid);
         if (cancelled) return;
+
         if (cloud && cloud.updatedAt > local.updatedAt) {
           latestCloud.current = cloud.updatedAt;
           apply(cloud);
           setLastSyncedAt(cloud.updatedAt);
         } else {
           const at = await writeCloudWorkspace(user.uid, local);
-          latestCloud.current = at;
+          if (cancelled) return;
+          latestCloud.current = Math.max(latestCloud.current, at);
           setLastSyncedAt(at);
         }
+
         hydratedUid.current = user.uid;
         setState(navigator.onLine ? 'synced' : 'offline');
       } catch {
-        setState(navigator.onLine ? 'error' : 'offline');
+        if (!cancelled) setState(navigator.onLine ? 'error' : 'offline');
       }
     })();
 
@@ -99,24 +155,32 @@ export function useWorkspaceSync(params: Params) {
       apply(session);
       setLastSyncedAt(at);
       setState('synced');
-    }, () => setState(navigator.onLine ? 'error' : 'offline'));
+    }, () => {
+      if (!cancelled) setState(navigator.onLine ? 'error' : 'offline');
+    });
 
-    return () => { cancelled = true; unsubscribe(); };
+    return () => {
+      cancelled = true;
+      clearSyncTimer();
+      syncQueued.current = false;
+      unsubscribe();
+    };
   }, [loading, user?.uid]);
 
   useEffect(() => {
     if (!user || hydratedUid.current !== user.uid || applyingCloud.current) return;
-    const timer = window.setTimeout(() => void pushCurrentSession(user.uid), 900);
-    return () => window.clearTimeout(timer);
+    schedulePush(user.uid);
   }, [user?.uid, params.messages, params.activeService, params.chatScope, params.lang]);
 
   useEffect(() => {
     const onWorkspaceChange = () => {
       if (user && hydratedUid.current === user.uid && !applyingCloud.current) {
-        window.setTimeout(() => void pushCurrentSession(user.uid), 700);
+        schedulePush(user.uid, WORKSPACE_EVENT_DELAY_MS);
       }
     };
-    const onOnline = () => { if (user) void pushCurrentSession(user.uid); };
+    const onOnline = () => {
+      if (user && hydratedUid.current === user.uid) schedulePush(user.uid, 0);
+    };
     const onOffline = () => setState(user ? 'offline' : 'guest');
 
     window.addEventListener('ai-gate-workspace-change', onWorkspaceChange);
