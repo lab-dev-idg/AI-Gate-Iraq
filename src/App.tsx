@@ -93,9 +93,9 @@ export default function App() {
   const handleOnboardingAction = (serviceKey: ServiceKey, initialPrompt?: string) => {
     setActiveService(serviceKey);
     setChatScope(serviceKey);
-    saveSession({ hasCompletedOnboarding: true });
+    saveSession({ activeService: serviceKey, chatScope: serviceKey, hasCompletedOnboarding: true });
     setIsOnboardingOpen(false);
-    if (initialPrompt) window.setTimeout(() => void handleSend(initialPrompt), 300);
+    if (initialPrompt) window.setTimeout(() => void handleSend(initialPrompt, serviceKey), 300);
   };
 
   useEffect(() => {
@@ -176,9 +176,11 @@ export default function App() {
     setIsLoading(false);
   };
 
-  const handleSend = async (overridePrompt?: string) => {
+  const handleSend = async (overridePrompt?: string, overrideScope?: ServiceKey) => {
     const userMessage = (overridePrompt ?? input).trim();
     if (!userMessage || isLoading) return;
+
+    const effectiveScope = overrideScope || chatScope;
 
     setInput('');
     setMessages((current) => {
@@ -197,10 +199,10 @@ export default function App() {
     try {
       const response = await chat.sendMessage({
         message: userMessage,
-        activeService: chatScope,
+        activeService: effectiveScope,
         lang,
-        serviceHint: getServiceHint(chatScope),
-        workflowContext: BUSINESS_WORKFLOWS[chatScope] || null,
+        serviceHint: getServiceHint(effectiveScope),
+        workflowContext: BUSINESS_WORKFLOWS[effectiveScope] || null,
       });
 
       setMessages((current) => [
@@ -233,7 +235,18 @@ export default function App() {
   return (
     <TooltipProvider>
       <div className="flex h-dvh min-h-dvh w-full overflow-hidden bg-[#F8FAFC] dark:bg-[#090D16]" dir="ltr">
-        <PersistentSidebar activeService={activeService} setActiveService={setActiveService} lang={lang} />
+        <PersistentSidebar
+          activeService={activeService}
+          chatScope={chatScope}
+          messages={messages}
+          setActiveService={setActiveService}
+          setChatScope={setChatScope}
+          setMessages={setMessages}
+          setChatBranches={setChatBranches}
+          setActiveBranchId={setActiveBranchId}
+          welcomeMessage={t.chat.welcome}
+          lang={lang}
+        />
 
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden" dir="rtl">
           <AppHeader lang={lang} setLang={setLang} t={t}>
@@ -277,9 +290,14 @@ export default function App() {
                     isLoading={isLoading}
                     onSend={handleSend}
                     onSelectMessage={setSelectedMessage}
+                    onBranchFromMessage={handleCreateBranchFromMessage}
+                    branches={chatBranches}
+                    activeBranchId={activeBranchId}
+                    onSwitchBranch={handleSwitchBranch}
                     onOpenService={(service) => {
                       setActiveService(service);
                       setChatScope(service);
+                      saveSession({ activeService: service, chatScope: service });
                     }}
                     chatScrollRef={chatScrollRef}
                     promptChips={promptChips}
@@ -316,7 +334,7 @@ export default function App() {
                               onAskAssistant={(questionPrompt) => {
                                 setChatScope(activeService);
                                 setActiveService('assistant');
-                                window.setTimeout(() => void handleSend(questionPrompt), 150);
+                                window.setTimeout(() => void handleSend(questionPrompt, activeService), 150);
                               }}
                             />
                             <ServiceWorkspace activeService={activeService} lang={lang} t={t} />
@@ -328,7 +346,7 @@ export default function App() {
                               onQuestionClick={(questionPrompt) => {
                                 setChatScope(activeService);
                                 setActiveService('assistant');
-                                window.setTimeout(() => void handleSend(questionPrompt), 150);
+                                window.setTimeout(() => void handleSend(questionPrompt, activeService), 150);
                               }}
                             />
                           </div>
