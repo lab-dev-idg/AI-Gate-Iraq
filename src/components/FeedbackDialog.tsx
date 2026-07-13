@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageSquare, Send, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { MessageSquare, Send, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,7 +17,11 @@ import { toast } from 'sonner';
 
 import { useLanguage } from '@/src/lib/LanguageContext';
 
-export function FeedbackDialog() {
+interface FeedbackDialogProps {
+  compact?: boolean;
+}
+
+export function FeedbackDialog({ compact = false }: FeedbackDialogProps) {
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,12 +34,10 @@ export function FeedbackDialog() {
     if (!feedback.trim()) return;
 
     setIsSubmitting(true);
-    
-    // Simulate a real submission delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
+    await new Promise(resolve => setTimeout(resolve, 300));
+
     console.log('Feedback submitted:', { type, email, feedback });
-    
+
     toast.success(t.feedback.success, {
       icon: <CheckCircle2 className="w-4 h-4 text-green-500" />,
     });
@@ -50,9 +52,17 @@ export function FeedbackDialog() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger
         render={
-          <Button variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5">
-            <MessageSquare className="w-4 h-4 text-primary" />
-            <span className="hidden sm:inline">{t.feedback.title}</span>
+          <Button
+            variant="outline"
+            size="sm"
+            className={compact
+              ? 'h-9 min-w-9 shrink-0 gap-1.5 rounded-lg border-primary/20 px-2 text-xs font-black hover:bg-primary/5 xl:px-3'
+              : 'gap-2 border-primary/20 hover:bg-primary/5'}
+            aria-label={t.feedback.title}
+            title={t.feedback.title}
+          >
+            <MessageSquare className="h-4 w-4 shrink-0 text-primary" />
+            <span className={compact ? 'hidden xl:inline' : 'hidden sm:inline'}>{t.feedback.title}</span>
           </Button>
         }
       />
@@ -71,9 +81,9 @@ export function FeedbackDialog() {
             <button
               type="button"
               onClick={() => setType('feedback')}
-              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
-                type === 'feedback' 
-                  ? 'bg-white dark:bg-slate-700 shadow-sm text-primary' 
+              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                type === 'feedback'
+                  ? 'bg-white dark:bg-slate-700 shadow-sm text-primary'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -82,9 +92,9 @@ export function FeedbackDialog() {
             <button
               type="button"
               onClick={() => setType('issue')}
-              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
-                type === 'issue' 
-                  ? 'bg-white dark:bg-slate-700 shadow-sm text-destructive' 
+              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                type === 'issue'
+                  ? 'bg-white dark:bg-slate-700 shadow-sm text-destructive'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -120,9 +130,7 @@ export function FeedbackDialog() {
           <DialogFooter className="flex-row-reverse sm:justify-start gap-2 pt-2">
             <Button type="submit" disabled={isSubmitting || !feedback.trim()} className="w-full sm:w-auto gap-2">
               {isSubmitting ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                </>
+                <RefreshCw className="w-4 h-4 animate-spin" />
               ) : (
                 <>
                   {t.feedback.send}
