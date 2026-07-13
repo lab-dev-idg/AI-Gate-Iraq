@@ -4,8 +4,13 @@ import {
   ReCaptchaEnterpriseProvider,
 } from 'firebase/app-check';
 import {
+  browserLocalPersistence,
+  browserSessionPersistence,
+  createUserWithEmailAndPassword as realCreateUserWithEmailAndPassword,
   getAuth,
   GoogleAuthProvider,
+  sendEmailVerification as realSendEmailVerification,
+  setPersistence as realSetPersistence,
   signInWithPopup as realSignInWithPopup,
   signInWithRedirect as realSignInWithRedirect,
   getRedirectResult as realGetRedirectResult,
@@ -13,6 +18,7 @@ import {
   sendPasswordResetEmail as realSendPasswordResetEmail,
   signOut as realSignOut,
   onAuthStateChanged as realOnAuthStateChanged,
+  updateProfile as realUpdateProfile,
   User,
 } from 'firebase/auth';
 import {
@@ -62,6 +68,7 @@ export let firebaseStorage: any = null;
 export let auth: any = null;
 export let db: any = null;
 export let googleProvider: any = null;
+export let authPersistenceReady: Promise<void> = Promise.resolve();
 
 if (isFirebaseConfigured) {
   try {
@@ -77,6 +84,11 @@ if (isFirebaseConfigured) {
     }
 
     firebaseAuth = getAuth(firebaseApp);
+    authPersistenceReady = realSetPersistence(firebaseAuth, browserLocalPersistence)
+      .catch(() => realSetPersistence(firebaseAuth, browserSessionPersistence))
+      .catch((error) => {
+        console.warn('Firebase Auth persistence is unavailable; the session will be memory-only.', error);
+      });
     firebaseDb = initializeFirestore(firebaseApp, {
       localCache: memoryLocalCache(),
     });
@@ -124,7 +136,34 @@ export const getRedirectResult = async (authObj: any) => {
 
 export const signInWithEmailAndPassword = async (authObj: any, email: string, password: string) => {
   requireAuth(authObj);
+  await authPersistenceReady;
   return realSignInWithEmailAndPassword(authObj, email, password);
+};
+
+export const createUserWithEmailAndPassword = async (authObj: any, email: string, password: string) => {
+  requireAuth(authObj);
+  await authPersistenceReady;
+  return realCreateUserWithEmailAndPassword(authObj, email, password);
+};
+
+export const sendEmailVerification = async (user: User, actionCodeSettings?: { url: string; handleCodeInApp?: boolean }) => {
+  if (!user) throw new Error('FIREBASE_AUTH_USER_REQUIRED');
+  return realSendEmailVerification(user, actionCodeSettings);
+};
+
+export const updateProfile = async (user: User, profile: { displayName?: string | null; photoURL?: string | null }) => {
+  if (!user) throw new Error('FIREBASE_AUTH_USER_REQUIRED');
+  return realUpdateProfile(user, profile);
+};
+
+export const setAuthPersistence = async (remember: boolean) => {
+  requireAuth(auth);
+  try {
+    await realSetPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
+  } catch (error) {
+    if (!remember) throw error;
+    await realSetPersistence(auth, browserSessionPersistence);
+  }
 };
 
 export const sendPasswordResetEmail = async (authObj: any, email: string) => {
@@ -142,7 +181,17 @@ export const onAuthStateChanged = (authObj: any, next: (user: any) => void) => {
     next(null);
     return () => undefined;
   }
-  return realOnAuthStateChanged(authObj, next);
+
+  let cancelled = false;
+  let unsubscribe = () => undefined;
+  void authPersistenceReady.finally(() => {
+    if (!cancelled) unsubscribe = realOnAuthStateChanged(authObj, next);
+  });
+
+  return () => {
+    cancelled = true;
+    unsubscribe();
+  };
 };
 
 export const doc = (dbObj: any, path: string, ...pathSegments: string[]) => {
