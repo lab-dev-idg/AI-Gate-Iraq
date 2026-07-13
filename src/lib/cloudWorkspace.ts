@@ -66,7 +66,7 @@ export function subscribeCloudWorkspace(
   return onSnapshot(
     workspaceRef(uid),
     snapshot => {
-      if (!snapshot.exists()) return;
+      if (!snapshot.exists() || snapshot.metadata.hasPendingWrites) return;
       const record = snapshot.data() as Partial<CloudWorkspaceRecord>;
       if (!record.session) return;
       onSession(record.session, record.updatedAtMs ?? record.session.updatedAt ?? 0);
