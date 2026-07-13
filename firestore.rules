@@ -6,8 +6,16 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function verifiedSignedIn() {
+      return signedIn() && request.auth.token.email_verified == true;
+    }
+
     function isOwner(uid) {
       return signedIn() && request.auth.uid == uid;
+    }
+
+    function isVerifiedOwner(uid) {
+      return verifiedSignedIn() && request.auth.uid == uid;
     }
 
     function isAdmin() {
@@ -106,23 +114,23 @@ service cloud.firestore {
       allow delete: if false;
 
       match /workspace/{workspaceId} {
-        allow read: if isOwner(uid);
-        allow create, update: if validWorkspaceWrite(uid);
+        allow read: if isVerifiedOwner(uid);
+        allow create, update: if isVerifiedOwner(uid) && validWorkspaceWrite(uid);
         allow delete: if false;
       }
 
       match /conversations/{conversationId} {
-        allow read, create, update: if isOwner(uid);
-        allow delete: if isOwner(uid);
+        allow read, create, update: if isVerifiedOwner(uid);
+        allow delete: if isVerifiedOwner(uid);
       }
 
       match /drafts/{draftId} {
-        allow read, create, update, delete: if isOwner(uid);
+        allow read, create, update, delete: if isVerifiedOwner(uid);
       }
 
       match /shipments/{shipmentId} {
-        allow read: if isOwner(uid);
-        allow create, update: if isOwner(uid);
+        allow read: if isVerifiedOwner(uid);
+        allow create, update: if isVerifiedOwner(uid);
         allow delete: if false;
       }
     }
