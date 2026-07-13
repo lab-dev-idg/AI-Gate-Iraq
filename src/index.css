@@ -335,3 +335,47 @@ body,
   background: rgba(16, 185, 129, 0.16);
   color: #a7f3d0;
 }
+
+.chat-markdown {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.chat-markdown :where(p, ul, ol, blockquote):not(:where([class~="not-prose"] *)) {
+  margin-top: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.chat-markdown-user,
+.chat-markdown-user :where(p, li, strong, em, h1, h2, h3, h4, h5, h6, blockquote, code):not(:where([class~="not-prose"] *)) {
+  color: #0f172a !important;
+}
+
+.dark .chat-markdown-user,
+.dark .chat-markdown-user :where(p, li, strong, em, h1, h2, h3, h4, h5, h6, blockquote, code):not(:where([class~="not-prose"] *)) {
+  color: #f8fafc !important;
+}
+
+.chat-markdown-assistant,
+.chat-markdown-assistant :where(p, li, strong, em, h1, h2, h3, h4, h5, h6, blockquote, code):not(:where([class~="not-prose"] *)) {
+  color: #f8fafc !important;
+}
+
+.chat-markdown-assistant :where(a):not(:where([class~="not-prose"] *)) {
+  color: #bae6fd !important;
+  text-decoration-color: #7dd3fc !important;
+}
+
+[data-slot="dialog-content"] .bg-slate-50,
+[data-slot="dialog-content"] .dark\:bg-slate-900\/50 {
+  background: #0b1628 !important;
+}
+
+[data-slot="dialog-content"] .border-slate-100 {
+  border-color: #334155 !important;
+}
+
+[data-slot="dialog-content"] .prose {
+  font-size: 0.98rem;
+  line-height: 2;
+}
