@@ -6,6 +6,12 @@ service firebase.storage {
       return request.auth != null;
     }
 
+    function verifiedOwner(uid) {
+      return signedIn()
+        && request.auth.uid == uid
+        && request.auth.token.email_verified == true;
+    }
+
     function isAllowedUpload(maxSize) {
       return request.resource.size < maxSize
         && (
@@ -15,15 +21,15 @@ service firebase.storage {
         );
     }
 
-    match /pilot-attachments/{fileName} {
-      allow create: if signedIn() && isAllowedUpload(5 * 1024 * 1024);
-      allow read: if signedIn();
+    match /pilot-attachments/{uid}/{fileName} {
+      allow create: if verifiedOwner(uid) && isAllowedUpload(5 * 1024 * 1024);
+      allow read: if verifiedOwner(uid);
       allow update, delete: if false;
     }
 
-    match /intake-documents/{fileName} {
-      allow create: if signedIn() && isAllowedUpload(10 * 1024 * 1024);
-      allow read: if signedIn();
+    match /intake-documents/{uid}/{fileName} {
+      allow create: if verifiedOwner(uid) && isAllowedUpload(10 * 1024 * 1024);
+      allow read: if verifiedOwner(uid);
       allow update, delete: if false;
     }
 
