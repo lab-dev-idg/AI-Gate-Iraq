@@ -14,12 +14,17 @@ import {
 import { useLanguage } from '@/src/lib/LanguageContext';
 import {
   auth,
+  createUserWithEmailAndPassword,
   getRedirectResult,
   googleProvider,
+  sendEmailVerification,
   sendPasswordResetEmail,
+  setAuthPersistence,
   signInWithEmailAndPassword,
   signInWithPopup,
   signInWithRedirect,
+  signOut,
+  updateProfile,
 } from '@/src/lib/firebase';
 
 interface PlatformAccessGateProps {
@@ -34,6 +39,11 @@ const copy = {
     description: 'بە ئیمەیل و وشەی نهێنی یان بە هەژماری Google بچۆ ژوورەوە.',
     email: 'ئیمەیل',
     password: 'وشەی نهێنی',
+    name: 'ناوی تەواو',
+    register: 'دروستکردنی هەژمار',
+    signInMode: 'هەژمارت هەیە؟ بچۆ ژوورەوە',
+    registerMode: 'هەژمارت نییە؟ هەژمار دروست بکە',
+    remember: 'لەبیرم بهێڵەوە',
     login: 'چوونەژوورەوە',
     google: 'بە Google بەردەوام بە',
     or: 'یان',
@@ -42,6 +52,10 @@ const copy = {
     enterEmail: 'تکایە سەرەتا ئیمەیلەکەت بنووسە.',
     invalidCredentials: 'ئیمەیل یان وشەی نهێنی هەڵەیە.',
     invalidEmail: 'فۆرماتی ئیمەیل دروست نییە.',
+    emailInUse: 'ئەم ئیمەیلە پێشتر هەژماری پێ دروستکراوە.',
+    networkError: 'پەیوەندی ئینتەرنێت سەرکەوتوو نەبوو. پەیوەندییەکەت بپشکنە و دووبارە هەوڵ بدەوە.',
+    weakPassword: 'وشەی نهێنی دەبێت لانیکەم ٨ پیت بێت.',
+    verificationSent: 'لینکی پشتڕاستکردنەوە نێردرا. ئیمەیلەکەت بپشکنە و پاشان بچۆ ژوورەوە.',
     tooMany: 'هەوڵی زۆر دراوە؛ دوای ماوەیەک هەوڵ بدەوە.',
     secure: 'پاراستنی ناسنامە بە Firebase Authentication',
     private: 'سێشن و زانیارییەکانی هەژمارەکەت پارێزراون',
@@ -63,6 +77,11 @@ const copy = {
     description: 'سجّل الدخول بالبريد الإلكتروني وكلمة المرور أو باستخدام Google.',
     email: 'البريد الإلكتروني',
     password: 'كلمة المرور',
+    name: 'الاسم الكامل',
+    register: 'إنشاء حساب',
+    signInMode: 'لديك حساب؟ سجّل الدخول',
+    registerMode: 'ليس لديك حساب؟ أنشئ حساباً',
+    remember: 'تذكرني',
     login: 'تسجيل الدخول',
     google: 'المتابعة باستخدام Google',
     or: 'أو',
@@ -71,6 +90,10 @@ const copy = {
     enterEmail: 'أدخل بريدك الإلكتروني أولاً.',
     invalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
     invalidEmail: 'صيغة البريد الإلكتروني غير صحيحة.',
+    emailInUse: 'يوجد حساب مسجل بهذا البريد الإلكتروني.',
+    networkError: 'تعذر الاتصال بالإنترنت. تحقق من اتصالك وحاول مرة أخرى.',
+    weakPassword: 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.',
+    verificationSent: 'تم إرسال رابط التحقق. افحص بريدك الإلكتروني ثم سجّل الدخول.',
     tooMany: 'تم إجراء محاولات كثيرة. حاول لاحقاً.',
     secure: 'حماية الهوية عبر Firebase Authentication',
     private: 'جلسة حسابك ومعلوماتك محمية',
@@ -92,6 +115,11 @@ const copy = {
     description: 'Sign in with email and password or continue with Google.',
     email: 'Email address',
     password: 'Password',
+    name: 'Full name',
+    register: 'Create account',
+    signInMode: 'Already have an account? Sign in',
+    registerMode: 'New here? Create an account',
+    remember: 'Remember me',
     login: 'Sign in',
     google: 'Continue with Google',
     or: 'or',
@@ -100,6 +128,10 @@ const copy = {
     enterEmail: 'Enter your email address first.',
     invalidCredentials: 'The email or password is incorrect.',
     invalidEmail: 'The email address is invalid.',
+    emailInUse: 'An account already exists for this email address.',
+    networkError: 'The network request failed. Check your connection and try again.',
+    weakPassword: 'Password must contain at least 8 characters.',
+    verificationSent: 'A verification link was sent. Check your email, then sign in.',
     tooMany: 'Too many attempts. Please try again later.',
     secure: 'Identity protected by Firebase Authentication',
     private: 'Your account session and information are protected',
@@ -131,6 +163,9 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
   const { lang, setLang } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [remember, setRemember] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState<'email' | 'google' | 'reset' | null>(null);
   const [error, setError] = useState('');
@@ -161,6 +196,8 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
     const code = String(err?.code || err?.message || '');
     if (code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found')) return t.invalidCredentials;
     if (code.includes('invalid-email')) return t.invalidEmail;
+    if (code.includes('email-already-in-use')) return t.emailInUse;
+    if (code.includes('network-request-failed') || code.includes('timeout')) return t.networkError;
     if (code.includes('too-many-requests')) return t.tooMany;
     if (code.includes('unauthorized-domain')) return t.unauthorized;
     if (code.includes('popup-closed-by-user') || code.includes('cancelled-popup-request')) return t.cancelled;
@@ -173,7 +210,44 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
     setMessage('');
     setSubmitting('email');
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
+      await setAuthPersistence(remember);
+      const normalizedEmail = email.trim().toLowerCase();
+
+      if (mode === 'register') {
+        if (displayName.trim().length < 2) {
+          setError(t.name);
+          return;
+        }
+        if (password.length < 8) {
+          setError(t.weakPassword);
+          return;
+        }
+
+        const credential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
+        await updateProfile(credential.user, { displayName: displayName.trim() });
+        await sendEmailVerification(credential.user, {
+          url: `${window.location.origin}/workspace`,
+          handleCodeInApp: false,
+        });
+        await signOut(auth);
+        setMode('login');
+        setPassword('');
+        setMessage(t.verificationSent);
+        return;
+      }
+
+      const credential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
+      const isPasswordUser = credential.user.providerData.some(
+        (provider: { providerId: string }) => provider.providerId === 'password',
+      );
+      if (isPasswordUser && !credential.user.emailVerified) {
+        await sendEmailVerification(credential.user, {
+          url: `${window.location.origin}/workspace`,
+          handleCodeInApp: false,
+        });
+        await signOut(auth);
+        setMessage(t.verificationSent);
+      }
     } catch (err) {
       setError(friendlyError(err));
     } finally {
@@ -226,11 +300,11 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#06101d] text-white" dir={isLtr ? 'ltr' : 'rtl'}>
+    <main className="relative min-h-dvh overflow-x-hidden overflow-y-auto bg-[#06101d] text-white" dir={isLtr ? 'ltr' : 'rtl'}>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_16%,rgba(37,99,235,0.26),transparent_30%),radial-gradient(circle_at_82%_12%,rgba(16,185,129,0.14),transparent_27%),linear-gradient(180deg,#06101d_0%,#091827_100%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:linear-gradient(rgba(255,255,255,.3)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.3)_1px,transparent_1px)] [background-size:44px_44px]" />
 
-      <div className="relative mx-auto grid min-h-screen max-w-7xl items-stretch lg:grid-cols-[1.08fr_0.92fr]">
+      <div className="relative mx-auto grid min-h-dvh max-w-7xl items-stretch lg:grid-cols-[1.08fr_0.92fr]">
         <section className="hidden border-e border-white/10 p-10 lg:flex lg:flex-col lg:justify-between xl:p-14">
           <div>
             <a href="/" className="inline-flex items-center gap-3">
@@ -265,7 +339,7 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
           </div>
         </section>
 
-        <section className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-8 lg:px-12">
+        <section className="flex min-h-dvh items-center justify-center px-4 py-6 sm:px-8 sm:py-8 lg:px-12">
           <div className="w-full max-w-md">
             <div className="mb-6 flex items-center justify-between lg:hidden">
               <a href="/" className="flex items-center gap-3">
@@ -292,18 +366,43 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
               <h2 className="mt-7 text-2xl font-black leading-tight sm:text-3xl">{t.title}</h2>
               <p className="mt-4 text-sm font-medium leading-7 text-slate-300">{t.description}</p>
 
-              <form onSubmit={loginWithEmail} className="mt-7 space-y-4">
+              <div className="mt-7 grid grid-cols-2 rounded-xl border border-white/10 bg-white/[0.04] p-1">
+                <button type="button" onClick={() => { setMode('login'); setError(''); setMessage(''); }} className={`h-9 rounded-lg text-xs font-black transition-colors ${mode === 'login' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+                  {t.login}
+                </button>
+                <button type="button" onClick={() => { setMode('register'); setError(''); setMessage(''); }} className={`h-9 rounded-lg text-xs font-black transition-colors ${mode === 'register' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+                  {t.register}
+                </button>
+              </div>
+
+              <form onSubmit={loginWithEmail} className="mt-5 space-y-4">
+                {mode === 'register' ? (
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-black text-slate-300">{t.name}</span>
+                    <input
+                      type="text"
+                      autoComplete="name"
+                      required
+                      minLength={2}
+                      value={displayName}
+                      onChange={(event) => setDisplayName(event.target.value)}
+                      className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.05] px-4 text-base text-white outline-none transition-colors focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
+                    />
+                  </label>
+                ) : null}
                 <label className="block">
                   <span className="mb-2 block text-xs font-black text-slate-300">{t.email}</span>
                   <div className="relative">
                     <Mail className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                     <input
                       type="email"
+                      inputMode="email"
+                      enterKeyHint="next"
                       autoComplete="email"
                       required
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
-                      className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.05] px-11 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/20"
+                      className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.05] px-11 text-base text-white outline-none transition-colors placeholder:text-slate-600 focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                       placeholder="name@example.com"
                     />
                   </div>
@@ -315,11 +414,12 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
                     <LockKeyhole className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      autoComplete="current-password"
+                      autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                      minLength={mode === 'register' ? 8 : undefined}
                       required
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
-                      className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.05] px-11 pe-12 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/20"
+                      className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.05] px-11 pe-12 text-base text-white outline-none transition-colors placeholder:text-slate-600 focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
                     />
                     <button
                       type="button"
@@ -332,15 +432,21 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
                   </div>
                 </label>
 
-                <div className="flex justify-end">
-                  <button type="button" onClick={() => void resetPassword()} disabled={submitting !== null} className="text-xs font-bold text-blue-300 transition hover:text-blue-200 disabled:opacity-50">
-                    {submitting === 'reset' ? <Loader2 className="inline h-4 w-4 animate-spin" /> : t.forgot}
-                  </button>
+                <div className="flex items-center justify-between gap-3">
+                  <label className="flex cursor-pointer items-center gap-2 text-xs font-bold text-slate-400">
+                    <input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} className="h-4 w-4 rounded border-white/20 accent-blue-600" />
+                    {t.remember}
+                  </label>
+                  {mode === 'login' ? (
+                    <button type="button" onClick={() => void resetPassword()} disabled={submitting !== null} className="text-xs font-bold text-blue-300 transition-colors hover:text-blue-200 disabled:opacity-50">
+                      {submitting === 'reset' ? <Loader2 className="inline h-4 w-4 animate-spin" /> : t.forgot}
+                    </button>
+                  ) : null}
                 </div>
 
                 <button type="submit" disabled={submitting !== null} className="flex h-12 w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-5 text-sm font-black text-white shadow-lg shadow-blue-950/40 transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-60">
                   {submitting === 'email' ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-                  {t.login}
+                  {mode === 'register' ? t.register : t.login}
                 </button>
               </form>
 
@@ -355,8 +461,8 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
                 {t.google}
               </button>
 
-              {error ? <p className="mt-4 rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-xs font-bold leading-6 text-rose-200">{error}</p> : null}
-              {message ? <p className="mt-4 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-xs font-bold leading-6 text-emerald-200">{message}</p> : null}
+              {error ? <p role="alert" aria-live="assertive" className="mt-4 rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-xs font-bold leading-6 text-rose-200">{error}</p> : null}
+              {message ? <p role="status" aria-live="polite" className="mt-4 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-xs font-bold leading-6 text-emerald-200">{message}</p> : null}
 
               <div className="mt-7 grid gap-3 border-t border-white/10 pt-6">
                 {[t.secure, t.private, t.fast].map((item) => (
