@@ -6,6 +6,7 @@ import './responsive.css';
 import './english.css';
 import './soraniPlatformCleanup';
 import { LanguageProvider } from '@/src/lib/LanguageContext';
+import AppErrorBoundary from '@/src/components/AppErrorBoundary';
 
 const AuthProvider = lazy(() =>
   import('@/src/components/AuthProvider').then((module) => ({ default: module.AuthProvider }))
@@ -64,8 +65,10 @@ const ProtectedRuntime = () => {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <LanguageProvider>
-      <ProtectedRuntime />
-    </LanguageProvider>
+    <AppErrorBoundary>
+      <LanguageProvider>
+        <ProtectedRuntime />
+      </LanguageProvider>
+    </AppErrorBoundary>
   </StrictMode>,
 );
