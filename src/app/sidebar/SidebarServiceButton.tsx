@@ -23,8 +23,7 @@ function SidebarServiceButton({ service, label, active, expanded, onSelect }: Si
       type="button"
       title={label}
       aria-current={active ? 'page' : undefined}
-      onPointerEnter={preload}
-      onFocus={preload}
+      onPointerDown={preload}
       onClick={handleClick}
       className={`flex h-11 w-full items-center rounded-xl transition-colors duration-100 ${expanded ? 'justify-start gap-3 px-3' : 'justify-center lg:justify-start lg:gap-3 lg:px-3'} ${active ? 'bg-[#1F6FEB] text-white' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'}`}
     >
