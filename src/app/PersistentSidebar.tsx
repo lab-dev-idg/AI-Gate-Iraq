@@ -137,9 +137,9 @@ export default function PersistentSidebar({
         </div>
 
         {panel === 'search' ? (
-          <SidebarSearchPanel ku={ku} onRestore={restoreConversation} />
+          <SidebarSearchPanel lang={lang} onRestore={restoreConversation} />
         ) : panel === 'projects' ? (
-          <SidebarProjectsPanel ku={ku} activeService={activeService} onOpen={applyService} />
+          <SidebarProjectsPanel lang={lang} activeService={activeService} onOpen={applyService} />
         ) : (
           <>
             <div className={`${expanded ? 'block' : 'hidden lg:block'} shrink-0 px-4 pb-2 pt-3 text-[11px] font-black text-slate-500 dark:text-slate-400`}>{servicesLabel}</div>
