@@ -49,9 +49,9 @@ if (googleMapsKey && googleMapsKey !== 'YOUR_API_KEY' && googleMapsKey.trim() !=
 
 const ProtectedRuntime = () => {
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
-  const requiresAccount = path !== '/' && path !== '/admin';
+  const requiresAuthContext = path !== '/';
 
-  if (!requiresAccount) return <LandingAwareApp />;
+  if (!requiresAuthContext) return <LandingAwareApp />;
 
   return (
     <Suspense fallback={<AppBootFallback />}>
