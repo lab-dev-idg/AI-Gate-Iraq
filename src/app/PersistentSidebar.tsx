@@ -113,6 +113,9 @@ export default function PersistentSidebar({
     setPanel((current) => current === nextPanel ? 'main' : nextPanel);
   }, []);
 
+  const openSearchPanel = useCallback(() => openPanel('search'), [openPanel]);
+  const openProjectsPanel = useCallback(() => openPanel('projects'), [openPanel]);
+
   const newChatLabel = en ? 'New chat' : ku ? 'چاتی نوێ' : 'محادثة جديدة';
   const searchLabel = en ? 'Search conversations' : ku ? 'گەڕان لە چاتەکان' : 'البحث في المحادثات';
   const projectsLabel = en ? 'Projects' : ku ? 'پڕۆژەکان' : 'المشاريع';
@@ -134,8 +137,8 @@ export default function PersistentSidebar({
 
         <div className="shrink-0 space-y-1 border-b border-slate-200 p-2 dark:border-slate-800 lg:p-3">
           <SidebarActionButton icon={Plus} label={newChatLabel} onClick={startNewChat} expanded={expanded} />
-          <SidebarActionButton icon={Search} label={searchLabel} onClick={() => openPanel('search')} expanded={expanded} active={panel === 'search'} />
-          <SidebarActionButton icon={Folder} label={projectsLabel} onClick={() => openPanel('projects')} expanded={expanded} active={panel === 'projects'} />
+          <SidebarActionButton icon={Search} label={searchLabel} onClick={openSearchPanel} expanded={expanded} active={panel === 'search'} />
+          <SidebarActionButton icon={Folder} label={projectsLabel} onClick={openProjectsPanel} expanded={expanded} active={panel === 'projects'} />
         </div>
 
         {panel === 'search' ? (
