@@ -1,5 +1,6 @@
 import { ArrowRight, BarChart3, Bot, CheckCircle2, Globe2, LockKeyhole, PackageSearch, Route, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
 import type { RuntimeLanguage } from '@/src/lib/LanguageContext';
+import BrandLogo from '@/src/components/BrandLogo';
 
 interface PlatformLandingPageProps {
   lang: RuntimeLanguage;
@@ -37,37 +38,7 @@ const content = {
     featuresEyebrow: 'قدرات المنصة', featuresTitle: 'الأدوات الأساسية في مكان واحد', featuresLead: 'من السؤال الأولي إلى قرار الاستيراد، تساعدك المنصة خطوة بخطوة.',
     f1: 'مستشار ذكي', f1d: 'إجابات عملية ومنظمة للتجارة والجمارك والخدمات اللوجستية.', f2: 'تقدير التكاليف', f2d: 'تقدير أولي للشحن والرسوم والتوزيع الداخلي.', f3: 'التوريد وKYC', f3d: 'إعداد طلبات RFQ وفحص الموردين وإرشادات KYC.', f4: 'السوق والمنافذ', f4d: 'ملخصات السوق وحالة المنافذ والمسارات اللوجستية.',
     useEyebrow: 'لمن صُممت؟', useTitle: 'لفرق الاستيراد والتجارة واللوجستيات', u1: 'تقليل الوقت الضائع في البحث عن المعلومات', u2: 'تنظيم القرارات والمستندات في مساحة واحدة', u3: 'تقديرات أسرع قبل التواصل مع الموردين', u4: 'الاحتفاظ بسجل المحادثات والعمل',
-    secEyebrow: 'الثقة والحماية', secTitle: 'مصممة على أساس الأمان والبساطة', secText: 'تستخدم المنصة Firebase Authentication وFirestore Rules وApp Check لتقليل الطلبات غير الموثوقة وحماية الوصول.',
-    ctaTitle: 'هل أنت مستعد لاتخاذ قرارات أذكى؟', ctaText: 'افتح مساحة العمل وأرسل أول سؤال تجاري لك.', cta: 'ابدأ مع AI Gate Iraq',
-  },
-  en: {
-    features: 'Features', useCases: 'Use cases', security: 'Security', open: 'Open platform',
-    eyebrow: 'Trade and logistics intelligence for Iraq', titleA: 'Make business decisions', titleB: 'faster and clearer',
-    lead: 'AI Gate Iraq brings guidance, cost estimation, sourcing, customs, and shipment workflows into one intelligent workspace.',
-    explore: 'Explore features', trustA: 'Built for the Iraqi market', trustB: 'Kurdish, Arabic, English', trustC: 'Firebase + App Check',
-    previewTitle: 'Trade & Logistics Advisor', question: 'How can I estimate the cost of importing a shipment to Erbil?', answer: 'Share the product type, weight, dimensions, origin, and route so I can prepare a structured estimate.',
-    core: 'Core services', langs: 'Supported languages', workspace: 'Unified workspace',
-    featuresEyebrow: 'Platform capabilities', featuresTitle: 'Essential tools in one place', featuresLead: 'From the first question to an import decision, the platform supports your workflow step by step.',
-    f1: 'Smart advisory', f1d: 'Practical, structured guidance for trade, customs, and logistics.', f2: 'Cost estimation', f2d: 'Early estimates for freight, duties, and inland distribution.', f3: 'Sourcing & KYC', f3d: 'RFQ preparation, supplier checks, and KYC guidance.', f4: 'Market & borders', f4d: 'Market summaries, border status, and logistics routes.',
-    useEyebrow: 'Who is it for?', useTitle: 'Import, trade, and logistics teams', u1: 'Reduce time spent searching across scattered sources', u2: 'Organize decisions and documents in one workspace', u3: 'Estimate faster before engaging suppliers', u4: 'Keep a clear history of conversations and work',
-    secEyebrow: 'Trust and protection', secTitle: 'Designed around security and simplicity', secText: 'Firebase Authentication, Firestore Rules, and App Check help reduce untrusted requests and protect access.',
-    ctaTitle: 'Ready to make smarter decisions?', ctaText: 'Open the workspace and send your first business question.', cta: 'Start with AI Gate Iraq',
-  },
-} as const;
-
-const icons = [Bot, BarChart3, PackageSearch, Route];
-
-export default function PlatformLandingPage({ lang, setLang, onEnter }: PlatformLandingPageProps) {
-  const t = content[lang];
-  const ltr = lang === 'en';
-  const cards = [[t.f1, t.f1d], [t.f2, t.f2d], [t.f3, t.f3d], [t.f4, t.f4d]];
-
-  return (
-    <div className="min-h-screen overflow-x-hidden bg-[#07111f] text-white" dir={ltr ? 'ltr' : 'rtl'}>
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(37,99,235,0.20),transparent_30%),radial-gradient(circle_at_85%_10%,rgba(16,185,129,0.12),transparent_28%),linear-gradient(180deg,#07111f_0%,#091827_48%,#07111f_100%)]" />
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#07111f]/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 text-xs font-black">AI</span><div><div className="flex items-center gap-2 text-sm font-black sm:text-base">AI Gate Iraq <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-[9px] text-amber-200">PRO</span></div><div className="text-[9px] font-semibold tracking-[0.18em] text-slate-400">SMART TRADE PLATFORM</div></div></div>
+    secEyebrow: 'الثقة والحماية', secTitle: 'مصممة على أساس الأمان والبساطة', secText: 'تستخدم المنصة Firebase Authentication وFirestore Rules وApp Check …822 tokens truncated…       <div className="flex items-center gap-3"><BrandLogo size={40} className="h-10 w-10 rounded-xl" eager /><div><div className="flex items-center gap-2 text-sm font-black sm:text-base">AI Gate Iraq <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-[9px] text-amber-200">PRO</span></div><div className="text-[9px] font-semibold tracking-[0.18em] text-slate-400">SMART TRADE PLATFORM</div></div></div>
           <nav className="hidden items-center gap-6 text-sm font-bold text-slate-300 lg:flex"><a href="#features" className="hover:text-white">{t.features}</a><a href="#use-cases" className="hover:text-white">{t.useCases}</a><a href="#security" className="hover:text-white">{t.security}</a></nav>
           <div className="flex items-center gap-2"><div className="flex rounded-xl border border-white/10 bg-white/5 p-1">{(['ku', 'ar', 'en'] as RuntimeLanguage[]).map((item) => <button key={item} onClick={() => setLang(item)} className={`h-8 min-w-9 rounded-lg px-2 text-[10px] font-black ${lang === item ? 'bg-blue-600 text-white' : 'text-slate-400'}`}>{item.toUpperCase()}</button>)}</div><button onClick={onEnter} className="hidden h-10 items-center gap-2 rounded-xl bg-white px-4 text-xs font-black text-slate-950 sm:inline-flex">{t.open}<ArrowRight className={`h-4 w-4 ${ltr ? '' : 'rotate-180'}`} /></button></div>
         </div>
@@ -76,7 +47,7 @@ export default function PlatformLandingPage({ lang, setLang, onEnter }: Platform
       <main className="relative z-10">
         <section className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl items-center gap-14 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-24">
           <div><div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-xs font-black text-emerald-300"><Sparkles className="h-4 w-4" />{t.eyebrow}</div><h1 className="text-4xl font-black leading-[1.1] tracking-tight sm:text-5xl lg:text-7xl">{t.titleA}<br /><span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-300 bg-clip-text text-transparent">{t.titleB}</span></h1><p className="mt-7 max-w-2xl text-base font-medium leading-8 text-slate-300 sm:text-lg">{t.lead}</p><div className="mt-9 flex flex-col gap-3 sm:flex-row"><button onClick={onEnter} className="inline-flex h-13 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 text-sm font-black shadow-xl shadow-blue-600/20 hover:bg-blue-500">{t.open}<ArrowRight className={`h-4 w-4 ${ltr ? '' : 'rotate-180'}`} /></button><a href="#features" className="inline-flex h-13 items-center justify-center rounded-2xl border border-white/15 bg-white/5 px-6 text-sm font-black text-slate-200">{t.explore}</a></div><div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-xs font-bold text-slate-400">{[t.trustA, t.trustB, t.trustC].map((x) => <span key={x} className="inline-flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-400" />{x}</span>)}</div></div>
-          <div className="relative"><div className="absolute -inset-6 rounded-[2.5rem] bg-blue-600/15 blur-3xl" /><div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#0d1b2d]/90 shadow-2xl"><div className="flex items-center justify-between border-b border-white/10 px-5 py-4"><div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-blue-600 text-[10px] font-black">AI</span><div><p className="text-sm font-black">AI Gate Iraq</p><p className="text-[10px] text-slate-400">{t.previewTitle}</p></div></div><span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-black text-emerald-300">LIVE</span></div><div className="space-y-5 p-5 sm:p-7"><div className="max-w-[88%] rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-slate-200">{t.question}</div><div className="ms-auto max-w-[92%] rounded-2xl border border-blue-400/25 bg-blue-600/20 p-4 text-sm leading-7 text-blue-50">{t.answer}</div></div></div></div>
+          <div className="relative"><div className="absolute -inset-6 rounded-[2.5rem] bg-blue-600/15 blur-3xl" /><div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#0d1b2d]/90 shadow-2xl"><div className="flex items-center justify-between border-b border-white/10 px-5 py-4"><div className="flex items-center gap-3"><BrandLogo size={36} className="h-9 w-9 rounded-xl" /><div><p className="text-sm font-black">AI Gate Iraq</p><p className="text-[10px] text-slate-400">{t.previewTitle}</p></div></div><span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-black text-emerald-300">LIVE</span></div><div className="space-y-5 p-5 sm:p-7"><div className="max-w-[88%] rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-slate-200">{t.question}</div><div className="ms-auto max-w-[92%] rounded-2xl border border-blue-400/25 bg-blue-600/20 p-4 text-sm leading-7 text-blue-50">{t.answer}</div></div></div></div>
         </section>
 
         <section className="border-y border-white/10 bg-white/[0.025]"><div className="mx-auto grid max-w-7xl grid-cols-1 divide-y divide-white/10 px-4 sm:grid-cols-3 sm:divide-y-0">{[['9', t.core], ['3', t.langs], ['1', t.workspace]].map(([v, l]) => <div key={l} className="px-6 py-7 text-center"><strong className="text-3xl font-black">{v}</strong><p className="mt-1 text-xs font-bold text-slate-400">{l}</p></div>)}</div></section>

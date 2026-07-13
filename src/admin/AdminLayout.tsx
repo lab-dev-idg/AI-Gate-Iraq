@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AdminSectionKey } from './adminTypes';
+import BrandLogo from '@/src/components/BrandLogo';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -62,6 +63,7 @@ export const AdminLayout = ({
           </button>
 
           <div className="flex items-center gap-2">
+            <BrandLogo size={32} className="h-8 w-8 rounded-lg" eager />
             <span className="font-sans font-black text-white text-base tracking-tight select-none">AI Gate Iraq</span>
             <span className="text-[11px] font-sans text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2.5 py-0.5 select-none font-extrabold uppercase tracking-wide">ADMIN</span>
           </div>

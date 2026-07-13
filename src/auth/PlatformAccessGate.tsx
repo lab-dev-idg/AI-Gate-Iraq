@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useLanguage } from '@/src/lib/LanguageContext';
+import BrandLogo from '@/src/components/BrandLogo';
 import {
   auth,
   createUserWithEmailAndPassword,
@@ -308,7 +309,7 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
         <section className="hidden border-e border-white/10 p-10 lg:flex lg:flex-col lg:justify-between xl:p-14">
           <div>
             <a href="/" className="inline-flex items-center gap-3">
-              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 text-xs font-black shadow-xl shadow-blue-500/25">AI</span>
+              <BrandLogo size={48} className="h-12 w-12 rounded-2xl shadow-xl shadow-blue-500/20" eager />
               <div>
                 <div className="flex items-center gap-2 text-lg font-black">AI Gate Iraq <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-[9px] text-amber-200">PRO</span></div>
                 <p className="mt-1 text-[10px] font-bold tracking-[0.2em] text-slate-500">{t.panelEyebrow}</p>
@@ -343,7 +344,7 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
           <div className="w-full max-w-md">
             <div className="mb-6 flex items-center justify-between lg:hidden">
               <a href="/" className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 text-[10px] font-black">AI</span>
+                <BrandLogo size={40} className="h-10 w-10 rounded-xl" eager />
                 <div>
                   <p className="text-sm font-black">AI Gate Iraq</p>
                   <p className="text-[9px] font-bold tracking-[0.16em] text-slate-500">SECURE ACCESS</p>

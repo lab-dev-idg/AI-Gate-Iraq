@@ -16,7 +16,8 @@
     "prepare:firebase-platform": "node scripts/prepare-firebase-platform.mjs",
     "firebase:prepare": "npm run build && npm run prepare:firebase-platform",
     "firebase:preview": "npm run firebase:prepare && npx firebase-tools hosting:channel:deploy preview --only platform",
-    "firebase:deploy": "npm run firebase:prepare && npx firebase-tools deploy --only hosting:platform"
+    "firebase:deploy": "npm run firebase:prepare && npx firebase-tools deploy --only hosting:platform",
+    "firebase:deploy:rules": "npx firebase-tools deploy --only firestore:rules --project ai-gate-iraq"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",

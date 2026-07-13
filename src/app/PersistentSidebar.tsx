@@ -8,6 +8,7 @@ import SidebarActionButton from '@/src/app/sidebar/SidebarActionButton';
 import SidebarServiceButton from '@/src/app/sidebar/SidebarServiceButton';
 import SidebarToggleButton from '@/src/app/sidebar/SidebarToggleButton';
 import { UserMenu } from '@/src/components/UserMenu';
+import BrandLogo from '@/src/components/BrandLogo';
 import { Message } from '@/src/types/chat';
 import { ChatBranch } from '@/src/types/session';
 
@@ -113,7 +114,7 @@ export default function PersistentSidebar({
       <div className="flex h-full min-h-0 flex-col">
         <div className="flex h-14 shrink-0 items-center justify-center border-b border-slate-200 px-2 dark:border-slate-800 lg:justify-between lg:px-3">
           <div className={`${expanded ? 'flex' : 'hidden lg:flex'} min-w-0 items-center gap-2`}>
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-xs font-black text-white shadow-sm shadow-blue-600/30">AI</div>
+            <BrandLogo size={32} className="h-8 w-8 rounded-lg shadow-sm shadow-blue-600/20" eager />
             <span className="whitespace-nowrap text-sm font-black text-slate-900 dark:text-white">AI Gate Iraq</span>
           </div>
           <SidebarToggleButton expanded={expanded} label={sidebarToggleLabel} onToggle={toggleSidebar} />

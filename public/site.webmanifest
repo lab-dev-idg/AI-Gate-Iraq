@@ -6,6 +6,14 @@
   "display": "standalone",
   "background_color": "#090D16",
   "theme_color": "#090D16",
+  "icons": [
+    {
+      "src": "/assets/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
   "lang": "ku",
   "dir": "rtl"
 }

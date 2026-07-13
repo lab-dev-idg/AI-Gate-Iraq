@@ -1,6 +1,7 @@
 import { ArrowLeft, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 import PlatformLandingPage from './PlatformLandingPage';
 import type { RuntimeLanguage } from '@/src/lib/LanguageContext';
+import BrandLogo from '@/src/components/BrandLogo';
 
 interface Props {
   lang: RuntimeLanguage;
@@ -25,7 +26,7 @@ export default function PlatformLandingPageSorani({ lang, setLang, onEnter }: Pr
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#07111f]/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 text-xs font-black">AI</span>
+            <BrandLogo size={40} className="h-10 w-10 rounded-xl" eager />
             <div><strong>AI Gate Iraq</strong><p className="text-[10px] text-slate-400">پلاتفۆرمی زیرەکی بازرگانی و گواستنەوە</p></div>
           </div>
           <div className="flex items-center gap-2">
