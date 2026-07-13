@@ -150,7 +150,7 @@ export function useWorkspaceSync(params: Params) {
     })();
 
     const unsubscribe = subscribeCloudWorkspace(user.uid, (session, at) => {
-      if (cancelled || at <= latestCloud.current) return;
+      if (cancelled || hydratedUid.current !== user.uid || at <= latestCloud.current) return;
       latestCloud.current = at;
       apply(session);
       setLastSyncedAt(at);
