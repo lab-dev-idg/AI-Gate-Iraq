@@ -52,6 +52,9 @@ const ProtectedRuntime = () => {
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
   const requiresAuthContext = path !== '/';
 
+  document.documentElement.classList.toggle('dark', requiresAuthContext);
+  document.documentElement.style.colorScheme = requiresAuthContext ? 'dark' : 'light';
+
   if (!requiresAuthContext) return <LandingAwareApp />;
 
   return (
