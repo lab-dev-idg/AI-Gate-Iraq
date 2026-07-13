@@ -20,17 +20,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
+          const isPasswordUser = firebaseUser.providerData.some(
+            (provider) => provider.providerId === 'password',
+          );
           const userDocRef = doc(db, 'users', firebaseUser.uid);
           const userDoc = await getDoc(userDocRef);
+          const provider = firebaseUser.providerData[0]?.providerId || 'password';
 
           if (!userDoc.exists()) {
             await setDoc(userDocRef, {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               displayName: firebaseUser.displayName,
-              photoURL: firebaseUser.photoURL,
+              role: 'user',
+              status: isPasswordUser && !firebaseUser.emailVerified ? 'pending_verification' : 'active',
               createdAt: serverTimestamp(),
-            });
+              lastLogin: serverTimestamp(),
+              provider,
+              language: localStorage.getItem('app-lang') || 'ku',
+            }, { merge: false });
+          } else if (!isPasswordUser || firebaseUser.emailVerified) {
+            await setDoc(userDocRef, {
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName,
+              status: 'active',
+              lastLogin: serverTimestamp(),
+              provider,
+            }, { merge: true });
+          }
+
+          if (isPasswordUser && !firebaseUser.emailVerified) {
+            setUser(null);
+            return;
           }
 
           setUser(firebaseUser);
@@ -39,7 +60,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (error) {
         console.error('Unable to synchronize the signed-in user profile.', error);
-        setUser(firebaseUser || null);
+        const unverifiedPasswordUser = Boolean(
+          firebaseUser &&
+          !firebaseUser.emailVerified &&
+          firebaseUser.providerData.some((provider) => provider.providerId === 'password'),
+        );
+        setUser(unverifiedPasswordUser ? null : firebaseUser || null);
       } finally {
         setLoading(false);
       }
