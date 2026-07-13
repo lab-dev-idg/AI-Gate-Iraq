@@ -144,6 +144,7 @@ export function useWorkspaceSync(params: Params) {
 
         hydratedUid.current = user.uid;
         setState(navigator.onLine ? 'synced' : 'offline');
+        schedulePush(user.uid, 200);
       } catch {
         if (!cancelled) setState(navigator.onLine ? 'error' : 'offline');
       }
