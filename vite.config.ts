@@ -40,7 +40,7 @@ function manualChunks(id: string) {
     return 'vendor-ui';
   }
 
-  return undefined;
+  return 'vendor-runtime';
 }
 
 export default defineConfig(({ mode }) => {
