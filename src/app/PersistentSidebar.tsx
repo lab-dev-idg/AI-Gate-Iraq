@@ -3,7 +3,6 @@ import { Folder, Plus, Search } from 'lucide-react';
 import { SERVICES, ServiceKey } from '@/src/lib/services';
 import { getAdminFeatureFlagEnabled } from '@/src/admin/adminStore';
 import { saveConversation, SavedConversation } from '@/src/lib/conversationStore';
-import { saveSession } from '@/src/lib/sessionStore';
 import { SidebarProjectsPanel, SidebarSearchPanel } from '@/src/app/SidebarPanels';
 import SidebarActionButton from '@/src/app/sidebar/SidebarActionButton';
 import SidebarServiceButton from '@/src/app/sidebar/SidebarServiceButton';
@@ -58,7 +57,6 @@ export default function PersistentSidebar({
     setActiveService(service);
     setChatScope(service);
     setPanel('main');
-    saveSession({ activeService: service, chatScope: service });
   }, [setActiveService, setChatScope]);
 
   const startNewChat = useCallback(() => {
@@ -71,13 +69,6 @@ export default function PersistentSidebar({
     setChatBranches([]);
     setActiveBranchId('main');
     setPanel('main');
-    saveSession({
-      activeService: 'assistant',
-      chatScope: 'assistant',
-      chatMessages: nextMessages,
-      chatBranches: [],
-      activeBranchId: 'main',
-    });
   }, [chatScope, messages, setActiveBranchId, setActiveService, setChatBranches, setChatScope, setMessages, welcomeMessage]);
 
   const restoreConversation = useCallback((conversation: SavedConversation) => {
@@ -91,13 +82,6 @@ export default function PersistentSidebar({
     setChatBranches([]);
     setActiveBranchId('main');
     setPanel('main');
-    saveSession({
-      activeService: 'assistant',
-      chatScope: conversation.service,
-      chatMessages: restoredMessages,
-      chatBranches: [],
-      activeBranchId: 'main',
-    });
   }, [setActiveBranchId, setActiveService, setChatBranches, setChatScope, setMessages, welcomeMessage]);
 
   const toggleSidebar = useCallback(() => {
