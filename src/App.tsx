@@ -297,7 +297,6 @@ export default function App() {
                     onOpenService={(service) => {
                       setActiveService(service);
                       setChatScope(service);
-                      saveSession({ activeService: service, chatScope: service });
                     }}
                     chatScrollRef={chatScrollRef}
                     promptChips={promptChips}
