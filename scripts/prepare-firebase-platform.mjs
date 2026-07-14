@@ -3,7 +3,7 @@ import { constants } from 'node:fs';
 import { spawn } from 'node:child_process';
 
 const target = '.firebase-hosting/platform';
-const requiredBuildPaths = ['dist/index.html', 'dist/assets'];
+const buildRoots = ['dist/client', 'dist'];
 
 const pathExists = async (path) => {
   try {
@@ -14,21 +14,20 @@ const pathExists = async (path) => {
   }
 };
 
-const ensureProductionBuild = async () => {
-  const missingPaths = [];
+const findProductionBuild = async () => {
+  for (const root of buildRoots) {
+    const hasIndex = await pathExists(`${root}/index.html`);
+    const hasAssets = await pathExists(`${root}/assets`);
 
-  for (const path of requiredBuildPaths) {
-    if (!(await pathExists(path))) {
-      missingPaths.push(path);
+    if (hasIndex && hasAssets) {
+      return root;
     }
   }
 
-  if (missingPaths.length === 0) return;
+  return null;
+};
 
-  console.warn(
-    `Production build artifacts are missing (${missingPaths.join(', ')}). Rebuilding before Firebase packaging.`,
-  );
-
+const runProductionBuild = async () => {
   await new Promise((resolve, reject) => {
     const command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
     const child = spawn(command, ['run', 'build'], {
@@ -52,21 +51,33 @@ const ensureProductionBuild = async () => {
       );
     });
   });
-
-  for (const path of requiredBuildPaths) {
-    if (!(await pathExists(path))) {
-      throw new Error(`Production build completed without required artifact: ${path}`);
-    }
-  }
 };
 
-await ensureProductionBuild();
+const ensureProductionBuild = async () => {
+  const existingBuild = await findProductionBuild();
+  if (existingBuild) return existingBuild;
+
+  console.warn(
+    `Production build artifacts were not found in: ${buildRoots.join(', ')}. Rebuilding before Firebase packaging.`,
+  );
+
+  await runProductionBuild();
+
+  const rebuilt = await findProductionBuild();
+  if (rebuilt) return rebuilt;
+
+  throw new Error(
+    `Production build completed without index.html and assets in: ${buildRoots.join(', ')}`,
+  );
+};
+
+const source = await ensureProductionBuild();
 
 await rm(target, { recursive: true, force: true });
 await mkdir(target, { recursive: true });
 
-await cp('dist/index.html', `${target}/index.html`);
-await cp('dist/assets', `${target}/assets`, { recursive: true });
+await cp(`${source}/index.html`, `${target}/index.html`);
+await cp(`${source}/assets`, `${target}/assets`, { recursive: true });
 await cp('public/site.webmanifest', `${target}/site.webmanifest`);
 
-console.log('Prepared Firebase platform hosting package.');
+console.log(`Prepared Firebase platform hosting package from ${source}.`);
