@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -16,7 +16,6 @@ import BrandLogo from '@/src/components/BrandLogo';
 import {
   auth,
   createUserWithEmailAndPassword,
-  getRedirectResult,
   googleProvider,
   isFirebaseConfigured,
   sendEmailVerification,
@@ -24,7 +23,6 @@ import {
   setAuthPersistence,
   signInWithEmailAndPassword,
   signInWithPopup,
-  signInWithRedirect,
   signOut,
   updateProfile,
 } from '@/src/lib/firebase';
@@ -190,23 +188,6 @@ export default function PlatformAccessGate({
   const t = copy[lang as keyof typeof copy] ?? copy.ku;
   const isLtr = lang === 'en';
 
-  useEffect(() => {
-    if (!isFirebaseConfigured || !auth) {
-      setError(t.configuration);
-      return;
-    }
-
-    void getRedirectResult(auth)
-      .then((credential) => {
-        if (credential?.user) onAuthenticated(credential.user);
-      })
-      .catch((err: any) => {
-        const code = String(err?.code || '');
-        if (code === 'auth/unauthorized-domain') setError(t.unauthorized);
-        else if (code && code !== 'auth/no-auth-event') setError(t.failed);
-      });
-  }, [onAuthenticated, t.configuration, t.failed, t.unauthorized]);
-
   if (loading) {
     return (
       <div className="grid min-h-screen place-items-center bg-[#07111f] px-4 text-white">
@@ -311,19 +292,7 @@ export default function PlatformAccessGate({
       await setAuthPersistence(remember);
       const credential = await signInWithPopup(auth, googleProvider);
       onAuthenticated(credential.user);
-    } catch (err: any) {
-      const code = String(err?.code || '');
-      const shouldRedirect = [
-        'auth/popup-blocked',
-        'auth/web-storage-unsupported',
-        'auth/operation-not-supported-in-this-environment',
-        'auth/internal-error',
-      ].includes(code);
-
-      if (shouldRedirect) {
-        await signInWithRedirect(auth, googleProvider);
-        return;
-      }
+    } catch (err) {
       setError(friendlyError(err));
     } finally {
       setSubmitting(null);
