@@ -72,6 +72,8 @@ const copy = {
     unauthorized: 'ئەم دۆمەینە لە Firebase Authentication ڕێگەپێدراو نییە.',
     failed: 'چوونەژوورەوە سەرکەوتوو نەبوو.',
     configuration: 'ڕێکخستنی Firebase Authentication لە وەشانی production تەواو نییە. تکایە لەگەڵ بەڕێوەبەر پەیوەندی بکە.',
+    providerDisabled: 'چوونەژوورەوە بە ئیمەیل لە Firebase Console چالاک نەکراوە. بەڕێوەبەر دەبێت Email/Password provider چالاک بکات.',
+    accountDisabled: 'ئەم هەژمارە لەلایەن بەڕێوەبەرەوە ناچالاک کراوە.',
     panelEyebrow: 'SMART TRADE WORKSPACE',
     panelTitle: 'هەموو ئامرازە بازرگانی و لۆجیستییەکانت لە یەک شوێندا',
     panelText: 'ڕاوێژکاری زیرەک، خەمڵاندنی تێچوو، دابینکردن، KYC و بەدواداچوونی بار لە شوێنی کارێکی یەکگرتوودا.',
@@ -111,6 +113,8 @@ const copy = {
     unauthorized: 'هذا النطاق غير مصرح به في Firebase Authentication.',
     failed: 'تعذر تسجيل الدخول.',
     configuration: 'إعداد Firebase Authentication غير مكتمل في نسخة الإنتاج. يرجى التواصل مع مسؤول المنصة.',
+    providerDisabled: 'تسجيل الدخول بالبريد غير مفعّل في Firebase Console. يجب على المسؤول تفعيل موفّر Email/Password.',
+    accountDisabled: 'تم تعطيل هذا الحساب بواسطة المسؤول.',
     panelEyebrow: 'SMART TRADE WORKSPACE',
     panelTitle: 'كل أدوات التجارة والخدمات اللوجستية في مكان واحد',
     panelText: 'استشارات ذكية وتقدير تكاليف وتوريد وKYC وتتبع شحنات داخل مساحة عمل موحدة.',
@@ -150,6 +154,8 @@ const copy = {
     unauthorized: 'This domain is not authorized in Firebase Authentication.',
     failed: 'Unable to sign in.',
     configuration: 'Firebase Authentication is not configured in this production build. Contact the platform administrator.',
+    providerDisabled: 'Email sign-in is disabled in Firebase Console. An administrator must enable the Email/Password provider.',
+    accountDisabled: 'This account has been disabled by an administrator.',
     panelEyebrow: 'SMART TRADE WORKSPACE',
     panelTitle: 'All your trade and logistics tools in one place',
     panelText: 'Smart advisory, cost estimation, sourcing, KYC, and shipment tracking in one unified workspace.',
@@ -219,9 +225,11 @@ export default function PlatformAccessGate({
     if (code.includes('email-already-in-use')) return t.emailInUse;
     if (code.includes('network-request-failed') || code.includes('timeout')) return t.networkError;
     if (code.includes('too-many-requests')) return t.tooMany;
-    if (code.includes('unauthorized-domain')) return t.unauthorized;
+    if (code.includes('unauthorized-domain') || code.includes('app-not-authorized')) return t.unauthorized;
+    if (code.includes('operation-not-allowed')) return t.providerDisabled;
+    if (code.includes('user-disabled')) return t.accountDisabled;
+    if (code.includes('invalid-api-key') || code.includes('FIREBASE_AUTH_NOT_CONFIGURED') || code.includes('FIREBASE_AUTH_PROVIDER_NOT_CONFIGURED')) return t.configuration;
     if (code.includes('popup-closed-by-user') || code.includes('cancelled-popup-request')) return t.cancelled;
-    if (code.includes('FIREBASE_AUTH_NOT_CONFIGURED') || code.includes('FIREBASE_AUTH_PROVIDER_NOT_CONFIGURED')) return t.configuration;
     return t.failed;
   };
 
