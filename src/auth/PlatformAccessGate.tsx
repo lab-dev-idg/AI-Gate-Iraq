@@ -67,6 +67,7 @@ const copy = {
     back: 'گەڕانەوە بۆ لاندینگ پەیج',
     footer: 'بە بەردەوامبوون، ڕازی دەبیت هەژمارەکەت بۆ دەستگەیشتنی پارێزراو بەکاربهێنرێت.',
     cancelled: 'چوونەژوورەوە هەڵوەشایەوە.',
+    popupBlocked: 'پەنجەرەی Google لەلایەن وێبگەڕەوە ڕێگری لێکرا. ڕێگە بە Pop-ups بدە و دووبارە هەوڵ بدەوە.',
     unauthorized: 'ئەم دۆمەینە لە Firebase Authentication ڕێگەپێدراو نییە.',
     failed: 'چوونەژوورەوە سەرکەوتوو نەبوو.',
     configuration: 'ڕێکخستنی Firebase Authentication لە وەشانی production تەواو نییە. تکایە لەگەڵ بەڕێوەبەر پەیوەندی بکە.',
@@ -108,6 +109,7 @@ const copy = {
     back: 'العودة إلى الصفحة الرئيسية',
     footer: 'بالمتابعة، أنت توافق على استخدام حسابك للوصول الآمن إلى مساحة العمل.',
     cancelled: 'تم إلغاء تسجيل الدخول.',
+    popupBlocked: 'حظر المتصفح نافذة Google. اسمح بالنوافذ المنبثقة ثم حاول مرة أخرى.',
     unauthorized: 'هذا النطاق غير مصرح به في Firebase Authentication.',
     failed: 'تعذر تسجيل الدخول.',
     configuration: 'إعداد Firebase Authentication غير مكتمل في نسخة الإنتاج. يرجى التواصل مع مسؤول المنصة.',
@@ -149,6 +151,7 @@ const copy = {
     back: 'Back to landing page',
     footer: 'By continuing, you agree to use your account for secure workspace access.',
     cancelled: 'Sign-in was cancelled.',
+    popupBlocked: 'The browser blocked the Google window. Allow pop-ups, then try again.',
     unauthorized: 'This domain is not authorized in Firebase Authentication.',
     failed: 'Unable to sign in.',
     configuration: 'Firebase Authentication is not configured in this production build. Contact the platform administrator.',
@@ -215,6 +218,7 @@ export default function PlatformAccessGate({
     if (code.includes('operation-not-allowed')) return t.providerDisabled;
     if (code.includes('user-disabled')) return t.accountDisabled;
     if (code.includes('invalid-api-key') || code.includes('FIREBASE_AUTH_NOT_CONFIGURED') || code.includes('FIREBASE_AUTH_PROVIDER_NOT_CONFIGURED')) return t.configuration;
+    if (code.includes('popup-blocked')) return t.popupBlocked;
     if (code.includes('popup-closed-by-user') || code.includes('cancelled-popup-request')) return t.cancelled;
     return t.failed;
   };
@@ -289,7 +293,6 @@ export default function PlatformAccessGate({
     }
     setSubmitting('google');
     try {
-      await setAuthPersistence(remember);
       const credential = await signInWithPopup(auth, googleProvider);
       onAuthenticated(credential.user);
     } catch (err) {
@@ -297,6 +300,11 @@ export default function PlatformAccessGate({
     } finally {
       setSubmitting(null);
     }
+  };
+
+  const updateRememberPreference = (checked: boolean) => {
+    setRemember(checked);
+    if (isFirebaseConfigured && auth) void setAuthPersistence(checked);
   };
 
   const resetPassword = async () => {
@@ -453,7 +461,7 @@ export default function PlatformAccessGate({
 
                 <div className="flex items-center justify-between gap-3">
                   <label className="flex cursor-pointer items-center gap-2 text-xs font-bold text-slate-400">
-                    <input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} className="h-4 w-4 rounded border-white/20 accent-blue-600" />
+                    <input type="checkbox" checked={remember} onChange={(event) => updateRememberPreference(event.target.checked)} className="h-4 w-4 rounded border-white/20 accent-blue-600" />
                     {t.remember}
                   </label>
                   {mode === 'login' ? (
