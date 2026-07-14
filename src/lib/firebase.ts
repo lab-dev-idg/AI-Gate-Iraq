@@ -177,7 +177,10 @@ export const setAuthPersistence = async (remember: boolean) => {
     }
   }
 
-  throw lastError instanceof Error ? lastError : new Error('AUTH_PERSISTENCE_UNAVAILABLE');
+  console.warn(
+    'Firebase Auth persistence is unavailable; continuing with the SDK session fallback.',
+    lastError,
+  );
 };
 
 export const sendPasswordResetEmail = async (authObj: any, email: string) => {
