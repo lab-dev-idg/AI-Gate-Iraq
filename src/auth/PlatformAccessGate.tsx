@@ -18,6 +18,7 @@ import {
   createUserWithEmailAndPassword,
   getRedirectResult,
   googleProvider,
+  isFirebaseConfigured,
   sendEmailVerification,
   sendPasswordResetEmail,
   setAuthPersistence,
@@ -31,6 +32,8 @@ import {
 interface PlatformAccessGateProps {
   loading: boolean;
 }
+
+const BRAND_TAGLINE = 'SMART TRADE PLATFORM';
 
 const copy = {
   ku: {
@@ -67,6 +70,7 @@ const copy = {
     cancelled: 'چوونەژوورەوە هەڵوەشایەوە.',
     unauthorized: 'ئەم دۆمەینە لە Firebase Authentication ڕێگەپێدراو نییە.',
     failed: 'چوونەژوورەوە سەرکەوتوو نەبوو.',
+    configuration: 'ڕێکخستنی Firebase Authentication لە وەشانی production تەواو نییە. تکایە لەگەڵ بەڕێوەبەر پەیوەندی بکە.',
     panelEyebrow: 'SMART TRADE WORKSPACE',
     panelTitle: 'هەموو ئامرازە بازرگانی و لۆجیستییەکانت لە یەک شوێندا',
     panelText: 'ڕاوێژکاری زیرەک، خەمڵاندنی تێچوو، دابینکردن، KYC و بەدواداچوونی بار لە شوێنی کارێکی یەکگرتوودا.',
@@ -105,6 +109,7 @@ const copy = {
     cancelled: 'تم إلغاء تسجيل الدخول.',
     unauthorized: 'هذا النطاق غير مصرح به في Firebase Authentication.',
     failed: 'تعذر تسجيل الدخول.',
+    configuration: 'إعداد Firebase Authentication غير مكتمل في نسخة الإنتاج. يرجى التواصل مع مسؤول المنصة.',
     panelEyebrow: 'SMART TRADE WORKSPACE',
     panelTitle: 'كل أدوات التجارة والخدمات اللوجستية في مكان واحد',
     panelText: 'استشارات ذكية وتقدير تكاليف وتوريد وKYC وتتبع شحنات داخل مساحة عمل موحدة.',
@@ -143,6 +148,7 @@ const copy = {
     cancelled: 'Sign-in was cancelled.',
     unauthorized: 'This domain is not authorized in Firebase Authentication.',
     failed: 'Unable to sign in.',
+    configuration: 'Firebase Authentication is not configured in this production build. Contact the platform administrator.',
     panelEyebrow: 'SMART TRADE WORKSPACE',
     panelTitle: 'All your trade and logistics tools in one place',
     panelText: 'Smart advisory, cost estimation, sourcing, KYC, and shipment tracking in one unified workspace.',
@@ -175,12 +181,17 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
   const isLtr = lang === 'en';
 
   useEffect(() => {
+    if (!isFirebaseConfigured || !auth) {
+      setError(t.configuration);
+      return;
+    }
+
     void getRedirectResult(auth).catch((err: any) => {
       const code = String(err?.code || '');
       if (code === 'auth/unauthorized-domain') setError(t.unauthorized);
       else if (code && code !== 'auth/no-auth-event') setError(t.failed);
     });
-  }, [t.failed, t.unauthorized]);
+  }, [t.configuration, t.failed, t.unauthorized]);
 
   if (loading) {
     return (
@@ -202,6 +213,7 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
     if (code.includes('too-many-requests')) return t.tooMany;
     if (code.includes('unauthorized-domain')) return t.unauthorized;
     if (code.includes('popup-closed-by-user') || code.includes('cancelled-popup-request')) return t.cancelled;
+    if (code.includes('FIREBASE_AUTH_NOT_CONFIGURED') || code.includes('FIREBASE_AUTH_PROVIDER_NOT_CONFIGURED')) return t.configuration;
     return t.failed;
   };
 
@@ -209,6 +221,10 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
     event.preventDefault();
     setError('');
     setMessage('');
+    if (!isFirebaseConfigured || !auth) {
+      setError(t.configuration);
+      return;
+    }
     setSubmitting('email');
     try {
       await setAuthPersistence(remember);
@@ -242,12 +258,15 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
         (provider: { providerId: string }) => provider.providerId === 'password',
       );
       if (isPasswordUser && !credential.user.emailVerified) {
-        await sendEmailVerification(credential.user, {
-          url: `${window.location.origin}/workspace`,
-          handleCodeInApp: false,
-        });
-        await signOut(auth);
-        setMessage(t.verificationSent);
+        try {
+          await sendEmailVerification(credential.user, {
+            url: `${window.location.origin}/workspace`,
+            handleCodeInApp: false,
+          });
+          setMessage(t.verificationSent);
+        } finally {
+          await signOut(auth);
+        }
       }
     } catch (err) {
       setError(friendlyError(err));
@@ -259,8 +278,13 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
   const loginWithGoogle = async () => {
     setError('');
     setMessage('');
+    if (!isFirebaseConfigured || !auth || !googleProvider) {
+      setError(t.configuration);
+      return;
+    }
     setSubmitting('google');
     try {
+      await setAuthPersistence(remember);
       await signInWithPopup(auth, googleProvider);
     } catch (err: any) {
       const code = String(err?.code || '');
@@ -312,7 +336,7 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
               <BrandLogo size={48} className="h-12 w-12 rounded-2xl shadow-xl shadow-blue-500/20" eager />
               <div>
                 <div className="flex items-center gap-2 text-lg font-black">AI Gate Iraq <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-[9px] text-amber-200">PRO</span></div>
-                <p className="mt-1 text-[10px] font-bold tracking-[0.2em] text-slate-500">{t.panelEyebrow}</p>
+                <p className="mt-1 text-[10px] font-bold tracking-[0.2em] text-slate-500">{BRAND_TAGLINE}</p>
               </div>
             </a>
 
@@ -347,7 +371,7 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
                 <BrandLogo size={40} className="h-10 w-10 rounded-xl" eager />
                 <div>
                   <p className="text-sm font-black">AI Gate Iraq</p>
-                  <p className="text-[9px] font-bold tracking-[0.16em] text-slate-500">SECURE ACCESS</p>
+                  <p className="text-[9px] font-bold tracking-[0.16em] text-slate-500">{BRAND_TAGLINE}</p>
                 </div>
               </a>
               <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-2.5 py-1 text-[9px] font-black text-amber-200">PRO</span>
