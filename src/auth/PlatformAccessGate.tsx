@@ -225,7 +225,12 @@ export default function PlatformAccessGate({
     if (code.includes('email-already-in-use')) return t.emailInUse;
     if (code.includes('network-request-failed') || code.includes('timeout')) return t.networkError;
     if (code.includes('too-many-requests')) return t.tooMany;
-    if (code.includes('unauthorized-domain') || code.includes('app-not-authorized')) return t.unauthorized;
+    if (
+      code.includes('unauthorized-domain') ||
+      code.includes('app-not-authorized') ||
+      code.includes('requests-from-referer') ||
+      code.includes('API_KEY_HTTP_REFERRER_BLOCKED')
+    ) return t.unauthorized;
     if (code.includes('operation-not-allowed')) return t.providerDisabled;
     if (code.includes('user-disabled')) return t.accountDisabled;
     if (code.includes('invalid-api-key') || code.includes('FIREBASE_AUTH_NOT_CONFIGURED') || code.includes('FIREBASE_AUTH_PROVIDER_NOT_CONFIGURED')) return t.configuration;
