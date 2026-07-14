@@ -31,6 +31,7 @@ import {
 
 interface PlatformAccessGateProps {
   loading: boolean;
+  onAuthenticated: (user: import('@/src/lib/firebase').User) => void;
 }
 
 const BRAND_TAGLINE = 'SMART TRADE PLATFORM';
@@ -166,7 +167,10 @@ function GoogleMark() {
   );
 }
 
-export default function PlatformAccessGate({ loading }: PlatformAccessGateProps) {
+export default function PlatformAccessGate({
+  loading,
+  onAuthenticated,
+}: PlatformAccessGateProps) {
   const { lang, setLang } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -186,12 +190,16 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
       return;
     }
 
-    void getRedirectResult(auth).catch((err: any) => {
-      const code = String(err?.code || '');
-      if (code === 'auth/unauthorized-domain') setError(t.unauthorized);
-      else if (code && code !== 'auth/no-auth-event') setError(t.failed);
-    });
-  }, [t.configuration, t.failed, t.unauthorized]);
+    void getRedirectResult(auth)
+      .then((credential) => {
+        if (credential?.user) onAuthenticated(credential.user);
+      })
+      .catch((err: any) => {
+        const code = String(err?.code || '');
+        if (code === 'auth/unauthorized-domain') setError(t.unauthorized);
+        else if (code && code !== 'auth/no-auth-event') setError(t.failed);
+      });
+  }, [onAuthenticated, t.configuration, t.failed, t.unauthorized]);
 
   if (loading) {
     return (
@@ -267,7 +275,10 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
         } finally {
           await signOut(auth);
         }
+        return;
       }
+
+      onAuthenticated(credential.user);
     } catch (err) {
       setError(friendlyError(err));
     } finally {
@@ -285,7 +296,8 @@ export default function PlatformAccessGate({ loading }: PlatformAccessGateProps)
     setSubmitting('google');
     try {
       await setAuthPersistence(remember);
-      await signInWithPopup(auth, googleProvider);
+      const credential = await signInWithPopup(auth, googleProvider);
+      onAuthenticated(credential.user);
     } catch (err: any) {
       const code = String(err?.code || '');
       const shouldRedirect = [
