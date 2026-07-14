@@ -39,6 +39,22 @@ VITE_FIREBASE_STORAGE_BUCKET=ai-gate-iraq.firebasestorage.app
 
 Do not restore old generated Firebase applet configuration files.
 
+## Production R2 storage lock
+
+The verified production Cloudflare R2 runtime is locked to:
+
+```text
+Worker: ai-gate-iraq
+Worker entry: src/cloudflare-worker.ts
+Binding: STORAGE_BUCKET
+Bucket: ai-gate-iraq-storage
+Health endpoint: /api/storage-health
+Stable commit: 7b5f5e456ec580372e70ba71190c70e37c142df5
+Rollback branch: release/r2-stable-2026-07-14
+```
+
+The health endpoint must return HTTP 200 with `status: ok` before a storage-related deployment is accepted. Do not rename or remove the Worker entry, binding, bucket, health route, or SPA asset fallback without an intentional storage migration and replacement rollback point.
+
 ## Guard
 
 Run this before deployment:
