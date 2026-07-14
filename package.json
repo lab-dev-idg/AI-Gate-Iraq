@@ -11,13 +11,14 @@
     "lint": "tsc --noEmit",
     "check:project": "node scripts/check-project-guard.mjs",
     "qa": "npm run lint && npm run build",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "npm run check:firebase-env && npm run build && wrangler deploy",
     "preview": "npm run build && wrangler dev",
     "prepare:firebase-platform": "node scripts/prepare-firebase-platform.mjs",
-    "firebase:prepare": "npm run build && npm run prepare:firebase-platform",
+    "firebase:prepare": "npm run check:firebase-env && npm run build && npm run prepare:firebase-platform",
     "firebase:preview": "npm run firebase:prepare && npx firebase-tools hosting:channel:deploy preview --only platform",
     "firebase:deploy": "npm run firebase:prepare && npx firebase-tools deploy --only hosting:platform",
-    "firebase:deploy:rules": "npx firebase-tools deploy --only firestore:rules --project ai-gate-iraq"
+    "firebase:deploy:rules": "npx firebase-tools deploy --only firestore:rules --project ai-gate-iraq",
+    "check:firebase-env": "node scripts/check-firebase-env.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
