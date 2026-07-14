@@ -1,6 +1,14 @@
+interface AssetFetcher {
+  fetch(request: Request): Promise<Response>;
+}
+
+interface R2BucketBinding {
+  list(options: { limit: number }): Promise<unknown>;
+}
+
 interface Env {
-  ASSETS: Fetcher;
-  STORAGE_BUCKET: R2Bucket;
+  ASSETS: AssetFetcher;
+  STORAGE_BUCKET: R2BucketBinding;
 }
 
 const json = (body: Record<string, unknown>, status = 200) =>
@@ -13,7 +21,7 @@ const json = (body: Record<string, unknown>, status = 200) =>
   });
 
 export default {
-  async fetch(request, env): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname === '/api/storage-health') {
@@ -58,4 +66,4 @@ export default {
 
     return env.ASSETS.fetch(request);
   },
-} satisfies ExportedHandler<Env>;
+};
