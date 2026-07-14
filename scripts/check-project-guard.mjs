@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const scanRoots = ['server.ts', '.env.example', 'src', 'docs'];
+const scanRoots = ['server.ts', '.env.example', 'wrangler.jsonc', 'src', 'docs'];
 const skipDirs = new Set(['node_modules', 'dist', '.git']);
 
 const forbidden = [
@@ -19,6 +19,27 @@ const forbidden = [
   { pattern: /منصة\s+حكومية|نظام\s+حكومي|تابعة\s+للحكومة|تابعة\s+لوزارة/gi, reason: 'Arabic copy must not imply government ownership.' },
 ];
 
+const required = [
+  {
+    file: 'wrangler.jsonc',
+    checks: [
+      { pattern: /"main"\s*:\s*"src\/cloudflare-worker\.ts"/, reason: 'Cloudflare Worker entry must remain enabled.' },
+      { pattern: /"binding"\s*:\s*"ASSETS"/, reason: 'SPA asset binding must remain enabled.' },
+      { pattern: /"run_worker_first"\s*:\s*\[[\s\S]*"\/api\/storage-health"[\s\S]*\]/, reason: 'R2 health route must run through the Worker.' },
+      { pattern: /"binding"\s*:\s*"STORAGE_BUCKET"/, reason: 'Cloudflare R2 binding must remain STORAGE_BUCKET.' },
+      { pattern: /"bucket_name"\s*:\s*"ai-gate-iraq-storage"/, reason: 'Production R2 bucket must remain ai-gate-iraq-storage.' },
+    ],
+  },
+  {
+    file: 'src/cloudflare-worker.ts',
+    checks: [
+      { pattern: /url\.pathname\s*===\s*['"]\/api\/storage-health['"]/, reason: 'R2 runtime health endpoint must remain available.' },
+      { pattern: /env\.STORAGE_BUCKET\.list\(\{\s*limit:\s*1\s*\}\)/, reason: 'R2 health endpoint must verify the live binding.' },
+      { pattern: /return\s+env\.ASSETS\.fetch\(request\)/, reason: 'Non-API requests must continue to use SPA assets.' },
+    ],
+  },
+];
+
 function collectFiles(target) {
   const absolute = path.join(root, target);
   if (!fs.existsSync(absolute)) return [];
@@ -30,7 +51,7 @@ function collectFiles(target) {
     const childStat = fs.statSync(child);
     if (childStat.isDirectory()) {
       if (!skipDirs.has(entry)) files.push(...collectFiles(path.relative(root, child)));
-    } else if (/\.(ts|tsx|js|jsx|mjs|json|md|env|example)$/.test(entry) || entry === '.env.example') {
+    } else if (/\.(ts|tsx|js|jsx|mjs|json|jsonc|md|env|example)$/.test(entry) || entry === '.env.example') {
       files.push(child);
     }
   }
@@ -53,11 +74,26 @@ for (const file of files) {
   }
 }
 
+for (const requirement of required) {
+  const absolute = path.join(root, requirement.file);
+  if (!fs.existsSync(absolute)) {
+    failures.push(`${requirement.file} — Required production file is missing.`);
+    continue;
+  }
+
+  const text = fs.readFileSync(absolute, 'utf8');
+  for (const check of requirement.checks) {
+    if (!check.pattern.test(text)) {
+      failures.push(`${requirement.file} — ${check.reason}`);
+    }
+  }
+}
+
 if (failures.length > 0) {
   console.error('\nProject guard failed. Fix these blocked patterns before build:\n');
   for (const failure of failures) console.error(`- ${failure}`);
-  console.error('\nPermanent rules: private commercial ownership, no legacy AI Studio Firebase, no Gemini model override.\n');
+  console.error('\nPermanent rules: private commercial ownership, no legacy AI Studio Firebase, no Gemini model override, and no removal of the production R2 runtime contract.\n');
   process.exit(1);
 }
 
-console.log('Project guard passed: private positioning, Firebase config, and Gemini model rules are clean.');
+console.log('Project guard passed: positioning, Firebase, Gemini model, and Cloudflare R2 runtime contracts are intact.');
