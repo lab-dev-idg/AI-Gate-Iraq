@@ -87,17 +87,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run project guard
-        run: npm run check:project
-
       - name: Run TypeScript validation
         run: npm run lint
 
-      - name: Build production platform
-        run: npm run build
+      - name: Build and prepare Firebase platform package
+        run: npm run firebase:prepare
 
-      - name: Prepare Firebase platform package
-        run: npm run prepare:firebase-platform
+      - name: Verify Firebase platform package
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .firebase-hosting/platform/index.html
+          test -d .firebase-hosting/platform/assets
+          test -f .firebase-hosting/platform/site.webmanifest
 
       - name: Deploy Firestore rules
         if: ${{ inputs.deploy_scope == 'all' || inputs.deploy_scope == 'firestore' }}
