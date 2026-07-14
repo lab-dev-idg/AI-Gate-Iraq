@@ -6,6 +6,7 @@ import {
 import {
   browserLocalPersistence,
   browserSessionPersistence,
+  inMemoryPersistence,
   createUserWithEmailAndPassword as realCreateUserWithEmailAndPassword,
   getAuth,
   GoogleAuthProvider,
@@ -73,21 +74,12 @@ export let authPersistenceReady: Promise<void> = Promise.resolve();
 if (isFirebaseConfigured) {
   try {
     firebaseApp = initializeApp(firebaseConfig);
-
-    if (recaptchaEnterpriseSiteKey) {
-      firebaseAppCheck = initializeAppCheck(firebaseApp, {
-        provider: new ReCaptchaEnterpriseProvider(recaptchaEnterpriseSiteKey),
-        isTokenAutoRefreshEnabled: true,
-      });
-    } else {
-      console.warn('Firebase App Check site key is not configured. Enforcement must remain disabled.');
-    }
-
     firebaseAuth = getAuth(firebaseApp);
     authPersistenceReady = realSetPersistence(firebaseAuth, browserLocalPersistence)
       .catch(() => realSetPersistence(firebaseAuth, browserSessionPersistence))
+      .catch(() => realSetPersistence(firebaseAuth, inMemoryPersistence))
       .catch((error) => {
-        console.warn('Firebase Auth persistence is unavailable; the session will be memory-only.', error);
+        console.warn('Firebase Auth persistence could not be initialized.', error);
       });
     firebaseDb = initializeFirestore(firebaseApp, {
       localCache: memoryLocalCache(),
@@ -96,6 +88,19 @@ if (isFirebaseConfigured) {
     db = firebaseDb;
     googleProvider = new GoogleAuthProvider();
     googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+    if (recaptchaEnterpriseSiteKey) {
+      try {
+        firebaseAppCheck = initializeAppCheck(firebaseApp, {
+          provider: new ReCaptchaEnterpriseProvider(recaptchaEnterpriseSiteKey),
+          isTokenAutoRefreshEnabled: true,
+        });
+      } catch (error) {
+        console.warn('Firebase App Check initialization failed; authentication remains available.', error);
+      }
+    } else {
+      console.warn('Firebase App Check site key is not configured. Enforcement must remain disabled.');
+    }
   } catch (error) {
     console.warn('Firebase client initialization failed.', error);
   }
@@ -158,12 +163,21 @@ export const updateProfile = async (user: User, profile: { displayName?: string 
 
 export const setAuthPersistence = async (remember: boolean) => {
   requireAuth(auth);
-  try {
-    await realSetPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
-  } catch (error) {
-    if (!remember) throw error;
-    await realSetPersistence(auth, browserSessionPersistence);
+  const options = remember
+    ? [browserLocalPersistence, browserSessionPersistence, inMemoryPersistence]
+    : [browserSessionPersistence, inMemoryPersistence];
+
+  let lastError: unknown;
+  for (const persistence of options) {
+    try {
+      await realSetPersistence(auth, persistence);
+      return;
+    } catch (error) {
+      lastError = error;
+    }
   }
+
+  throw lastError instanceof Error ? lastError : new Error('AUTH_PERSISTENCE_UNAVAILABLE');
 };
 
 export const sendPasswordResetEmail = async (authObj: any, email: string) => {
