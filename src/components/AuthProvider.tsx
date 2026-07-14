@@ -80,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{ user, loading }}>
       {requiresAccount && (loading || !user) ? (
-        <PlatformAccessGate loading={loading} />
+        <PlatformAccessGate loading={loading} onAuthenticated={setUser} />
       ) : (
         <>
           {children}
