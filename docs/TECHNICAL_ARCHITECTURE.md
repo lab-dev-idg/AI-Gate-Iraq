@@ -35,6 +35,14 @@ Firebase Authentication establishes identity. Privileged access is authorized th
 
 Client-side route visibility is not a security boundary. Firestore and Storage rules are the authoritative access controls.
 
+## Subscription and usage control
+
+- `subscriptions/{uid}` is the authoritative plan entitlement. Users may read only their own record; only active `owner` or `admin` accounts may create or update subscriptions.
+- `usageCounters/{uid}` stores the authenticated user's AI question count. Free accounts are limited to three questions by Firestore rules; active Pro accounts may continue incrementing usage.
+- `subscriptionRequests/{uid}` stores one current Pro activation request per authenticated user and is visible in the existing administration panel.
+- Browser `localStorage` is not an authorization or quota source. It may be used only for non-authoritative interface preferences.
+- Manual Pro activation is the initial commercial workflow. Automated payment processing requires a verified server-side webhook and a separate security review before activation.
+
 ## Conversion submission flow
 
 1. A public user completes the conversion form.
