@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -16,6 +16,7 @@ import BrandLogo from '@/src/components/BrandLogo';
 import {
   auth,
   createUserWithEmailAndPassword,
+  getRedirectResult,
   googleProvider,
   isFirebaseConfigured,
   sendEmailVerification,
@@ -23,6 +24,7 @@ import {
   setAuthPersistence,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
   signOut,
   updateProfile,
 } from '@/src/lib/firebase';
@@ -174,6 +176,13 @@ function GoogleMark() {
   );
 }
 
+function prefersRedirectForGoogleAuth(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const isMobileUserAgent = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isIPadDesktopMode = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  return isMobileUserAgent || isIPadDesktopMode;
+}
+
 export default function PlatformAccessGate({
   loading,
   onAuthenticated,
@@ -190,6 +199,26 @@ export default function PlatformAccessGate({
   const [message, setMessage] = useState('');
   const t = copy[lang as keyof typeof copy] ?? copy.ku;
   const isLtr = lang === 'en';
+
+  useEffect(() => {
+    if (!isFirebaseConfigured || !auth) return;
+    let cancelled = false;
+
+    void getRedirectResult(auth)
+      .then((credential) => {
+        if (!cancelled && credential?.user) onAuthenticated(credential.user);
+      })
+      .catch((redirectError) => {
+        console.error('Firebase Google redirect sign-in failed.', {
+          code: redirectError?.code,
+        });
+        if (!cancelled) setError(t.failed);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [onAuthenticated, t.failed]);
 
   if (loading) {
     return (
@@ -293,6 +322,12 @@ export default function PlatformAccessGate({
     }
     setSubmitting('google');
     try {
+      if (prefersRedirectForGoogleAuth()) {
+        await setAuthPersistence(remember);
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
+
       const credential = await signInWithPopup(auth, googleProvider);
       onAuthenticated(credential.user);
     } catch (err) {
