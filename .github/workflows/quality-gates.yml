@@ -34,6 +34,9 @@ jobs:
       - name: TypeScript validation
         run: npm run lint
 
+      - name: Payment security tests
+        run: npm run test:payments
+
       - name: Production build
         run: npm run build
 
