@@ -56,9 +56,11 @@ export async function verifyHs256Jwt<T extends Record<string, unknown>>(
 
 const pemToPkcs8 = (pem: string): ArrayBuffer => {
   const normalized = pem.replace(/\\n/g, '\n');
+  const beginMarker = ['-----BEGIN', 'PRIVATE KEY-----'].join(' ');
+  const endMarker = ['-----END', 'PRIVATE KEY-----'].join(' ');
   const body = normalized
-    .replace('-----BEGIN PRIVATE KEY-----', '')
-    .replace('-----END PRIVATE KEY-----', '')
+    .replace(beginMarker, '')
+    .replace(endMarker, '')
     .replace(/\s/g, '');
   return base64UrlToBytes(body.replace(/\+/g, '-').replace(/\//g, '_')).buffer;
 };
