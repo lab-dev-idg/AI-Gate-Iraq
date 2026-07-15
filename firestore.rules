@@ -25,6 +25,14 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/adminUsers/$(request.auth.uid)).data.role in ['owner', 'admin'];
     }
 
+    function hasActiveProSubscription(uid) {
+      return exists(/databases/$(database)/documents/subscriptions/$(uid))
+        && get(/databases/$(database)/documents/subscriptions/$(uid)).data.plan == 'pro'
+        && get(/databases/$(database)/documents/subscriptions/$(uid)).data.status == 'active'
+        && get(/databases/$(database)/documents/subscriptions/$(uid)).data.currentPeriodEnd is timestamp
+        && get(/databases/$(database)/documents/subscriptions/$(uid)).data.currentPeriodEnd > request.time;
+    }
+
     function isStringField(fieldName, maxLen) {
       return request.resource.data[fieldName] is string
         && request.resource.data[fieldName].size() > 0
@@ -109,8 +117,49 @@ service cloud.firestore {
         && request.resource.data.session is map;
     }
 
+    function validUsageCreate(uid) {
+      return request.resource.data.keys().hasOnly([
+        'uid', 'questionsUsed', 'lastPlan', 'createdAt', 'updatedAt'
+      ])
+      && request.resource.data.keys().hasAll([
+        'uid', 'questionsUsed', 'lastPlan', 'createdAt', 'updatedAt'
+      ])
+      && request.resource.data.uid == uid
+      && request.resource.data.questionsUsed == 1
+      && request.resource.data.lastPlan in ['free', 'pro']
+      && request.resource.data.createdAt == request.time
+      && request.resource.data.updatedAt == request.time;
+    }
+
+    function validUsageIncrement(uid) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'questionsUsed', 'lastPlan', 'updatedAt'
+      ])
+      && request.resource.data.uid == uid
+      && request.resource.data.questionsUsed == resource.data.questionsUsed + 1
+      && request.resource.data.lastPlan in ['free', 'pro']
+      && request.resource.data.updatedAt == request.time
+      && (hasActiveProSubscription(uid) || resource.data.questionsUsed < 3);
+    }
+
+    function validSubscriptionRequest(uid) {
+      return request.resource.data.keys().hasOnly([
+        'uid', 'email', 'displayName', 'requestedPlan', 'status',
+        'createdAt', 'updatedAt', 'adminNote', 'resolvedAt', 'resolvedBy'
+      ])
+      && request.resource.data.uid == uid
+      && request.resource.data.requestedPlan == 'pro'
+      && request.resource.data.status == 'pending'
+      && request.resource.data.email is string
+      && request.resource.data.email.size() <= 160
+      && request.resource.data.displayName is string
+      && request.resource.data.displayName.size() <= 160
+      && request.resource.data.updatedAt == request.time;
+    }
+
     match /users/{uid} {
-      allow read, create, update: if isOwner(uid);
+      allow read: if isOwner(uid) || isAdmin();
+      allow create, update: if isOwner(uid);
       allow delete: if false;
 
       match /workspace/{workspaceId} {
@@ -133,6 +182,32 @@ service cloud.firestore {
         allow create, update: if isVerifiedOwner(uid);
         allow delete: if false;
       }
+    }
+
+    match /subscriptions/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /usageCounters/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isAdmin() || (isOwner(uid) && validUsageCreate(uid));
+      allow update: if isAdmin() || (isOwner(uid) && validUsageIncrement(uid));
+      allow delete: if false;
+    }
+
+    match /subscriptionRequests/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isAdmin() || (isOwner(uid) && validSubscriptionRequest(uid));
+      allow update: if isAdmin() || (
+        isOwner(uid)
+        && validSubscriptionRequest(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'email', 'displayName', 'requestedPlan', 'status', 'updatedAt'
+        ])
+      );
+      allow delete: if false;
     }
 
     match /adminUsers/{uid} {
