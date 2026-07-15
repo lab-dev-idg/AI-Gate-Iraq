@@ -22,8 +22,8 @@ if (process.env.VITE_FIREBASE_PROJECT_ID !== 'ai-gate-iraq') {
   process.exit(1);
 }
 
-if (process.env.VITE_FIREBASE_AUTH_DOMAIN !== 'ai-gate-iraq.firebaseapp.com') {
-  console.error('VITE_FIREBASE_AUTH_DOMAIN must equal ai-gate-iraq.firebaseapp.com.');
+if (process.env.VITE_FIREBASE_AUTH_DOMAIN !== 'app.aigateiraq.com') {
+  console.error('VITE_FIREBASE_AUTH_DOMAIN must equal app.aigateiraq.com.');
   process.exit(1);
 }
 
