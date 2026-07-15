@@ -14,7 +14,8 @@ import {
   X,
   ArrowLeft,
   LogOut,
-  TrendingUp
+  TrendingUp,
+  Crown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AdminSectionKey } from './adminTypes';
@@ -41,6 +42,7 @@ export const AdminLayout = ({
     { key: 'dashboard' as AdminSectionKey, label: 'داشبۆرد', icon: LayoutDashboard },
     { key: 'intake' as AdminSectionKey, label: 'داواکارییەکان', icon: Inbox },
     { key: 'conversions' as AdminSectionKey, label: 'گۆڕینە بازرگانییەکان', icon: TrendingUp },
+    { key: 'subscriptions' as AdminSectionKey, label: 'بەشداربوون و Pro', icon: Crown },
     { key: 'content' as AdminSectionKey, label: 'ناوەڕۆک', icon: FileText },
     { key: 'services' as AdminSectionKey, label: 'خزمەتگوزارییەکان', icon: Briefcase },
     { key: 'prompts' as AdminSectionKey, label: 'پرۆمپتەکان', icon: Sparkles },
