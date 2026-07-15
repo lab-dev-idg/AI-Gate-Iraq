@@ -33,11 +33,30 @@ Required live project:
 
 ```env
 VITE_FIREBASE_PROJECT_ID=ai-gate-iraq
-VITE_FIREBASE_AUTH_DOMAIN=ai-gate-iraq.firebaseapp.com
+VITE_FIREBASE_AUTH_DOMAIN=app.aigateiraq.com
 VITE_FIREBASE_STORAGE_BUCKET=ai-gate-iraq.firebasestorage.app
 ```
 
 Do not restore old generated Firebase applet configuration files.
+
+## Production authentication lock
+
+The verified Google sign-in configuration is locked to:
+
+```text
+Firebase project: ai-gate-iraq
+Production auth domain: app.aigateiraq.com
+Firebase Web App ID: 1:43659568946:web:40a38e772e2c1a23a1192b
+Google OAuth client ID: 43659568946-9kd2183m3q9mpp62r958bsk9mfrkdbps.apps.googleusercontent.com
+Custom redirect URI: https://app.aigateiraq.com/__/auth/handler
+Firebase redirect URI: https://ai-gate-iraq.firebaseapp.com/__/auth/handler
+Stable commit: ae6b1c610ead4ad8f8a078a514303b64a1a5fed6
+Rollback branch: checkpoint/google-login-stable-2026-07-15
+```
+
+Desktop Google authentication uses a popup. Mobile Google authentication uses the same-site redirect flow and must process the redirect result after returning to the platform. The platform Content Security Policy must continue to allow the narrowly scoped Google authentication script origins `https://apis.google.com` and `https://accounts.google.com`.
+
+Do not restore the cross-site redirect fallback, switch the production auth domain back to `firebaseapp.com`, remove either authorized redirect URI, or remove the Google authentication CSP origins without a verified replacement flow and a new rollback point.
 
 ## Production R2 storage lock
 
