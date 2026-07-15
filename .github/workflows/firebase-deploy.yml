@@ -39,6 +39,7 @@ jobs:
       VITE_FIREBASE_APP_ID: 1:43659568946:web:40a38e772e2c1a23a1192b
       VITE_FIREBASE_MEASUREMENT_ID: G-8ZS8RQVNR7
       VITE_RECAPTCHA_ENTERPRISE_SITE_KEY: ${{ secrets.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY }}
+      VITE_PAYMENT_API_BASE_URL: https://api.aigateiraq.com
 
     steps:
       - name: Checkout main

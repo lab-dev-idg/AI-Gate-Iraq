@@ -10,8 +10,14 @@
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
     "run_worker_first": [
-      "/api/storage-health"
+      "/api/storage-health",
+      "/api/payments/*"
     ]
+  },
+  "vars": {
+    "FIREBASE_PROJECT_ID": "ai-gate-iraq",
+    "PAYMENT_ALLOWED_ORIGINS": "https://app.aigateiraq.com,https://ai-gate-iraq-platform.web.app,https://ai-gate-iraq-platform.firebaseapp.com",
+    "PAYMENT_APP_RETURN_URL": "https://app.aigateiraq.com/workspace"
   },
   "r2_buckets": [
     {

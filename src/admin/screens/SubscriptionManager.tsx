@@ -4,6 +4,8 @@ import {
   CheckCircle2,
   Clock3,
   Crown,
+  Landmark,
+  ReceiptText,
   RefreshCw,
   RotateCcw,
   Search,
@@ -39,6 +41,16 @@ interface SubscriptionUserRow {
   requestStatus: RequestStatus;
 }
 
+interface PaymentOrderRow {
+  orderId: string;
+  email: string;
+  amount: number;
+  currency: string;
+  status: string;
+  providerTransactionId: string;
+  updatedAt: Date | null;
+}
+
 type SnapshotData = Record<string, unknown>;
 
 const toDate = (value: unknown): Date | null => {
@@ -71,6 +83,7 @@ const isActivePro = (row: SubscriptionUserRow): boolean =>
 
 export function SubscriptionManager() {
   const [rows, setRows] = useState<SubscriptionUserRow[]>([]);
+  const [payments, setPayments] = useState<PaymentOrderRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -89,11 +102,12 @@ export function SubscriptionManager() {
         if (!db || !auth?.currentUser) throw new Error('ADMIN_AUTH_REQUIRED');
         await auth.currentUser.getIdToken(true);
 
-        const [usersSnapshot, subscriptionsSnapshot, usageSnapshot, requestsSnapshot] = await Promise.all([
+        const [usersSnapshot, subscriptionsSnapshot, usageSnapshot, requestsSnapshot, paymentsSnapshot] = await Promise.all([
           getDocs(collection(db, 'users')),
           getDocs(collection(db, 'subscriptions')),
           getDocs(collection(db, 'usageCounters')),
           getDocs(collection(db, 'subscriptionRequests')),
+          getDocs(collection(db, 'paymentOrders')),
         ]);
 
         const users = new Map<string, SnapshotData>();
@@ -136,7 +150,23 @@ export function SubscriptionManager() {
           return left.email.localeCompare(right.email);
         });
 
-        if (!cancelled) setRows(nextRows);
+        const nextPayments = paymentsSnapshot.docs.map((item): PaymentOrderRow => {
+          const payment = item.data() as SnapshotData;
+          return {
+            orderId: typeof payment.orderId === 'string' ? payment.orderId : item.id,
+            email: typeof payment.email === 'string' ? payment.email : '',
+            amount: typeof payment.amount === 'number' ? payment.amount : 0,
+            currency: typeof payment.currency === 'string' ? payment.currency : 'IQD',
+            status: typeof payment.status === 'string' ? payment.status : 'pending',
+            providerTransactionId: typeof payment.providerTransactionId === 'string' ? payment.providerTransactionId : '',
+            updatedAt: toDate(payment.updatedAt),
+          };
+        }).sort((left, right) => (right.updatedAt?.getTime() || 0) - (left.updatedAt?.getTime() || 0));
+
+        if (!cancelled) {
+          setRows(nextRows);
+          setPayments(nextPayments);
+        }
       } catch (loadError) {
         console.error('Loading subscription management failed.', loadError);
         if (!cancelled) setError('بارکردنی زانیاریی بەشداربوون سەرکەوتوو نەبوو. Firestore rules و ڕێگەپێدانی ئادمین بپشکنە.');
@@ -155,6 +185,14 @@ export function SubscriptionManager() {
     free: rows.filter((row) => !isActivePro(row)).length,
     pending: rows.filter((row) => row.requestStatus === 'pending').length,
   }), [rows]);
+
+  const paymentMetrics = useMemo(() => ({
+    succeeded: payments.filter((payment) => payment.status === 'succeeded').length,
+    pending: payments.filter((payment) => payment.status === 'pending').length,
+    revenue: payments
+      .filter((payment) => payment.status === 'succeeded')
+      .reduce((sum, payment) => sum + payment.amount, 0),
+  }), [payments]);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -372,6 +410,52 @@ export function SubscriptionManager() {
                   </tr>
                 );
               })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <div className="flex items-center gap-3 pt-2">
+        <span className="grid h-10 w-10 place-items-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-300"><Landmark className="h-5 w-5" /></span>
+        <div>
+          <h2 className="text-lg font-black text-white">پارەدانەکانی ZainCash</h2>
+          <p className="text-[11px] text-slate-500">تەنها payment ـی پشتڕاستکراو لە server، Pro چالاک دەکات.</p>
+        </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-3">
+        {[
+          ['پارەدانی سەرکەوتوو', paymentMetrics.succeeded, 'text-emerald-300'],
+          ['چاوەڕوان', paymentMetrics.pending, 'text-amber-300'],
+          ['کۆی داهاتی پشتڕاستکراو', `${new Intl.NumberFormat('ar-IQ').format(paymentMetrics.revenue)} IQD`, 'text-blue-300'],
+        ].map(([label, value, color]) => (
+          <Card key={label} className="border-slate-800 bg-[#0E1625] p-4">
+            <p className="text-[11px] text-slate-500">{label}</p>
+            <p className={`mt-2 text-xl font-black ${color}`}>{value}</p>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="overflow-hidden border-slate-800 bg-[#0E1625]">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[850px] text-right text-xs">
+            <thead className="border-b border-slate-800 bg-slate-950/50 text-slate-400">
+              <tr><th className="p-3">بەکارهێنەر</th><th className="p-3">بڕ</th><th className="p-3">دۆخ</th><th className="p-3">بەروار</th><th className="p-3">ناسنامەی مامەڵە</th></tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={5} className="p-8 text-center text-slate-500">پارەدانەکان بار دەکرێن...</td></tr>
+              ) : payments.length === 0 ? (
+                <tr><td colSpan={5} className="p-8 text-center text-slate-500"><ReceiptText className="mx-auto mb-2 h-5 w-5" />هێشتا هیچ payment order ـێک نییە.</td></tr>
+              ) : payments.slice(0, 50).map((payment) => (
+                <tr key={payment.orderId} className="border-b border-slate-800/70 hover:bg-slate-800/25">
+                  <td className="p-3 text-emerald-300">{payment.email || '—'}</td>
+                  <td className="p-3 font-black text-white">{new Intl.NumberFormat('ar-IQ').format(payment.amount)} {payment.currency}</td>
+                  <td className="p-3"><span className={`rounded-full border px-2.5 py-1 text-[10px] font-black ${payment.status === 'succeeded' ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300' : payment.status === 'pending' ? 'border-amber-400/25 bg-amber-400/10 text-amber-300' : 'border-rose-400/25 bg-rose-400/10 text-rose-300'}`}>{payment.status}</span></td>
+                  <td className="p-3 text-slate-300">{formatDate(payment.updatedAt)}</td>
+                  <td className="max-w-[280px] truncate p-3 font-mono text-[10px] text-slate-500" title={payment.providerTransactionId}>{payment.providerTransactionId || '—'}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

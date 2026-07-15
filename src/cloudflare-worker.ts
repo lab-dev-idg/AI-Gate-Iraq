@@ -1,3 +1,5 @@
+import { handlePaymentRequest, type PaymentWorkerEnv } from './payments/worker-api';
+
 interface AssetFetcher {
   fetch(request: Request): Promise<Response>;
 }
@@ -6,7 +8,7 @@ interface R2BucketBinding {
   list(options: { limit: number }): Promise<unknown>;
 }
 
-interface Env {
+interface Env extends PaymentWorkerEnv {
   ASSETS: AssetFetcher;
   STORAGE_BUCKET: R2BucketBinding;
 }
@@ -23,6 +25,9 @@ const json = (body: Record<string, unknown>, status = 200) =>
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+
+    const paymentResponse = await handlePaymentRequest(request, env);
+    if (paymentResponse) return paymentResponse;
 
     if (url.pathname === '/api/storage-health') {
       if (request.method !== 'GET' && request.method !== 'HEAD') {
