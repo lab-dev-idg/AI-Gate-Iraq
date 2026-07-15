@@ -73,12 +73,10 @@ if (isFirebaseConfigured) {
   try {
     firebaseApp = initializeApp(firebaseConfig);
     firebaseAuth = getAuth(firebaseApp);
-    authPersistenceReady = realSetPersistence(firebaseAuth, browserLocalPersistence)
-      .catch(() => realSetPersistence(firebaseAuth, browserSessionPersistence))
-      .catch(() => realSetPersistence(firebaseAuth, inMemoryPersistence))
-      .catch((error) => {
-        console.warn('Firebase Auth persistence could not be initialized.', error);
-      });
+    // Firebase defaults to local persistence in supported browsers. Avoid
+    // changing persistence during startup because popup OAuth state relies on
+    // uninterrupted session storage on mobile browsers.
+    authPersistenceReady = Promise.resolve();
     firebaseDb = initializeFirestore(firebaseApp, {
       localCache: memoryLocalCache(),
     });
