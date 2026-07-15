@@ -11,6 +11,7 @@ import {
 import { AdminDashboard } from './screens/AdminDashboard';
 import { IntakeManager } from './screens/IntakeManager';
 import { ConversionOperationsApi } from './screens/ConversionOperationsApi';
+import { SubscriptionManager } from './screens/SubscriptionManager';
 import { AuditLog } from './screens/AuditLog';
 import { AdminSettings } from './screens/AdminSettings';
 import { ContentManager } from './screens/ContentManager';
@@ -55,6 +56,7 @@ export default function AdminPanelV3({ adminToken }: AdminPanelV3Props) {
       {activeSection === 'dashboard' && <AdminDashboard adminData={adminData} onSectionChange={setActiveSection} onResetData={() => setAdminData(resetAdminState())} />}
       {activeSection === 'intake' && <IntakeManager intakes={adminData.intake} onUpdateStatus={updateStatus} onUpdateNote={(id, note) => setAdminData(updateIntakeNote(id, note))} />}
       {activeSection === 'conversions' && <ConversionOperationsApi adminToken={adminToken} />}
+      {activeSection === 'subscriptions' && <SubscriptionManager />}
       {activeSection === 'content' && <ContentManager contents={adminData.contents} onUpdateContent={(id, patch) => setAdminData(updateContentSection(id, patch))} onResetToDefault={() => setAdminData(resetAdminState())} />}
       {activeSection === 'services' && <ServiceManager services={adminData.services} onUpdateService={(key, patch) => setAdminData(updateServiceConfig(key, patch))} onReorderService={(key, direction) => setAdminData(reorderServiceConfig(key, direction))} />}
       {activeSection === 'prompts' && <PromptManager prompts={adminData.prompts} services={adminData.services} onAddPrompt={(serviceKey) => setAdminData(addPromptConfig(serviceKey))} onDeletePrompt={(id) => setAdminData(deletePromptConfig(id))} onUpdatePrompt={(id, patch) => setAdminData(updatePromptConfig(id, patch))} onReorderPrompt={(id, direction) => setAdminData(reorderPromptConfig(id, direction))} />}

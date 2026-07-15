@@ -58,6 +58,20 @@ Desktop Google authentication uses a popup. Mobile Google authentication uses th
 
 Do not restore the cross-site redirect fallback, switch the production auth domain back to `firebaseapp.com`, remove either authorized redirect URI, or remove the Google authentication CSP origins without a verified replacement flow and a new rollback point.
 
+## Subscription entitlement lock
+
+The initial commercial access model is locked to Firestore-backed entitlements:
+
+```text
+Free AI question limit: 3
+Entitlement collection: subscriptions/{uid}
+Usage collection: usageCounters/{uid}
+Activation request collection: subscriptionRequests/{uid}
+Activation mode: manual admin approval
+```
+
+Only authorized `owner` or `admin` accounts may create, renew, cancel, or otherwise modify a subscription. Users may read only their own entitlement and usage records. Do not restore `localStorage` as the authoritative trial counter, and do not mark a payment as successful from browser code. Automated payments require a trusted webhook and a new security review.
+
 ## Production R2 storage lock
 
 The verified production Cloudflare R2 runtime is locked to:
