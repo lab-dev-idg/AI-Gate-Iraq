@@ -8,11 +8,13 @@ import {
   browserSessionPersistence,
   inMemoryPersistence,
   createUserWithEmailAndPassword as realCreateUserWithEmailAndPassword,
+  getRedirectResult as realGetRedirectResult,
   getAuth,
   GoogleAuthProvider,
   sendEmailVerification as realSendEmailVerification,
   setPersistence as realSetPersistence,
   signInWithPopup as realSignInWithPopup,
+  signInWithRedirect as realSignInWithRedirect,
   signInWithEmailAndPassword as realSignInWithEmailAndPassword,
   sendPasswordResetEmail as realSendPasswordResetEmail,
   signOut as realSignOut,
@@ -122,6 +124,17 @@ export const signInWithPopup = async (authObj: any, providerObj: any) => {
   requireAuth(authObj);
   if (!providerObj) throw new Error('FIREBASE_AUTH_PROVIDER_NOT_CONFIGURED');
   return realSignInWithPopup(authObj, providerObj);
+};
+
+export const signInWithRedirect = async (authObj: any, providerObj: any) => {
+  requireAuth(authObj);
+  if (!providerObj) throw new Error('FIREBASE_AUTH_PROVIDER_NOT_CONFIGURED');
+  return realSignInWithRedirect(authObj, providerObj);
+};
+
+export const getRedirectResult = async (authObj: any) => {
+  requireAuth(authObj);
+  return realGetRedirectResult(authObj);
 };
 
 export const signInWithEmailAndPassword = async (authObj: any, email: string, password: string) => {
