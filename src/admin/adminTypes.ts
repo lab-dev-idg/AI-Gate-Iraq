@@ -4,6 +4,7 @@ export type AdminSectionKey =
   | 'dashboard'
   | 'intake'
   | 'conversions'
+  | 'subscriptions'
   | 'content'
   | 'services'
   | 'prompts'
