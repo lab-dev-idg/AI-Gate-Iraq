@@ -38,6 +38,23 @@ const required = [
       { pattern: /return\s+env\.ASSETS\.fetch\(request\)/, reason: 'Non-API requests must continue to use SPA assets.' },
     ],
   },
+  {
+    file: 'firestore.rules',
+    checks: [
+      { pattern: /function isAdmin\(\)\s*\{[\s\S]*?adminUsers\/[\s\S]*?role in \['owner', 'admin'\]/, reason: 'Firestore must retain the active owner/admin authorization contract.' },
+      { pattern: /match \/users\/\{uid\}\s*\{[\s\S]*?allow read:\s*if isOwner\(uid\) \|\| isAdmin\(\);/, reason: 'Admins must be able to read user records.' },
+      { pattern: /match \/subscriptions\/\{uid\}\s*\{[\s\S]*?allow read:\s*if isOwner\(uid\) \|\| isAdmin\(\);/, reason: 'Admins must be able to read subscription records.' },
+      { pattern: /match \/paymentOrders\/\{orderId\}\s*\{[\s\S]*?allow read:\s*if isAdmin\(\)/, reason: 'Admins must be able to read payment orders.' },
+      { pattern: /match \/conversionSubmissions\/\{submissionId\}\s*\{[\s\S]*?allow read:\s*if isAdmin\(\);/, reason: 'Admins must be able to read conversion submissions.' },
+    ],
+  },
+  {
+    file: '.github/workflows/firebase-deploy.yml',
+    checks: [
+      { pattern: /push:\s*\n\s+branches:[\s\S]*?- main[\s\S]*?- firestore\.rules/, reason: 'Firestore rule changes on main must trigger a production rules deployment.' },
+      { pattern: /name: Deploy Firestore rules[\s\S]*?github\.event_name == 'push'[\s\S]*?inputs\.deploy_scope == 'platform'/, reason: 'Platform deployments must include the matching Firestore rules.' },
+    ],
+  },
 ];
 
 function collectFiles(target) {
@@ -92,8 +109,8 @@ for (const requirement of required) {
 if (failures.length > 0) {
   console.error('\nProject guard failed. Fix these blocked patterns before build:\n');
   for (const failure of failures) console.error(`- ${failure}`);
-  console.error('\nPermanent rules: private commercial ownership, no legacy AI Studio Firebase, no Gemini model override, and no removal of the production R2 runtime contract.\n');
+  console.error('\nPermanent rules: private commercial ownership, no legacy AI Studio Firebase, no Gemini model override, and no removal of the production R2 or Admin/Firestore deployment contracts.\n');
   process.exit(1);
 }
 
-console.log('Project guard passed: positioning, Firebase, Gemini model, and Cloudflare R2 runtime contracts are intact.');
+console.log('Project guard passed: positioning, Firebase, Gemini model, Cloudflare R2, and Admin/Firestore deployment contracts are intact.');

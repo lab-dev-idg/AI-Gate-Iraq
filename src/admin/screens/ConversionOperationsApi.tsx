@@ -4,6 +4,7 @@ import { getDocs } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { auth, collection, db, doc, serverTimestamp, updateDoc } from '@/src/lib/firebase';
+import { getAdminFirestoreErrorMessage } from '@/src/admin/adminFirestoreError';
 
 type ConversionStatus = 'received' | 'contacted' | 'qualified' | 'converted' | 'closed';
 
@@ -130,7 +131,12 @@ export function ConversionOperationsApi({ adminToken: _adminToken }: ConversionO
         if (!cancelled) setItems(records);
       } catch (loadError) {
         console.error('Loading conversion operations failed.', loadError);
-        if (!cancelled) setError('بارکردنی داواکارییەکان سەرکەوتوو نەبوو.');
+        if (!cancelled) {
+          setError(getAdminFirestoreErrorMessage(
+            loadError,
+            'بارکردنی داواکارییەکان سەرکەوتوو نەبوو.',
+          ));
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }

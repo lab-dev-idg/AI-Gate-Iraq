@@ -25,6 +25,7 @@ import {
   setDoc,
 } from '@/src/lib/firebase';
 import { FREE_QUESTION_LIMIT } from '@/src/lib/subscription';
+import { getAdminFirestoreErrorMessage } from '@/src/admin/adminFirestoreError';
 
 type RequestStatus = 'pending' | 'approved' | 'rejected' | 'resolved' | '';
 
@@ -169,7 +170,12 @@ export function SubscriptionManager() {
         }
       } catch (loadError) {
         console.error('Loading subscription management failed.', loadError);
-        if (!cancelled) setError('بارکردنی زانیاریی بەشداربوون سەرکەوتوو نەبوو. Firestore rules و ڕێگەپێدانی ئادمین بپشکنە.');
+        if (!cancelled) {
+          setError(getAdminFirestoreErrorMessage(
+            loadError,
+            'بارکردنی زانیاریی بەشداربوون سەرکەوتوو نەبوو.',
+          ));
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
