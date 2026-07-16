@@ -1,6 +1,12 @@
 name: Firebase Deploy
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - firestore.rules
+      - .github/workflows/firebase-deploy.yml
   workflow_dispatch:
     inputs:
       deploy_scope:
@@ -104,7 +110,13 @@ jobs:
           test -f .firebase-hosting/platform/site.webmanifest
 
       - name: Deploy Firestore rules
-        if: ${{ inputs.deploy_scope == 'all' || inputs.deploy_scope == 'firestore' }}
+        if: >-
+          ${{
+            github.event_name == 'push'
+            || inputs.deploy_scope == 'all'
+            || inputs.deploy_scope == 'platform'
+            || inputs.deploy_scope == 'firestore'
+          }}
         run: >-
           npx firebase-tools@latest deploy
           --only firestore:rules
@@ -186,7 +198,7 @@ jobs:
           {
             echo "## Firebase deployment"
             echo "- Project: ai-gate-iraq"
-            echo "- Scope: ${{ inputs.deploy_scope }}"
+            echo "- Scope: ${{ github.event_name == 'push' && 'firestore' || inputs.deploy_scope }}"
             echo "- Commit: $GITHUB_SHA"
             echo "- Website: https://ai-gate-iraq-website.web.app"
             echo "- Platform: https://ai-gate-iraq-platform.web.app"
